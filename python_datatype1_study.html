@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 자료형(type) - 1 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --accent: #f0883e;
+    --accent2: #3fb950;
+    --accent3: #f78166;
+    --accent4: #d2a8ff;
+    --warn: #e3b341;
+    --text: #e6edf3;
+    --text-sub: #8b949e;
+    --code-bg: #010409;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #101520 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px);
+  }
+  .logo { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; color: var(--accent); font-weight: 700; letter-spacing: -1px; }
+  .logo span { color: var(--accent4); }
+  header h1 { font-size: 1rem; font-weight: 400; color: var(--text-sub); }
+  header h1 strong { color: var(--text); font-weight: 600; }
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text-sub); background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 12px; text-decoration: none; white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .btn-back:hover { color: var(--text); border-color: #444c56; }
+
+  nav { display: flex; gap: 4px; padding: 16px 40px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab-btn {
+    font-family: 'Noto Sans KR', sans-serif; padding: 8px 20px; border-radius: 8px;
+    border: 1px solid transparent; background: transparent; color: var(--text-sub);
+    cursor: pointer; font-size: 0.875rem; font-weight: 400; transition: all 0.2s;
+    white-space: nowrap; display: flex; align-items: center; gap: 6px;
+  }
+  .tab-btn:hover { background: var(--surface2); color: var(--text); }
+  .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .tab-icon { font-size: 1rem; }
+
+  .section { display: none; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .section.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .section-subtitle { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 32px; font-weight: 300; }
+
+  /* ===== FLASHCARD ===== */
+  .flashcard-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .fc-progress { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 1rem; font-weight: 600; }
+  .fc-progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 4px; margin-bottom: 24px; overflow: hidden; }
+  .fc-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent4)); border-radius: 4px; transition: width 0.4s ease; }
+  .flashcard-wrap { perspective: 1200px; height: 340px; cursor: pointer; margin-bottom: 24px; }
+  .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1); }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .fc-front, .fc-back {
+    position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+    border-radius: var(--radius); border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center;
+  }
+  .fc-front { background: linear-gradient(135deg, var(--surface) 0%, #101a20 100%); }
+  .fc-back { background: linear-gradient(135deg, #0f1f0f 0%, #1a2a1a 100%); border-color: var(--accent2); transform: rotateY(180deg); }
+  .fc-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 16px; }
+  .fc-front .fc-label { color: var(--accent); }
+  .fc-back .fc-label { color: var(--accent2); }
+  .fc-q { font-size: 1.2rem; font-weight: 600; line-height: 1.6; color: var(--text); }
+  .fc-a { font-size: 0.95rem; font-weight: 400; line-height: 1.8; color: var(--text); white-space: pre-line; }
+  .fc-hint { margin-top: 20px; font-size: 0.8rem; color: var(--text-sub); }
+  .nav-btns { display: flex; gap: 12px; justify-content: center; }
+  .btn { font-family: 'Noto Sans KR', sans-serif; padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-ghost { background: transparent; color: var(--text-sub); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #f0a060; }
+  .btn-danger { background: var(--accent3); color: #fff; border-color: var(--accent3); }
+
+  /* ===== CODE EXAMPLES ===== */
+  .code-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; transition: border-color 0.2s; }
+  .code-card:hover { border-color: var(--accent); }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .code-title { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+  .code-tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
+  .tag-numeric { background: #2a1a0a; color: var(--accent); border: 1px solid var(--accent); }
+  .tag-sequence { background: #1c2a4a; color: #58a6ff; border: 1px solid #58a6ff; }
+  .tag-iter { background: #2a1c2a; color: var(--accent4); border: 1px solid var(--accent4); }
+  .tag-input { background: #1f2a1f; color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-range { background: #2a2a0a; color: var(--warn); border: 1px solid var(--warn); }
+  .code-explain { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 0.9rem; line-height: 1.7; color: var(--text-sub); }
+  .code-explain strong { color: var(--text); }
+  pre { background: var(--code-bg); padding: 20px; overflow-x: auto; margin: 0; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.7; }
+  .kw { color: #ff7b72; } .fn { color: #d2a8ff; } .st { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; } .nm { color: #79c0ff; }
+  .op { color: #f0883e; } .num { color: #f0883e; } .cls { color: #ffa657; }
+  .output-box { background: #010409; border-top: 1px solid var(--border); padding: 12px 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent2); }
+  .output-label { color: var(--text-sub); font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+
+  .diagram-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .type-card { padding: 16px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.85rem; line-height: 1.8; }
+  .tc-numeric { background: #1f1a0a; border-color: var(--accent); }
+  .tc-sequence { background: #0a1a2a; border-color: #58a6ff; }
+  .tc-iter { background: #1a0f2a; border-color: var(--accent4); }
+  .tc-label { font-weight: 700; margin-bottom: 8px; font-size: 0.9rem; }
+  .tc-numeric .tc-label { color: var(--accent); }
+  .tc-sequence .tc-label { color: #58a6ff; }
+  .tc-iter .tc-label { color: var(--accent4); }
+
+  /* ===== QUIZ ===== */
+  .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .quiz-score-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--accent2); font-weight: 600; background: #0f1f0f; border: 1px solid var(--accent2); padding: 4px 12px; border-radius: 20px; }
+  .quiz-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; }
+  .quiz-num { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 1px; margin-bottom: 12px; font-weight: 600; }
+  .quiz-q { font-size: 1rem; font-weight: 600; line-height: 1.7; margin-bottom: 20px; color: var(--text); white-space: pre-line; }
+  .quiz-code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-size: 0.8rem; color: #e6edf3; margin-bottom: 20px; white-space: pre; overflow-x: auto; line-height: 1.6; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn { font-family: 'Noto Sans KR', sans-serif; width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 0.9rem; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+  .opt-btn:hover:not(:disabled) { border-color: var(--accent); background: #2a1a0a; }
+  .opt-btn:disabled { cursor: default; }
+  .opt-letter { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .opt-btn.correct { border-color: var(--accent2); background: #0f1f0f; color: var(--accent2); }
+  .opt-btn.correct .opt-letter { background: var(--accent2); color: #fff; }
+  .opt-btn.wrong { border-color: var(--accent3); background: #2a1c1c; color: var(--accent3); }
+  .opt-btn.wrong .opt-letter { background: var(--accent3); color: #fff; }
+  .feedback-box { margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; line-height: 1.6; display: none; }
+  .feedback-box.show { display: block; }
+  .feedback-correct { background: #0f2a0f; border: 1px solid var(--accent2); color: var(--accent2); }
+  .feedback-wrong { background: #2a0f0f; border: 1px solid var(--accent3); color: #e6edf3; }
+  .feedback-wrong strong { color: var(--accent3); }
+  .quiz-result { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; text-align: center; animation: fadeIn 0.4s ease; }
+  .quiz-result.show { display: block; }
+  .result-score { font-family: 'JetBrains Mono', monospace; font-size: 3rem; font-weight: 700; margin: 16px 0; }
+  .result-msg { font-size: 1rem; color: var(--text-sub); margin-bottom: 24px; }
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ===== PRACTICE ===== */
+  .practice-score-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+  .ps-label { font-size: 0.875rem; color: var(--text-sub); }
+  .ps-score { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 700; color: var(--accent4); background: #2a1c40; border: 1px solid var(--accent4); padding: 4px 14px; border-radius: 20px; }
+  .practice-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 28px; }
+  .practice-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .practice-num { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent4); font-weight: 700; letter-spacing: 1px; }
+  .practice-tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; background: #2a1c40; color: var(--accent4); border: 1px solid var(--accent4); }
+  .practice-body { padding: 20px; }
+  .practice-q { font-size: 1rem; font-weight: 600; line-height: 1.7; margin-bottom: 14px; white-space: pre-line; }
+  .practice-desc { font-size: 0.875rem; color: var(--text-sub); line-height: 1.7; margin-bottom: 16px; padding: 12px; background: var(--surface2); border-radius: 8px; border-left: 3px solid var(--accent4); }
+  .practice-given { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-size: 0.8rem; color: #e6edf3; margin-bottom: 14px; white-space: pre; overflow-x: auto; line-height: 1.7; }
+  .editor-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent4); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
+  .code-editor { width: 100%; background: #010409; border: 1px solid var(--accent4); border-radius: 8px; padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--accent4); resize: vertical; min-height: 100px; outline: none; line-height: 1.7; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+  .code-editor:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(240,136,62,0.15); color: var(--text); }
+  .practice-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .btn-check { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--accent4); background: #2a1c40; color: var(--accent4); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-check:hover { background: var(--accent4); color: #000; }
+  .btn-hint { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-sub); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-hint:hover { border-color: var(--warn); color: var(--warn); }
+  .btn-reset-p { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-sub); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
+  .btn-reset-p:hover { border-color: var(--accent3); color: var(--accent3); }
+  .practice-feedback { margin-top: 14px; border-radius: 8px; overflow: hidden; display: none; }
+  .practice-feedback.show { display: block; }
+  .pf-result { padding: 12px 16px; font-size: 0.875rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .pf-correct { background: #0f2a0f; color: var(--accent2); border: 1px solid var(--accent2); border-bottom: none; }
+  .pf-wrong { background: #2a0f0f; color: var(--accent3); border: 1px solid var(--accent3); border-bottom: none; }
+  .pf-partial { background: #2a2a0f; color: var(--warn); border: 1px solid var(--warn); border-bottom: none; }
+  .pf-explain { padding: 14px 16px; font-size: 0.85rem; line-height: 1.7; color: var(--text-sub); background: var(--surface2); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; }
+  .pf-answer-code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 0.78rem; color: var(--accent2); margin-top: 10px; white-space: pre; overflow-x: auto; line-height: 1.6; }
+  .hint-box { margin-top: 10px; padding: 10px 14px; background: #2a200a; border: 1px solid var(--warn); border-radius: 8px; font-size: 0.85rem; color: var(--warn); display: none; line-height: 1.6; white-space: pre-line; font-family: 'JetBrains Mono', monospace; }
+  .hint-box.show { display: block; }
+
+  /* ===== WRONG NOTES ===== */
+  .wrong-note-card { background: var(--surface); border: 1px solid #2a1c1c; border-left: 4px solid var(--accent3); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; animation: fadeIn 0.3s ease; }
+  .wn-qnum { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent3); font-weight: 600; margin-bottom: 8px; }
+  .wn-q { font-size: 0.95rem; font-weight: 600; margin-bottom: 12px; line-height: 1.6; }
+  .wn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem; }
+  .wn-my { padding: 10px; border-radius: 6px; background: #2a1c1c; border: 1px solid var(--accent3); }
+  .wn-ans { padding: 10px; border-radius: 6px; background: #0f1f0f; border: 1px solid var(--accent2); }
+  .wn-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .wn-my .wn-label { color: var(--accent3); }
+  .wn-ans .wn-label { color: var(--accent2); }
+  .wn-explain { margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; padding: 10px; background: var(--surface2); border-radius: 6px; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .download-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+  .download-info { font-size: 0.9rem; }
+  .download-info strong { color: var(--accent3); }
+
+  @media (max-width: 600px) {
+    nav, .section { padding: 12px 16px; }
+    header { padding: 14px 16px; }
+    .wn-row { grid-template-columns: 1fr; }
+    .flashcard-wrap { height: 300px; }
+    .type-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="btn-back" href="index.html">← 목록으로</a>
+  <div class="logo">py<span>.type</span></div>
+  <h1>Python <strong>자료형(type) - 1</strong> 학습</h1>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')"><span class="tab-icon">🃏</span> 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')"><span class="tab-icon">💻</span> 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')"><span class="tab-icon">📝</span> 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('practice')"><span class="tab-icon">⌨️</span> 실습 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')"><span class="tab-icon">📋</span> 오답노트</button>
+</nav>
+
+<!-- ======== FLASHCARDS ======== -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 개념을 충분히 학습한 후 퀴즈로 넘어가세요.</div>
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 16</span>
+    <span style="font-size:0.8rem;color:var(--text-sub)">💡 클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:6.25%"></div></div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">👆 클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ======== CODE EXAMPLES ======== -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">실제 파이썬 코드를 통해 자료형 개념을 확인하세요.</div>
+
+  <!-- 자료형 개요 다이어그램 -->
+  <div class="diagram-box">
+    <div class="section-title" style="font-size:1rem;justify-content:center;margin-bottom:20px;">파이썬 자료형 분류</div>
+    <div class="type-grid">
+      <div class="type-card tc-numeric">
+        <div class="tc-label">숫자형 (Numeric)</div>
+        <div style="color:var(--text-sub)">
+          • <strong style="color:var(--accent)">int</strong> — 정수 (무한 자릿수)<br>
+          • <strong style="color:var(--accent)">float</strong> — 실수 (8바이트 double)<br>
+          • <strong style="color:var(--accent)">bool</strong> — True/False (int 하위 타입)
+        </div>
+      </div>
+      <div class="type-card tc-sequence">
+        <div class="tc-label">순차형 (Sequence)</div>
+        <div style="color:var(--text-sub)">
+          • <strong style="color:#58a6ff">tuple</strong> — 불변 순서열<br>
+          • <strong style="color:#58a6ff">list</strong> — 가변 순서열<br>
+          • <strong style="color:#58a6ff">str</strong> — 문자열<br>
+          • <strong style="color:#58a6ff">range</strong> — 정수 범위 (메모리 효율적)
+        </div>
+      </div>
+      <div class="type-card tc-iter" style="grid-column: span 2;">
+        <div class="tc-label">iterable / iterator</div>
+        <div style="color:var(--text-sub); display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+          <div>• <strong style="color:var(--accent4)">iterable</strong>: iter()로 iterator를 생성할 수 있는 객체<br><span style="font-size:0.8rem">→ list, tuple, str, range 등</span></div>
+          <div>• <strong style="color:var(--accent4)">iterator</strong>: next()로 다음 요소를 반환하는 객체<br><span style="font-size:0.8rem">→ StopIteration이 발생할 때까지</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 예제 1: 정수(int) — 무한 정수 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: 정수(int) — 파이썬은 무한 자릿수!</span>
+      <span class="code-tag tag-numeric">int · 무한정수</span>
+    </div>
+    <div class="code-explain">
+      대부분의 언어(C, Java 등)는 정수의 크기가 고정되어 있지만, <strong>파이썬의 int는 자릿수 제한이 없습니다.</strong><br>
+      내부적으로 필요한 만큼 메모리를 동적으로 할당하기 때문에, 아무리 큰 수도 정확하게 표현합니다.<br>
+      <span style="color:var(--warn)">주의:</span> 숫자 뒤의 <code style="color:var(--accent4)">;</code>은 파이썬에서 선택적이지만 일반적으로는 쓰지 않습니다.
+    </div>
+    <pre><code><span class="cm"># 파이썬의 정수는 자릿수 제한이 없는 무한 정수입니다.</span>
+<span class="cm"># C/Java에서는 오버플로우가 나지만, 파이썬에서는 정확히 계산됩니다.</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">100000000000000000000</span> <span class="op">+</span> <span class="num">1</span>
+<span class="fn">print</span>(<span class="nm">a</span>)         <span class="cm"># 100000000000000000001</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="nm">a</span>))   <span class="cm"># &lt;class 'int'&gt;</span>
+
+<span class="cm"># 정수가 얼마나 큰 값도 처리 가능한지 확인</span>
+<span class="nm">big</span> <span class="op">=</span> <span class="num">2</span> <span class="op">**</span> <span class="num">100</span>    <span class="cm"># 2의 100제곱</span>
+<span class="fn">print</span>(<span class="nm">big</span>)        <span class="cm"># 1267650600228229401496703205376</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      100000000000000000001<br>
+      &lt;class 'int'&gt;<br>
+      1267650600228229401496703205376
+    </div>
+  </div>
+
+  <!-- 예제 2: 실수(float) — 8바이트 double -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: 실수(float) — 8바이트 double 정밀도</span>
+      <span class="code-tag tag-numeric">float · 부동소수점</span>
+    </div>
+    <div class="code-explain">
+      파이썬의 <strong>float는 C언어의 double형(8바이트, 64비트)</strong>을 사용합니다.<br>
+      소수점 이하 약 15~17자리까지 표현할 수 있으며, 그 이상의 자릿수는 <strong>반올림</strong>됩니다.<br>
+      따라서 <code style="color:var(--accent4)">3.123456789123456789</code>처럼 입력해도 내부적으로 15~16자리로 잘립니다.
+    </div>
+    <pre><code><span class="cm"># 파이썬 실수는 8바이트(64비트) double 정밀도</span>
+<span class="cm"># 소수점 이하 약 15~16자리까지만 정확히 표현 가능</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">3.123456789123456789</span>
+<span class="fn">print</span>(<span class="nm">a</span>)         <span class="cm"># 3.123456789123457 (마지막 자리 반올림됨)</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="nm">a</span>))   <span class="cm"># &lt;class 'float'&gt;</span>
+
+<span class="cm"># 부동소수점 표현의 한계 — 0.1 + 0.2는 0.3이 아닐 수 있음</span>
+<span class="fn">print</span>(<span class="num">0.1</span> <span class="op">+</span> <span class="num">0.2</span>)  <span class="cm"># 0.30000000000000004 (IEEE 754 부동소수점 오차)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      3.123456789123457<br>
+      &lt;class 'float'&gt;<br>
+      0.30000000000000004
+    </div>
+  </div>
+
+  <!-- 예제 3: bool — 숫자형의 일부 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: bool — 숫자형(Numeric)의 일부!</span>
+      <span class="code-tag tag-numeric">bool · True/False · 산술연산</span>
+    </div>
+    <div class="code-explain">
+      파이썬의 <strong>bool은 int의 하위 타입</strong>입니다. <code style="color:var(--accent4)">True</code>는 정수 <code style="color:var(--accent4)">1</code>, <code style="color:var(--accent4)">False</code>는 정수 <code style="color:var(--accent4)">0</code>과 동일합니다.<br>
+      이 때문에 <strong>bool 값으로 산술 연산이 가능</strong>합니다. 이는 "조건을 만족한 개수" 세기 등에 활용됩니다.<br>
+      <code style="color:var(--accent4)">isinstance(True, int)</code>는 <code style="color:var(--accent4)">True</code>를 반환합니다 — bool이 int를 상속하기 때문입니다.
+    </div>
+    <pre><code><span class="cm"># bool은 int의 하위 타입: True=1, False=0</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="kw">True</span>
+<span class="fn">print</span>(<span class="nm">a</span>, <span class="fn">type</span>(<span class="nm">a</span>))         <span class="cm"># True &lt;class 'bool'&gt;</span>
+
+<span class="cm"># True=1, False=0 이므로 산술 연산이 가능합니다</span>
+<span class="fn">print</span>(<span class="kw">True</span> <span class="op">+</span> <span class="kw">True</span>)         <span class="cm"># 2  (1 + 1)</span>
+<span class="fn">print</span>(<span class="kw">True</span> <span class="op">*</span> <span class="kw">False</span>)        <span class="cm"># 0  (1 * 0)</span>
+<span class="fn">print</span>(<span class="kw">True</span> <span class="op">+</span> <span class="num">10</span>)            <span class="cm"># 11 (1 + 10)</span>
+
+<span class="cm"># bool은 int의 하위 타입 — isinstance로 확인</span>
+<span class="fn">print</span>(<span class="fn">isinstance</span>(<span class="kw">True</span>, <span class="fn">int</span>))   <span class="cm"># True</span>
+
+<span class="cm"># 응용: 리스트에서 True인 요소 개수 세기</span>
+<span class="nm">data</span> <span class="op">=</span> [<span class="num">3</span>, <span class="op">-</span><span class="num">1</span>, <span class="num">5</span>, <span class="op">-</span><span class="num">2</span>, <span class="num">7</span>]
+<span class="nm">count_positive</span> <span class="op">=</span> <span class="fn">sum</span>(<span class="nm">x</span> <span class="op">&gt;</span> <span class="num">0</span> <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">data</span>)
+<span class="fn">print</span>(<span class="nm">count_positive</span>)         <span class="cm"># 3 (양수가 3개)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      True &lt;class 'bool'&gt;<br>
+      2<br>
+      0<br>
+      11<br>
+      True<br>
+      3
+    </div>
+  </div>
+
+  <!-- 예제 4: 순차형 4종류 비교 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: 순차형(Sequence) 4종류 한눈에 비교</span>
+      <span class="code-tag tag-sequence">tuple · list · str · range</span>
+    </div>
+    <div class="code-explain">
+      순차형은 <strong>인덱스로 접근 가능하고 순서가 있는</strong> 자료형입니다.<br>
+      <code style="color:var(--accent4)">tuple</code>은 소괄호 <code style="color:var(--accent4)">()</code>, <code style="color:var(--accent4)">list</code>는 대괄호 <code style="color:var(--accent4)">[]</code>, <code style="color:var(--accent4)">str</code>은 따옴표, <code style="color:var(--accent4)">range</code>는 <code style="color:var(--accent4)">range()</code>로 만듭니다.<br>
+      네 가지 모두 <strong>for 문으로 순회(iterate)</strong>할 수 있습니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)      <span class="cm"># tuple — 불변(immutable): 생성 후 변경 불가</span>
+<span class="nm">b</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]      <span class="cm"># list  — 가변(mutable): 요소 추가/삭제/변경 가능</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="st">"123"</span>           <span class="cm"># str   — 불변 문자열</span>
+<span class="nm">d</span> <span class="op">=</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">4</span>)     <span class="cm"># range — 정수 범위 객체 (1, 2, 3)</span>
+
+<span class="cm"># type() 으로 각각의 자료형 확인</span>
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> [<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>, <span class="nm">d</span>]:
+    <span class="fn">print</span>(<span class="nm">x</span>, <span class="fn">type</span>(<span class="nm">x</span>))
+
+<span class="cm"># 인덱스로 첫 번째 요소 접근 (모두 0부터 시작)</span>
+<span class="fn">print</span>(<span class="nm">a</span>[<span class="num">0</span>], <span class="nm">b</span>[<span class="num">0</span>], <span class="nm">c</span>[<span class="num">0</span>])   <span class="cm"># 1 1 1</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      (1, 2, 3) &lt;class 'tuple'&gt;<br>
+      [1, 2, 3] &lt;class 'list'&gt;<br>
+      123 &lt;class 'str'&gt;<br>
+      range(1, 4) &lt;class 'range'&gt;<br>
+      1 1 1
+    </div>
+  </div>
+
+  <!-- 예제 5: tuple 생성의 다양한 방법 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 5: tuple 생성 방법 — 헷갈리는 규칙!</span>
+      <span class="code-tag tag-sequence">tuple · 쉼표 · 단일원소</span>
+    </div>
+    <div class="code-explain">
+      <strong>tuple을 만드는 것은 괄호가 아니라 쉼표(,)입니다!</strong><br>
+      <code style="color:var(--accent4)">1,</code>은 원소가 1개인 tuple이고, <code style="color:var(--accent4)">(1)</code>은 그냥 정수 1입니다.<br>
+      원소가 1개인 tuple을 만들려면 반드시 <code style="color:var(--accent4)">(1,)</code>처럼 쉼표를 붙여야 합니다.
+    </div>
+    <pre><code><span class="cm"># 쉼표가 tuple을 만드는 핵심! 괄호는 선택사항</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">1</span>,          <span class="cm"># (1,) — 원소 1개짜리 tuple</span>
+<span class="nm">b</span> <span class="op">=</span> (<span class="num">1</span>, )        <span class="cm"># (1,) — 위와 동일</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="num">1</span>, <span class="num">2</span>         <span class="cm"># (1, 2) — 원소 2개짜리 tuple</span>
+<span class="nm">d</span> <span class="op">=</span> (<span class="num">1</span>)           <span class="cm"># 1 — 그냥 정수! tuple이 아님</span>
+
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> [<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>, <span class="nm">d</span>]:
+    <span class="fn">print</span>(<span class="nm">x</span>, <span class="fn">type</span>(<span class="nm">x</span>))
+
+<span class="cm"># tuple 패킹/언패킹</span>
+<span class="nm">point</span> <span class="op">=</span> <span class="num">3</span>, <span class="num">5</span>       <span class="cm"># 패킹: (3, 5) tuple</span>
+<span class="nm">x</span>, <span class="nm">y</span> <span class="op">=</span> <span class="nm">point</span>       <span class="cm"># 언패킹: x=3, y=5</span>
+<span class="fn">print</span>(<span class="nm">x</span>, <span class="nm">y</span>)        <span class="cm"># 3 5</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      (1,) &lt;class 'tuple'&gt;<br>
+      (1,) &lt;class 'tuple'&gt;<br>
+      (1, 2) &lt;class 'tuple'&gt;<br>
+      1 &lt;class 'int'&gt;<br>
+      3 5
+    </div>
+  </div>
+
+  <!-- 예제 6: str 다양한 표현 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 6: str — 문자열을 만드는 다양한 방법</span>
+      <span class="code-tag tag-sequence">str · 이스케이프 · 멀티라인</span>
+    </div>
+    <div class="code-explain">
+      파이썬 문자열은 <code style="color:var(--accent4)">'</code>, <code style="color:var(--accent4)">"</code>, <code style="color:var(--accent4)">'''</code>, <code style="color:var(--accent4)">"""</code> 네 가지로 만들 수 있습니다.<br>
+      <strong>이스케이프 문자:</strong> <code style="color:var(--accent4)">\n</code>(줄바꿈), <code style="color:var(--accent4)">\'</code>(작은따옴표), <code style="color:var(--accent4)">\"</code>(큰따옴표), <code style="color:var(--accent4)">\\</code>(백슬래시), <code style="color:var(--accent4)">\</code>(줄 이어쓰기).<br>
+      따옴표 안에 다른 종류의 따옴표를 바로 쓸 수 있어, 따옴표 포함 문자열도 이스케이프 없이 표현할 수 있습니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="st">'123'</span>              <span class="cm"># 작은따옴표</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="st">"123"</span>              <span class="cm"># 큰따옴표 — a와 동일</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="st">"I'm a boy!"</span>       <span class="cm"># 큰따옴표 안에 작은따옴표 자유롭게 사용</span>
+<span class="nm">d</span> <span class="op">=</span> <span class="st">'This is "Wonderful".'</span>  <span class="cm"># 작은따옴표 안에 큰따옴표 사용</span>
+<span class="nm">e</span> <span class="op">=</span> <span class="st">'Good\nMorning'</span>    <span class="cm"># \n 은 줄바꿈 (newline)</span>
+<span class="nm">f</span> <span class="op">=</span> <span class="st">'''Good
+Morning'''</span>            <span class="cm"># 삼중따옴표 — 여러 줄 문자열 직접 작성</span>
+<span class="nm">g</span> <span class="op">=</span> <span class="st">'Good\
+Morning'</span>             <span class="cm"># \ 끝에 두면 줄을 이어 씀 (줄바꿈 없음)</span>
+<span class="nm">h</span> <span class="op">=</span> <span class="st">'I\'m a boy!'</span>       <span class="cm"># 이스케이프로 작은따옴표 포함</span>
+
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> [<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>, <span class="nm">d</span>, <span class="nm">e</span>, <span class="nm">f</span>, <span class="nm">g</span>, <span class="nm">h</span>]:
+    <span class="fn">print</span>(<span class="nm">x</span>, <span class="fn">type</span>(<span class="nm">x</span>))</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      123 &lt;class 'str'&gt;<br>
+      123 &lt;class 'str'&gt;<br>
+      I'm a boy! &lt;class 'str'&gt;<br>
+      This is "Wonderful". &lt;class 'str'&gt;<br>
+      Good<br>
+      Morning &lt;class 'str'&gt;<br>
+      Good<br>
+      Morning &lt;class 'str'&gt;<br>
+      GoodMorning &lt;class 'str'&gt;<br>
+      I'm a boy! &lt;class 'str'&gt;
+    </div>
+  </div>
+
+  <!-- 예제 7: range — 사용법과 메모리 효율 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 7: range — 메모리 효율적인 정수 범위</span>
+      <span class="code-tag tag-range">range · start/stop/step · 메모리</span>
+    </div>
+    <div class="code-explain">
+      <code style="color:var(--accent4)">range(stop)</code>, <code style="color:var(--accent4)">range(start, stop)</code>, <code style="color:var(--accent4)">range(start, stop, step)</code> 세 가지 형태로 사용합니다.<br>
+      <strong>start</strong>는 기본값 0, <strong>step</strong>은 기본값 1입니다. <code style="color:var(--accent4)">stop</code>만 필수입니다.<br>
+      <code style="color:var(--accent4)">range</code>는 실제 숫자를 모두 메모리에 저장하지 않고, <strong>start/stop/step 세 값만 저장</strong>합니다.<br>
+      따라서 range(1, 10001)과 list(range(1, 10001))의 메모리 크기가 크게 다릅니다.
+    </div>
+    <pre><code><span class="cm"># range의 세 가지 사용법</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="fn">range</span>(<span class="num">5</span>)          <span class="cm"># range(0, 5)  → 0,1,2,3,4</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="num">5</span>)       <span class="cm"># range(0, 5)  → 위와 동일</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="fn">range</span>(<span class="num">0</span>, <span class="num">5</span>, <span class="num">1</span>)    <span class="cm"># range(0, 5)  → 위와 동일</span>
+<span class="nm">d</span> <span class="op">=</span> <span class="fn">range</span>(<span class="num">5</span>, <span class="num">1</span>, <span class="op">-</span><span class="num">1</span>)   <span class="cm"># range(5,1,-1) → 5,4,3,2 (역순)</span>
+
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> [<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>, <span class="nm">d</span>]:
+    <span class="fn">print</span>(<span class="nm">x</span>, <span class="fn">type</span>(<span class="nm">x</span>))
+
+<span class="cm"># 메모리 크기 비교: range vs list</span>
+<span class="kw">import</span> <span class="nm">sys</span>
+<span class="nm">num</span> <span class="op">=</span> <span class="num">10001</span>
+<span class="nm">r</span> <span class="op">=</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="nm">num</span>)     <span class="cm"># start, stop, step 3개 값만 저장</span>
+<span class="nm">lst</span> <span class="op">=</span> <span class="fn">list</span>(<span class="nm">r</span>)          <span class="cm"># 10000개 정수를 모두 메모리에 저장</span>
+<span class="fn">print</span>(<span class="fn">sum</span>(<span class="nm">r</span>), <span class="fn">sum</span>(<span class="nm">lst</span>))               <span class="cm"># 합은 같음: 50005000</span>
+<span class="fn">print</span>(<span class="nm">sys</span>.<span class="fn">getsizeof</span>(<span class="nm">r</span>),
+      <span class="nm">sys</span>.<span class="fn">getsizeof</span>(<span class="nm">lst</span>))           <span class="cm"># 48 vs 80056 — 차이가 엄청남!</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      range(0, 5) &lt;class 'range'&gt;<br>
+      range(0, 5) &lt;class 'range'&gt;<br>
+      range(0, 5) &lt;class 'range'&gt;<br>
+      range(5, 1, -1) &lt;class 'range'&gt;<br>
+      50005000 50005000<br>
+      48 80056 <span style="color:var(--warn)">← range는 48바이트, list는 80056바이트!</span>
+    </div>
+  </div>
+
+  <!-- 예제 8: iterable vs iterator -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 8: iterable vs iterator — for 문의 작동 원리</span>
+      <span class="code-tag tag-iter">iterable · iterator · iter() · next()</span>
+    </div>
+    <div class="code-explain">
+      <strong>iterable</strong>: <code style="color:var(--accent4)">iter()</code>를 호출하면 iterator를 생성하는 객체. (list, tuple, str, range 등)<br>
+      <strong>iterator</strong>: <code style="color:var(--accent4)">next()</code>를 호출하면 다음 요소를 반환하고, 더 이상 없으면 <code style="color:var(--accent4)">StopIteration</code>을 발생시킵니다.<br>
+      <strong>for 문</strong>은 내부적으로 <code style="color:var(--accent4)">iter()</code>로 iterator를 만들고, <code style="color:var(--accent4)">next()</code>로 순서대로 꺼냅니다.<br>
+      중요: <strong>list는 iterator가 아닙니다.</strong> list에 직접 next()를 쓰면 TypeError가 납니다.
+    </div>
+    <pre><code><span class="cm"># list는 iterable이지만 iterator는 아닙니다</span>
+<span class="nm">a</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]
+<span class="cm"># next(a)  → TypeError! list는 next()를 쓸 수 없음</span>
+
+<span class="cm"># iter()로 iterator 생성 후 next() 사용 가능</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="fn">iter</span>(<span class="nm">a</span>)          <span class="cm"># list_iterator 객체 생성</span>
+<span class="fn">print</span>(<span class="fn">next</span>(<span class="nm">b</span>))       <span class="cm"># 1</span>
+<span class="fn">print</span>(<span class="fn">next</span>(<span class="nm">b</span>))       <span class="cm"># 2</span>
+<span class="fn">print</span>(<span class="fn">next</span>(<span class="nm">b</span>))       <span class="cm"># 3</span>
+<span class="cm"># print(next(b))   → StopIteration! 더 이상 요소 없음</span>
+
+<span class="cm"># for 문은 위의 동작을 자동으로 처리합니다</span>
+<span class="cm"># for x in a: → iter(a)로 iterator 생성 → next()로 하나씩 꺼냄 → StopIteration 시 종료</span>
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">a</span>:
+    <span class="fn">print</span>(<span class="nm">x</span>, <span class="nm">end</span><span class="op">=</span><span class="st">' '</span>)   <span class="cm"># 1 2 3</span>
+
+<span class="cm"># iterable은 iter()를 여러 번 호출할 수 있고, 호출할 때마다 새 iterator 생성</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="fn">iter</span>(<span class="nm">a</span>)
+<span class="nm">d</span> <span class="op">=</span> <span class="fn">iter</span>(<span class="nm">a</span>)
+<span class="fn">print</span>(<span class="fn">id</span>(<span class="nm">c</span>) <span class="op">==</span> <span class="fn">id</span>(<span class="nm">d</span>))  <span class="cm"># False — 서로 다른 객체</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      1<br>2<br>3<br>1 2 3 <br>False
+    </div>
+  </div>
+
+  <!-- 예제 9: input() 과 map() -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 9: input() — 사용자 입력 받기</span>
+      <span class="code-tag tag-input">input · map · split · iterator</span>
+    </div>
+    <div class="code-explain">
+      <code style="color:var(--accent4)">input()</code>은 항상 <strong>문자열(str)을 반환</strong>합니다. 숫자로 쓰려면 <code style="color:var(--accent4)">int()</code> 등으로 변환이 필요합니다.<br>
+      여러 값을 한 줄에 받을 때는 <code style="color:var(--accent4)">.split()</code>으로 나누고, <code style="color:var(--accent4)">map(int, ...)</code>으로 일괄 변환합니다.<br>
+      <strong>map 객체는 iterator</strong>입니다. for 문에서 소진한 뒤에는 next()를 쓸 수 없습니다.
+    </div>
+    <pre><code><span class="cm"># 1. 기본 입력 — 항상 str 반환</span>
+<span class="cm"># a = input('숫자를 입력하세요: ')</span>
+<span class="cm"># print(a, type(a))  → '10' &lt;class 'str'&gt;</span>
+
+<span class="cm"># 2. 정수로 변환</span>
+<span class="cm"># a = int(input('숫자를 입력하세요: '))</span>
+<span class="cm"># print(a, type(a))  → 10 &lt;class 'int'&gt;</span>
+
+<span class="cm"># 3. 여러 값 입력 → split()으로 리스트로 변환</span>
+<span class="cm"># a = input('숫자를 여러개 입력: ').split()</span>
+<span class="cm"># → '1 2 3'.split() = ['1', '2', '3']  (str 리스트)</span>
+
+<span class="cm"># 4. map()으로 리스트 전체를 int로 일괄 변환</span>
+<span class="cm"># a = input('숫자를 여러개 입력: ').split()</span>
+<span class="cm"># b = map(int, a)  → map 객체 (iterator)</span>
+
+<span class="cm"># map은 iterator이므로 for 후 StopIteration 됨</span>
+<span class="nm">a</span> <span class="op">=</span> [<span class="st">'1'</span>, <span class="st">'2'</span>, <span class="st">'3'</span>]   <span class="cm"># split() 결과 예시</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="fn">map</span>(<span class="fn">int</span>, <span class="nm">a</span>)       <span class="cm"># map 객체 — iterator</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="nm">b</span>))         <span class="cm"># &lt;class 'map'&gt;</span>
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">b</span>:            <span class="cm"># for로 소진</span>
+    <span class="fn">print</span>(<span class="nm">x</span>, <span class="fn">type</span>(<span class="nm">x</span>), <span class="nm">end</span><span class="op">=</span><span class="st">' '</span>)
+<span class="cm"># next(b) → StopIteration! for에서 이미 소진됨</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      &lt;class 'map'&gt;<br>
+      1 &lt;class 'int'&gt; 2 &lt;class 'int'&gt; 3 &lt;class 'int'&gt;
+    </div>
+  </div>
+</div>
+
+<!-- ======== QUIZ ======== -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div class="section-title">📝 퀴즈</div>
+    <div class="quiz-score-badge" id="score-badge">0 / 18</div>
+  </div>
+  <div class="section-subtitle">총 18문제 · 선택지를 클릭하면 즉시 정답 여부를 확인할 수 있습니다.</div>
+  <div id="quiz-list"></div>
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎯</div>
+    <div class="result-score" id="result-score-text"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" onclick="showTab('notes')">📋 오답노트 보기</button>
+      <button class="btn btn-primary" onclick="resetQuiz()">🔄 다시 풀기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== PRACTICE ======== -->
+<div id="practice" class="section">
+  <div class="section-title">⌨️ 실습 퀴즈</div>
+  <div class="section-subtitle">빈칸을 직접 코드로 채워보세요. 힌트 버튼을 사용할 수 있습니다.</div>
+  <div class="practice-score-bar">
+    <span class="ps-label">실습 진행 현황</span>
+    <span class="ps-score" id="ps-score">0 / 7 완료</span>
+  </div>
+  <div id="practice-list"></div>
+</div>
+
+<!-- ======== WRONG NOTES ======== -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">퀴즈에서 틀린 문제만 모아 정리합니다. 텍스트 파일로 다운로드할 수 있습니다.</div>
+  <div class="download-bar" id="download-bar" style="display:none">
+    <div class="download-info">틀린 문제 <strong id="wrong-count">0</strong>개가 기록되었습니다</div>
+    <button class="btn btn-danger" onclick="downloadNotes()">⬇ 오답노트 다운로드 (.txt)</button>
+  </div>
+  <div id="notes-list">
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div>아직 퀴즈를 풀지 않았습니다.<br>퀴즈 탭에서 문제를 풀면 오답이 여기에 기록됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== FLASHCARDS =====
+const cards = [
+  {
+    q: "파이썬 int(정수)의 특징은?",
+    a: "자릿수 제한이 없는 무한 정수입니다.\n\nC/Java처럼 32비트나 64비트로 고정되지 않고,\n필요한 만큼 메모리를 동적으로 사용합니다.\n\n예: 2 ** 100 같은 매우 큰 수도 정확히 계산 가능."
+  },
+  {
+    q: "파이썬 float(실수)의 내부 표현 방식은?",
+    a: "C언어의 double형과 동일한 8바이트(64비트)\nIEEE 754 부동소수점 방식입니다.\n\n소수점 이하 약 15~16자리까지만 정확하게 표현되며,\n그 이상의 자릿수는 반올림됩니다.\n\n예: 0.1 + 0.2 = 0.30000000000000004 (표현 오차 가능)"
+  },
+  {
+    q: "파이썬 bool이 숫자형(Numeric)으로 분류되는 이유는?",
+    a: "bool은 int의 하위 타입이기 때문입니다.\n\nTrue = 1, False = 0\n\n따라서 산술 연산이 가능합니다:\nTrue + True = 2\nTrue * False = 0\n\nisinstance(True, int) → True"
+  },
+  {
+    q: "파이썬 순차형(Sequence) 자료형 4가지는?",
+    a: "① tuple  — 불변(immutable) 순서열, ()\n② list   — 가변(mutable) 순서열, []\n③ str    — 불변 문자열, '' 또는 \"\"\n④ range  — 정수 범위 객체, range()\n\n모두 인덱스로 접근하고 for 문으로 순회 가능합니다."
+  },
+  {
+    q: "tuple과 list의 가장 큰 차이점은?",
+    a: "불변성(immutability)의 차이입니다.\n\ntuple: 불변(immutable) — 생성 후 요소 변경/추가/삭제 불가\nlist:  가변(mutable)   — 요소 변경/추가/삭제 가능\n\n구문:\n  tuple: (1, 2, 3) 또는 1, 2, 3\n  list:  [1, 2, 3]"
+  },
+  {
+    q: "tuple을 만드는 것은 괄호인가, 쉼표인가?",
+    a: "쉼표(,)입니다!\n\n1,      → (1,)  # 원소 1개짜리 tuple\n(1,)    → (1,)  # 동일\n(1)     → 1    # 그냥 정수! tuple이 아님!\n1, 2   → (1, 2) # 원소 2개짜리 tuple\n\n핵심: 괄호는 선택사항, 쉼표가 tuple을 만든다."
+  },
+  {
+    q: "range(start, stop, step)에서 어떤 매개변수가 필수인가?",
+    a: "stop만 필수입니다.\n\nrange(5)         → 0, 1, 2, 3, 4\nrange(0, 5)      → 0, 1, 2, 3, 4 (start=0)\nrange(0, 5, 1)   → 0, 1, 2, 3, 4 (step=1)\nrange(5, 1, -1)  → 5, 4, 3, 2 (역순)\n\n기본값: start=0, step=1"
+  },
+  {
+    q: "range가 list보다 메모리를 훨씬 적게 쓰는 이유는?",
+    a: "range는 실제 숫자를 모두 저장하지 않고,\nstart, stop, step 세 값만 저장하기 때문입니다.\n\n예: range(1, 10001) → 48바이트\n   list(range(1, 10001)) → 80056바이트\n\n결과는 동일하지만 메모리 사용량이 크게 다릅니다."
+  },
+  {
+    q: "iterable이란 무엇인가?",
+    a: "iter()를 호출했을 때 iterator를 생성할 수 있는 객체입니다.\n\n대표적인 iterable:\n  list, tuple, str, range, dict, set 등\n\niterable은 iter()를 여러 번 호출해도 되고,\n호출할 때마다 새로운 iterator 객체가 생성됩니다."
+  },
+  {
+    q: "iterator란 무엇인가?",
+    a: "next()를 호출하면 다음 요소를 반환하는 객체입니다.\n\niterator의 특징:\n① next()로 요소를 순서대로 꺼낼 수 있음\n② 모든 요소를 꺼내면 StopIteration 발생\n③ 한 번 소진되면 재사용 불가\n④ iterator는 iterable이기도 함"
+  },
+  {
+    q: "iterable과 iterator의 관계는?",
+    a: "iterable은 iterator가 아니지만,\niterator는 iterable입니다.\n\niterable → iter() → iterator → next() → 요소 반환\n\nlist는 iterable이지만 iterator가 아님\n→ list에 next()를 직접 쓰면 TypeError!\n\niter(list)의 결과(list_iterator)는 iterator이자 iterable."
+  },
+  {
+    q: "for 문은 내부적으로 어떻게 동작하는가?",
+    a: "for x in a: ... 는 아래와 동일하게 동작합니다:\n\n① iter(a)로 iterator 생성\n② next(iterator)로 요소를 하나씩 x에 저장\n③ StopIteration이 발생하면 for 문 종료\n\n이 때문에 list, tuple, str, range 모두\nfor 문에서 사용할 수 있습니다 (모두 iterable이므로)."
+  },
+  {
+    q: "StopIteration이란?",
+    a: "iterator에서 next()를 호출했을 때,\n더 이상 꺼낼 요소가 없으면 발생하는 예외입니다.\n\na = [1, 2, 3]\nb = iter(a)\nnext(b) → 1\nnext(b) → 2\nnext(b) → 3\nnext(b) → StopIteration 발생!\n\nfor 문은 이 예외를 자동으로 처리하여 반복을 종료합니다."
+  },
+  {
+    q: "input() 함수의 반환 타입은?",
+    a: "항상 str(문자열)을 반환합니다.\n\n예: input('숫자 입력: ')에 '10'을 입력하면\n    결과는 문자열 '10'입니다.\n\n숫자로 쓰려면 변환이 필요합니다:\n  int(input('정수: '))   → int 타입\n  float(input('실수: ')) → float 타입"
+  },
+  {
+    q: "여러 숫자를 한 줄로 입력받아 정수 리스트로 만드는 방법은?",
+    a: "① input()으로 문자열 받기\n② .split()으로 공백 기준 분리 → str 리스트\n③ map(int, ...)으로 전체를 int로 변환 → map 객체\n④ list()로 변환하면 int 리스트\n\n예:\na = list(map(int, input().split()))\n# 입력: 1 2 3\n# 결과: [1, 2, 3]  (int 리스트)"
+  },
+  {
+    q: "map 객체의 특징은?",
+    a: "map()의 결과는 map 객체로, iterator입니다.\n\n특징:\n① for 문이나 list()로 소비할 수 있음\n② 한 번 소진되면 재사용 불가\n③ StopIteration 발생 시 더 이상 next() 불가\n\nb = map(int, ['1','2','3'])\nfor x in b: print(x)  # 1 2 3\nnext(b)  → StopIteration! (이미 소진됨)"
+  }
+];
+
+let fcIndex = 0;
+function renderCard() {
+  document.getElementById('fc-q').innerHTML = escHtml(cards[fcIndex].q);
+  document.getElementById('fc-a').innerHTML = escHtml(cards[fcIndex].a);
+  document.getElementById('fc-counter').textContent = `${fcIndex + 1} / ${cards.length}`;
+  document.getElementById('fc-bar').style.width = `${((fcIndex + 1) / cards.length) * 100}%`;
+}
+function updateCard() {
+  const fc = document.getElementById('fc');
+  fc.classList.remove('flipped');
+  setTimeout(renderCard, 200);
+}
+function flipCard() { document.getElementById('fc').classList.toggle('flipped'); }
+function nextCard() { fcIndex = (fcIndex + 1) % cards.length; updateCard(); }
+function prevCard() { fcIndex = (fcIndex - 1 + cards.length) % cards.length; updateCard(); }
+
+function escCode(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ===== QUIZ =====
+const quizzes = [
+  {
+    q: "파이썬 int에 대한 설명으로 옳은 것은?",
+    code: null,
+    opts: [
+      "32비트로 고정된 정수이다",
+      "자릿수 제한이 없어 아무리 큰 수도 정확하게 표현할 수 있다",
+      "최대 64비트까지만 지원한다",
+      "소수점 이하 15자리까지 표현 가능하다"
+    ],
+    ans: 1,
+    explain: "파이썬의 int는 무한 정수입니다. C/Java와 달리 비트 크기가 고정되지 않고, 필요한 만큼 메모리를 동적으로 사용합니다. 2 ** 100 같은 큰 수도 정확하게 계산합니다."
+  },
+  {
+    q: "파이썬 float의 정밀도로 올바른 것은?",
+    code: null,
+    opts: [
+      "4바이트 single 정밀도",
+      "8바이트 double 정밀도 (소수점 이하 약 15~16자리)",
+      "무한 정밀도 (int처럼 제한 없음)",
+      "10바이트 extended 정밀도"
+    ],
+    ans: 1,
+    explain: "파이썬 float은 C의 double형과 동일한 8바이트(64비트) IEEE 754 부동소수점 방식입니다. 소수점 이하 약 15~16자리까지 정확하게 표현하며, 그 이상은 반올림됩니다."
+  },
+  {
+    q: "아래 코드의 출력 결과는?",
+    code: `print(True + True)
+print(True * False)
+print(True + 10)`,
+    opts: [
+      "TypeError 발생",
+      "2\n0\n11",
+      "True\nFalse\nTrue",
+      "True\n0\n10"
+    ],
+    ans: 1,
+    explain: "bool은 int의 하위 타입이라 산술 연산이 가능합니다. True=1, False=0이므로: True+True=1+1=2, True*False=1*0=0, True+10=1+10=11."
+  },
+  {
+    q: "아래 코드에서 isinstance(True, int)의 결과는?",
+    code: `print(isinstance(True, int))`,
+    opts: [
+      "False — bool과 int는 다른 타입이다",
+      "True — bool은 int의 하위 타입이다",
+      "TypeError 발생",
+      "None"
+    ],
+    ans: 1,
+    explain: "bool은 int를 상속한 하위 타입입니다. isinstance()는 상속 관계도 확인하므로 True를 반환합니다. type(True) == int는 False이지만, isinstance(True, int)는 True입니다."
+  },
+  {
+    q: "파이썬 순차형(Sequence) 자료형이 아닌 것은?",
+    code: null,
+    opts: [
+      "tuple",
+      "dict",
+      "str",
+      "range"
+    ],
+    ans: 1,
+    explain: "dict(딕셔너리)는 순차형이 아니라 매핑(Mapping) 타입입니다. 순차형은 인덱스로 접근 가능하고 순서가 있는 자료형으로, tuple, list, str, range가 해당됩니다."
+  },
+  {
+    q: "아래 코드에서 각 변수의 type이 올바르게 짝지어진 것은?",
+    code: `a = 1,
+b = (1)
+c = (1,)`,
+    opts: [
+      "a=int, b=tuple, c=tuple",
+      "a=tuple, b=int, c=tuple",
+      "a=tuple, b=tuple, c=tuple",
+      "a=int, b=int, c=tuple"
+    ],
+    ans: 1,
+    explain: "쉼표(,)가 tuple을 만듭니다. a=1,은 (1,) tuple, (1)은 괄호만 있는 정수 1, (1,)은 쉼표가 있어 (1,) tuple입니다. 괄호만으로는 tuple이 만들어지지 않습니다."
+  },
+  {
+    q: "range(5, 1, -1)이 생성하는 값의 순서는?",
+    code: null,
+    opts: [
+      "1, 2, 3, 4, 5",
+      "5, 4, 3, 2",
+      "5, 4, 3, 2, 1",
+      "1, 2, 3, 4"
+    ],
+    ans: 1,
+    explain: "range(start, stop, step)에서 start=5, stop=1, step=-1입니다. stop은 포함하지 않으므로 5, 4, 3, 2가 생성됩니다. 1은 stop이므로 포함되지 않습니다."
+  },
+  {
+    q: "아래 코드의 출력 결과는?",
+    code: `import sys
+a = range(1, 10001)
+b = list(a)
+print(sum(a) == sum(b))
+print(sys.getsizeof(a) < sys.getsizeof(b))`,
+    opts: [
+      "False\nFalse",
+      "True\nTrue",
+      "True\nFalse",
+      "False\nTrue"
+    ],
+    ans: 1,
+    explain: "range와 list(range)의 합은 같습니다. 메모리는 range가 start/stop/step 3값만 저장해 48바이트인 반면, list는 10000개 정수를 모두 저장해 약 80056바이트입니다. 따라서 True, True."
+  },
+  {
+    q: "list에 직접 next()를 사용하면 어떻게 되는가?",
+    code: `a = [1, 2, 3, 4]
+next(a)`,
+    opts: [
+      "1을 반환한다",
+      "TypeError: 'list' object is not an iterator",
+      "StopIteration 발생",
+      "[2, 3, 4]를 반환한다"
+    ],
+    ans: 1,
+    explain: "list는 iterable이지만 iterator가 아닙니다. next()는 iterator에서만 사용할 수 있습니다. list에 next()를 사용하면 TypeError가 발생합니다. iter(a)로 iterator를 먼저 만들어야 합니다."
+  },
+  {
+    q: "아래 코드에서 id(b) == id(c)의 결과는?",
+    code: `a = [1, 2, 3]
+b = iter(a)
+c = iter(a)
+print(id(b) == id(c))`,
+    opts: [
+      "True — 같은 list를 참조하므로",
+      "False — iter() 호출마다 새로운 iterator 객체가 생성된다",
+      "TypeError 발생",
+      "항상 True"
+    ],
+    ans: 1,
+    explain: "iterable(list)에 iter()를 여러 번 호출하면 매번 새로운 iterator 객체가 생성됩니다. b와 c는 다른 객체이므로 id(b) != id(c)이고, False가 출력됩니다."
+  },
+  {
+    q: "아래 코드에서 마지막 next(b) 호출 결과는?",
+    code: `a = [1, 2, 3]
+b = iter(a)
+print(next(b))  # 1
+print(next(b))  # 2
+print(next(b))  # 3
+print(next(b))  # ?`,
+    opts: [
+      "None을 반환한다",
+      "StopIteration 예외가 발생한다",
+      "0을 반환한다",
+      "처음부터 다시 1을 반환한다"
+    ],
+    ans: 1,
+    explain: "iterator는 모든 요소를 꺼낸 후 next()를 다시 호출하면 StopIteration 예외가 발생합니다. for 문은 이 예외를 자동으로 잡아 반복을 종료합니다."
+  },
+  {
+    q: "for 문의 내부 동작으로 올바른 것은?",
+    code: `for x in [1, 2, 3]:
+    print(x)`,
+    opts: [
+      "리스트를 그대로 사용한다",
+      "iter([1,2,3])으로 iterator를 만들고, next()로 요소를 하나씩 꺼내며, StopIteration 시 종료한다",
+      "리스트를 복사해서 하나씩 꺼낸다",
+      "enumerate()를 내부적으로 사용한다"
+    ],
+    ans: 1,
+    explain: "for 문은 ① iter()로 iterator 생성, ② next()로 요소를 하나씩 꺼내 변수에 저장, ③ StopIteration이 발생하면 반복 종료하는 과정을 자동으로 처리합니다."
+  },
+  {
+    q: "input() 함수에 '10'을 입력했을 때 반환 타입은?",
+    code: `a = input('숫자를 입력하세요: ')
+print(type(a))`,
+    opts: [
+      "int",
+      "str",
+      "float",
+      "입력 값에 따라 달라진다"
+    ],
+    ans: 1,
+    explain: "input()은 항상 str(문자열)을 반환합니다. 숫자처럼 보이는 '10'을 입력해도 결과는 문자열 '10'입니다. 정수로 사용하려면 int(input(...))처럼 변환해야 합니다."
+  },
+  {
+    q: "아래 코드에서 b의 타입과 동작으로 옳은 것은?",
+    code: `a = input().split()   # 입력: 1 2 3
+b = map(int, a)`,
+    opts: [
+      "b는 list 타입이고 재사용 가능하다",
+      "b는 map(iterator) 타입이고, for 문으로 소진하면 재사용 불가하다",
+      "b는 tuple 타입이다",
+      "b는 str 타입이다"
+    ],
+    ans: 1,
+    explain: "map()은 map 객체(iterator)를 반환합니다. for 문이나 list()로 소비하면 StopIteration이 되어 더 이상 사용할 수 없습니다. 재사용하려면 list(map(int, a))로 변환해야 합니다."
+  },
+  {
+    q: "아래 코드에서 마지막 next(b) 호출 결과는?",
+    code: `a = ['1', '2', '3']
+b = map(int, a)
+for x in b:
+    print(x, end=' ')
+next(b)   # for 문 이후`,
+    opts: [
+      "다시 1을 반환한다",
+      "StopIteration 예외가 발생한다",
+      "None을 반환한다",
+      "새로운 map 객체를 생성한다"
+    ],
+    ans: 1,
+    explain: "map 객체는 iterator입니다. for 문에서 모든 요소를 소비했으므로, 이후 next(b)를 호출하면 StopIteration 예외가 발생합니다. iterator는 한 번 소진되면 재사용할 수 없습니다."
+  },
+  {
+    q: "str을 만드는 방법으로 잘못된 것은?",
+    code: null,
+    opts: [
+      "'Hello World'",
+      "\"Hello World\"",
+      "\"\"\"Hello World\"\"\"",
+      "[Hello World]"
+    ],
+    ans: 3,
+    explain: "[Hello World]는 대괄호를 쓰므로 list 리터럴입니다(이 경우 실제로는 구문 오류). 문자열은 작은따옴표(''), 큰따옴표(\"\"), 삼중따옴표(''' 또는 \"\"\")로 만들 수 있습니다."
+  },
+  {
+    q: "아래 코드에서 e의 출력 결과는?",
+    code: `e = 'Good\\nMorning'
+print(e)`,
+    opts: [
+      "Good\\nMorning (그대로 출력)",
+      "Good\nMorning (두 줄로 출력)",
+      "GoodMorning (붙여서 출력)",
+      "SyntaxError"
+    ],
+    ans: 1,
+    explain: "\\n은 줄바꿈 이스케이프 문자입니다. 따라서 'Good\\nMorning'을 print하면 Good과 Morning이 서로 다른 줄에 출력됩니다."
+  },
+  {
+    q: "iterable과 iterator 모두에 해당하는 것은?",
+    code: null,
+    opts: [
+      "list",
+      "list_iterator (iter(list)의 결과)",
+      "range",
+      "tuple"
+    ],
+    ans: 1,
+    explain: "list_iterator는 next()를 쓸 수 있는 iterator이면서, iter()를 호출하면 자기 자신을 반환하므로 iterable이기도 합니다. list, range, tuple은 iterable이지만 iterator가 아닙니다."
+  }
+];
+
+let userAnswers = Array(quizzes.length).fill(null);
+let score = 0;
+let answered = 0;
+
+function buildQuiz() {
+  const list = document.getElementById('quiz-list');
+  list.innerHTML = '';
+  quizzes.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-card';
+    div.id = `qcard-${qi}`;
+    let codeHtml = q.code ? `<div class="quiz-code">${escCode(q.code)}</div>` : '';
+    let optsHtml = q.opts.map((o, oi) =>
+      `<button class="opt-btn" id="opt-${qi}-${oi}" onclick="selectOpt(${qi},${oi})">
+        <span class="opt-letter">${'ABCD'[oi]}</span>${escHtml(o)}
+      </button>`
+    ).join('');
+    div.innerHTML = `
+      <div class="quiz-num">Q${qi+1} / ${quizzes.length}</div>
+      <div class="quiz-q">${escHtml(q.q)}</div>
+      ${codeHtml}
+      <div class="options" id="opts-${qi}">${optsHtml}</div>
+      <div class="feedback-box" id="fb-${qi}"></div>`;
+    list.appendChild(div);
+  });
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function selectOpt(qi, oi) {
+  if (userAnswers[qi] !== null) return;
+  userAnswers[qi] = oi;
+  answered++;
+  const correct = quizzes[qi].ans;
+  const fb = document.getElementById(`fb-${qi}`);
+  for (let i = 0; i < quizzes[qi].opts.length; i++) {
+    const btn = document.getElementById(`opt-${qi}-${i}`);
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    if (i === oi && oi !== correct) btn.classList.add('wrong');
+  }
+  if (oi === correct) {
+    score++;
+    fb.className = 'feedback-box show feedback-correct';
+    fb.innerHTML = `✅ 정답입니다! ${escHtml(quizzes[qi].explain)}`;
+  } else {
+    fb.className = 'feedback-box show feedback-wrong';
+    fb.innerHTML = `❌ 오답입니다. <strong>정답: ${'ABCD'[correct]}</strong><br>${escHtml(quizzes[qi].explain)}`;
+    addWrongNote(qi, oi);
+  }
+  document.getElementById('score-badge').textContent = `${score} / ${quizzes.length}`;
+  if (answered === quizzes.length) setTimeout(showResult, 600);
+}
+
+function showResult() {
+  document.getElementById('quiz-result').classList.add('show');
+  const pct = Math.round((score / quizzes.length) * 100);
+  let color = pct >= 80 ? 'var(--accent2)' : pct >= 60 ? 'var(--warn)' : 'var(--accent3)';
+  document.getElementById('result-score-text').innerHTML = `<span style="color:${color}">${score}</span> / ${quizzes.length}`;
+  let msg = pct === 100 ? '🏆 완벽합니다! 자료형 개념을 완전히 마스터했습니다.' :
+            pct >= 80 ? '👍 잘 이해하고 있습니다! 오답을 복습해보세요.' :
+            pct >= 60 ? '📖 절반 이상 맞혔습니다. 오답노트로 부족한 부분을 채워보세요.' :
+            '💪 아직 학습이 더 필요합니다. 플래시카드와 코드 예제를 다시 확인해보세요.';
+  document.getElementById('result-msg').textContent = msg;
+}
+
+function resetQuiz() {
+  userAnswers = Array(quizzes.length).fill(null);
+  score = 0; answered = 0; wrongNotes = [];
+  document.getElementById('score-badge').textContent = `0 / ${quizzes.length}`;
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz();
+  updateNotesPanel();
+}
+
+// ===== PRACTICE =====
+const practices = [
+  {
+    title: "int와 bool의 관계",
+    tag: "int · bool · isinstance",
+    q: "아래 코드의 빈칸을 채워 bool이 int의 하위 타입임을 확인하세요.\n\n조건:\n① True + True 를 출력\n② isinstance(True, int)를 출력\n③ True와 False의 산술값 확인: True*3 + False*10 출력",
+    desc: "bool은 int를 상속하므로 산술 연산이 가능합니다. True=1, False=0으로 계산됩니다. isinstance(True, int)는 상속 관계를 확인하므로 True를 반환합니다.",
+    given: `# bool은 int의 하위 타입임을 확인하는 코드
+print(___ + ___)          # True + True = 2
+print(isinstance(___, int)) # True
+print(True * 3 + ___ * 10) # 3 + 0 = 3`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasAdd = /True\+True/.test(c);
+      const hasIsinstance = /isinstance\(True,int\)/.test(c);
+      const hasFalse = /False/.test(c);
+      if (hasAdd && hasIsinstance && hasFalse) return 'correct';
+      if (hasAdd || hasIsinstance) return 'partial';
+      return 'wrong';
+    },
+    hint: "print(True + True)\nprint(isinstance(True, int))\nprint(True * 3 + False * 10)",
+    answer: `print(True + True)           # 2\nprint(isinstance(True, int))  # True\nprint(True * 3 + False * 10)  # 3`
+  },
+  {
+    title: "tuple 생성 규칙",
+    tag: "tuple · 쉼표 · 타입 확인",
+    q: "아래 각 표현식의 타입을 예상하고, type()으로 확인하는 코드를 완성하세요.\n\n조건:\n① a = 1,      → tuple 확인\n② b = (1)     → int 확인 (tuple이 아님!)\n③ c = (1,)    → tuple 확인\n④ a와 b의 type이 다름을 비교 출력",
+    desc: "쉼표(,)가 tuple을 만드는 핵심입니다. (1)은 그냥 정수이고, (1,)은 원소가 1개인 tuple입니다. type()으로 실제 타입을 확인하세요.",
+    given: `a = 1,          # 원소 1개짜리 tuple
+b = (1)         # 그냥 정수!
+c = (1,)        # 원소 1개짜리 tuple
+
+print(type(___))   # tuple
+print(type(___))   # int
+print(type(___))   # tuple
+print(type(a) == type(b))  # ___`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasA = /type\(a\)/.test(c);
+      const hasB = /type\(b\)/.test(c);
+      const hasC = /type\(c\)/.test(c);
+      const hasCompare = /type\(a\)==type\(b\)/.test(c) || /type\(b\)==type\(a\)/.test(c);
+      if (hasA && hasB && hasC && hasCompare) return 'correct';
+      if (hasA && hasB) return 'partial';
+      return 'wrong';
+    },
+    hint: "print(type(a))  # <class 'tuple'>\nprint(type(b))  # <class 'int'>\nprint(type(c))  # <class 'tuple'>\nprint(type(a) == type(b))  # False",
+    answer: `a = 1,\nb = (1)\nc = (1,)\nprint(type(a))  # <class 'tuple'>\nprint(type(b))  # <class 'int'>\nprint(type(c))  # <class 'tuple'>\nprint(type(a) == type(b))  # False`
+  },
+  {
+    title: "range 활용과 메모리 비교",
+    tag: "range · list · sys.getsizeof",
+    q: "range와 list의 메모리 크기를 비교하는 코드를 완성하세요.\n\n조건:\n① range(1, 1001)과 list(range(1, 1001))을 각각 생성\n② sys.getsizeof()로 각각의 메모리 크기 출력\n③ 두 값의 합이 같은지 확인",
+    desc: "range는 start, stop, step 세 값만 저장하므로 메모리가 매우 작습니다. list는 실제 값을 모두 저장하므로 메모리가 큽니다. 하지만 계산 결과는 동일합니다.",
+    given: `import sys
+
+r = ___(1, 1001)       # range 객체
+lst = ___(r)           # list로 변환
+
+print(sum(r) == sum(lst))                    # True: 합이 같음
+print(sys.getsizeof(___))   # range 메모리 (작음)
+print(sys.getsizeof(___))   # list 메모리 (큼)`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasRange = /r=range\(1,1001\)/.test(c);
+      const hasList = /lst=list\(r\)/.test(c) || /lst=list\(range/.test(c);
+      const hasSizeof = /sys\.getsizeof\(r\)/.test(c) && /sys\.getsizeof\(lst\)/.test(c);
+      if (hasRange && hasList && hasSizeof) return 'correct';
+      if (hasRange || hasList) return 'partial';
+      return 'wrong';
+    },
+    hint: "r = range(1, 1001)\nlst = list(r)\nprint(sum(r) == sum(lst))     # True\nprint(sys.getsizeof(r))       # 48\nprint(sys.getsizeof(lst))     # 8056",
+    answer: `import sys\n\nr = range(1, 1001)\nlst = list(r)\nprint(sum(r) == sum(lst))     # True\nprint(sys.getsizeof(r))       # 48 (start/stop/step만 저장)\nprint(sys.getsizeof(lst))     # 8056 (1000개 정수 모두 저장)`
+  },
+  {
+    title: "iterable vs iterator 구별",
+    tag: "iterable · iterator · iter() · next()",
+    q: "아래 코드를 완성하여 iterable과 iterator의 차이를 확인하세요.\n\n조건:\n① a = [1, 2, 3] (list = iterable)\n② iter(a)로 iterator 생성\n③ next()로 요소를 하나씩 출력\n④ iter()를 두 번 호출해 다른 객체임을 id()로 확인",
+    desc: "list는 iterable이지만 iterator가 아닙니다. iter()로 iterator를 생성해야 next()를 쓸 수 있습니다. iter()를 여러 번 호출하면 매번 새로운 iterator가 생성됩니다.",
+    given: `a = [1, 2, 3]     # iterable
+
+b = ___(a)         # iterator 생성
+print(___(b))     # 1
+print(___(b))     # 2
+
+# iter()를 두 번 호출하면 다른 객체가 생성됨
+c = iter(a)
+d = iter(a)
+print(id(c) == id(d))  # ___`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasIter = /b=iter\(a\)/.test(c);
+      const hasNext = /next\(b\)/.test(c);
+      const hasId = /id\(c\)==id\(d\)/.test(c) || /id\(d\)==id\(c\)/.test(c);
+      if (hasIter && hasNext && hasId) return 'correct';
+      if (hasIter && hasNext) return 'partial';
+      return 'wrong';
+    },
+    hint: "b = iter(a)\nprint(next(b))  # 1\nprint(next(b))  # 2\nc = iter(a)\nd = iter(a)\nprint(id(c) == id(d))  # False",
+    answer: `a = [1, 2, 3]\nb = iter(a)\nprint(next(b))  # 1\nprint(next(b))  # 2\n\nc = iter(a)\nd = iter(a)\nprint(id(c) == id(d))  # False (다른 객체)`
+  },
+  {
+    title: "for 문의 내부 동작 직접 구현",
+    tag: "iterator · StopIteration · for 동작",
+    q: "for 문의 내부 동작을 while 문으로 직접 구현하세요.\n\n조건:\n① a = [10, 20, 30] 준비\n② iter()로 iterator 생성\n③ while True 안에서 next()로 요소 꺼내기\n④ StopIteration 예외를 try-except로 처리해 반복 종료",
+    desc: "for 문은 실제로 이 과정을 자동화한 것입니다. try-except로 StopIteration을 잡아 break하면 for 문과 동일하게 동작합니다.",
+    given: `a = [10, 20, 30]
+it = ___(a)          # iterator 생성
+
+while True:
+    try:
+        x = ___(it)  # 다음 요소 꺼내기
+        print(x)
+    except ___:       # StopIteration 처리
+        break         # 더 이상 요소가 없으므로 종료`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasIter = /it=iter\(a\)/.test(c);
+      const hasNext = /x=next\(it\)/.test(c);
+      const hasStop = /exceptStopIteration/.test(c);
+      if (hasIter && hasNext && hasStop) return 'correct';
+      if (hasIter && hasNext) return 'partial';
+      return 'wrong';
+    },
+    hint: "it = iter(a)\nwhile True:\n    try:\n        x = next(it)\n        print(x)\n    except StopIteration:\n        break",
+    answer: `a = [10, 20, 30]\nit = iter(a)\n\nwhile True:\n    try:\n        x = next(it)  # 요소 꺼내기\n        print(x)\n    except StopIteration:  # 더 이상 없으면\n        break            # 반복 종료\n# 출력: 10, 20, 30`
+  },
+  {
+    title: "input()과 map() 활용",
+    tag: "input · split · map · int 변환",
+    q: "사용자로부터 공백으로 구분된 3개의 정수를 입력받아\n각 숫자의 제곱을 출력하는 코드를 완성하세요.\n\n조건:\n① input().split()으로 문자열 리스트 받기\n② map(int, ...)으로 정수로 변환\n③ for 문으로 각 수의 제곱 출력 (x ** 2)",
+    desc: "input()은 항상 str을 반환합니다. split()으로 나누면 str 리스트가 됩니다. map(int, ...)으로 모두 int로 변환 후 순회합니다.",
+    given: `# 입력 예시: 3 4 5
+nums = list(map(___, input('숫자 3개 입력: ').___(  )))
+
+for x in nums:
+    print(x, '의 제곱:', x ___ 2)`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasMapInt = /map\(int/.test(c);
+      const hasSplit = /\.split\(\)/.test(c);
+      const hasSquare = /x\*\*2/.test(c) || /x\*\*\s*2/.test(code);
+      if (hasMapInt && hasSplit && hasSquare) return 'correct';
+      if (hasMapInt && hasSplit) return 'partial';
+      return 'wrong';
+    },
+    hint: "nums = list(map(int, input('숫자 3개 입력: ').split()))\nfor x in nums:\n    print(x, '의 제곱:', x ** 2)",
+    answer: `nums = list(map(int, input('숫자 3개 입력: ').split()))\n# 입력: 3 4 5 → nums = [3, 4, 5]\n\nfor x in nums:\n    print(x, '의 제곱:', x ** 2)\n# 출력:\n# 3 의 제곱: 9\n# 4 의 제곱: 16\n# 5 의 제곱: 25`
+  },
+  {
+    title: "종합: 자료형 총정리",
+    tag: "종합 실습",
+    q: "아래 조건을 모두 만족하는 코드를 직접 작성하세요.\n\n조건:\n① int 무한정수: 2 ** 200 계산 후 출력\n② bool 산술: True * 5 + False * 3 출력\n③ tuple 만들기: 요소 1개짜리 tuple 두 가지 방법\n④ range 역순: 10부터 1까지 역순으로 출력\n⑤ iterator: [5, 10, 15]를 iter로 만들고 next 3번 호출",
+    desc: "지금까지 배운 int, bool, tuple, range, iterator 개념을 모두 활용해보세요. 각 출력 결과가 맞는지 주석으로 표시하면 더 좋습니다.",
+    given: `# ① int 무한정수
+print(2 ** ___)           # 2의 200제곱
+
+# ② bool 산술 (True=1, False=0)
+print(___ * 5 + ___ * 3)  # 5 + 0 = 5
+
+# ③ tuple 요소 1개 — 두 가지 방법
+t1 = ___,                  # 쉼표만으로
+t2 = (___,)                # 괄호+쉼표
+
+# ④ range 역순: 10, 9, 8, ..., 1
+for x in range(___, ___, ___):
+    print(x, end=' ')
+
+# ⑤ iterator 사용
+lst = [5, 10, 15]
+it = iter(___)
+print(next(___))  # 5
+print(next(___))  # 10
+print(next(___))  # 15`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasBigInt = /2\*\*200/.test(c);
+      const hasBool = /True\*5/.test(c) || /5\*True/.test(c);
+      const hasTuple = /[a-z]\d?=\d+,/.test(c) || /\(\d+,\)/.test(c);
+      const hasRange = /range\(10,0,-1\)/.test(c) || /range\(10,_,-1\)/.test(c);
+      const hasIter = /it=iter\(lst\)/.test(c) || /iter\(lst\)/.test(c);
+      const s = [hasBigInt, hasBool, hasTuple, hasRange, hasIter].filter(Boolean).length;
+      if (s >= 5) return 'correct';
+      if (s >= 3) return 'partial';
+      return 'wrong';
+    },
+    hint: "print(2 ** 200)\nprint(True * 5 + False * 3)  # 5\nt1 = 42,\nt2 = (42,)\nfor x in range(10, 0, -1): print(x, end=' ')\nit = iter([5, 10, 15])\nprint(next(it))  # 5\nprint(next(it))  # 10\nprint(next(it))  # 15",
+    answer: `# ① int 무한정수\nprint(2 ** 200)  # 1606938...(큰 수)\n\n# ② bool 산술\nprint(True * 5 + False * 3)  # 5\n\n# ③ tuple 요소 1개\nt1 = 42,       # (42,)\nt2 = (42,)     # (42,)\n\n# ④ range 역순\nfor x in range(10, 0, -1):\n    print(x, end=' ')  # 10 9 8 7 6 5 4 3 2 1\n\n# ⑤ iterator\nit = iter([5, 10, 15])\nprint(next(it))  # 5\nprint(next(it))  # 10\nprint(next(it))  # 15`
+  }
+];
+
+let practiceResults = {};
+let practiceCompleted = 0;
+
+function buildPractice() {
+  const list = document.getElementById('practice-list');
+  list.innerHTML = '';
+  practices.forEach((p, pi) => {
+    const div = document.createElement('div');
+    div.className = 'practice-card';
+    div.innerHTML = `
+      <div class="practice-header">
+        <span class="practice-num">실습 ${pi+1} / ${practices.length} &nbsp;·&nbsp; ${p.title}</span>
+        <span class="practice-tag">${p.tag}</span>
+      </div>
+      <div class="practice-body">
+        <div class="practice-q">${escHtml(p.q)}</div>
+        <div class="practice-desc">${escHtml(p.desc)}</div>
+        <div class="editor-label">▶ 주어진 코드 (참고용)</div>
+        <div class="practice-given">${escCode(p.given)}</div>
+        <div class="editor-label" style="margin-top:14px">✏️ 답안 코드 작성</div>
+        <textarea class="code-editor" id="editor-${pi}" rows="5" placeholder="여기에 코드를 작성하세요..."></textarea>
+        <div class="hint-box" id="hint-${pi}">${escCode(p.hint)}</div>
+        <div class="practice-actions">
+          <button class="btn-check" onclick="checkPractice(${pi})">✔ 확인</button>
+          <button class="btn-hint" onclick="toggleHint(${pi})">💡 힌트</button>
+          <button class="btn-reset-p" onclick="resetPractice(${pi})">↺ 초기화</button>
+        </div>
+        <div class="practice-feedback" id="pfb-${pi}">
+          <div class="pf-result" id="pfr-${pi}"></div>
+          <div class="pf-explain" id="pfe-${pi}"></div>
+        </div>
+      </div>`;
+    list.appendChild(div);
+    document.getElementById(`editor-${pi}`).addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = this.selectionStart;
+        this.value = this.value.substring(0, s) + '    ' + this.value.substring(this.selectionEnd);
+        this.selectionStart = this.selectionEnd = s + 4;
+      }
+    });
+  });
+}
+
+function checkPractice(pi) {
+  const code = document.getElementById(`editor-${pi}`).value.trim();
+  if (!code) { alert('코드를 입력해주세요!'); return; }
+  const p = practices[pi];
+  const result = p.check(code);
+  const fb = document.getElementById(`pfb-${pi}`);
+  const pfr = document.getElementById(`pfr-${pi}`);
+  const pfe = document.getElementById(`pfe-${pi}`);
+  fb.className = 'practice-feedback show';
+  const wasOk = practiceResults[pi] === 'correct';
+  if (result === 'correct') {
+    pfr.className = 'pf-result pf-correct';
+    pfr.innerHTML = '✅ 정답입니다! 핵심 개념을 잘 이해했습니다.';
+    if (!wasOk) { practiceCompleted++; practiceResults[pi] = 'correct'; updatePracticeScore(); }
+  } else if (result === 'partial') {
+    pfr.className = 'pf-result pf-partial';
+    pfr.innerHTML = '🔶 부분 정답입니다. 조금 더 완성해보세요!';
+    practiceResults[pi] = 'partial';
+  } else {
+    pfr.className = 'pf-result pf-wrong';
+    pfr.innerHTML = '❌ 아직 정확하지 않습니다. 힌트를 참고해보세요.';
+    practiceResults[pi] = 'wrong';
+  }
+  pfe.innerHTML = `<div class="pf-answer-code">${escCode(p.answer)}</div>`;
+}
+
+function toggleHint(pi) { document.getElementById(`hint-${pi}`).classList.toggle('show'); }
+function resetPractice(pi) {
+  document.getElementById(`editor-${pi}`).value = '';
+  document.getElementById(`pfb-${pi}`).className = 'practice-feedback';
+  document.getElementById(`hint-${pi}`).classList.remove('show');
+  if (practiceResults[pi] === 'correct') { practiceCompleted = Math.max(0, practiceCompleted - 1); updatePracticeScore(); }
+  delete practiceResults[pi];
+}
+function updatePracticeScore() {
+  document.getElementById('ps-score').textContent = `${practiceCompleted} / ${practices.length} 완료`;
+}
+
+// ===== WRONG NOTES =====
+let wrongNotes = [];
+function addWrongNote(qi, myAns) { wrongNotes.push({ qi, myAns }); updateNotesPanel(); }
+function updateNotesPanel() {
+  const list = document.getElementById('notes-list');
+  const bar = document.getElementById('download-bar');
+  document.getElementById('wrong-count').textContent = wrongNotes.length;
+  if (wrongNotes.length === 0) {
+    bar.style.display = 'none';
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div>오답이 없습니다! 퀴즈를 풀면 틀린 문제가 여기에 기록됩니다.</div></div>`;
+    return;
+  }
+  bar.style.display = 'flex';
+  list.innerHTML = wrongNotes.map((wn, i) => {
+    const q = quizzes[wn.qi];
+    return `<div class="wrong-note-card">
+      <div class="wn-qnum">오답 #${i+1} · Q${wn.qi+1}</div>
+      <div class="wn-q">${escHtml(q.q)}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답변</div>${'ABCD'[wn.myAns]}. ${escHtml(q.opts[wn.myAns])}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${'ABCD'[q.ans]}. ${escHtml(q.opts[q.ans])}</div>
+      </div>
+      <div class="wn-explain">💡 ${escHtml(q.explain)}</div>
+    </div>`;
+  }).join('');
+}
+
+function downloadNotes() {
+  if (wrongNotes.length === 0) { alert('오답이 없습니다!'); return; }
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ko-KR');
+  let text = `================================================================\n`;
+  text += `  Python 자료형(type) - 1 오답노트\n`;
+  text += `  작성일: ${dateStr}  |  오답 수: ${wrongNotes.length} / ${quizzes.length}\n`;
+  text += `================================================================\n\n`;
+  wrongNotes.forEach((wn, i) => {
+    const q = quizzes[wn.qi];
+    text += `[오답 ${i+1}] Q${wn.qi+1}\n문제: ${q.q}\n`;
+    if (q.code) text += `\n코드:\n${q.code}\n`;
+    text += `\n선택지:\n`;
+    q.opts.forEach((o, oi) => {
+      const mark = oi === wn.myAns ? '  ← 내 답변 ❌' : oi === q.ans ? '  ← 정답 ✅' : '';
+      text += `  ${'ABCD'[oi]}. ${o}${mark}\n`;
+    });
+    text += `\n해설: ${q.explain}\n\n${'─'.repeat(60)}\n\n`;
+  });
+  text += `================================================================\n  학습 핵심 정리\n================================================================\n`;
+  text += `1. int: 자릿수 제한 없는 무한 정수 (C/Java와 다름)\n`;
+  text += `2. float: 8바이트 double 정밀도 (약 15~16자리)\n`;
+  text += `3. bool: int의 하위 타입 (True=1, False=0, 산술 연산 가능)\n`;
+  text += `4. 순차형: tuple(불변), list(가변), str(불변), range(정수범위)\n`;
+  text += `5. tuple 핵심: 쉼표(,)가 tuple을 만든다. (1)은 int, (1,)은 tuple\n`;
+  text += `6. range: start/stop/step만 저장 → 메모리 매우 효율적\n`;
+  text += `7. iterable: iter()로 iterator를 생성할 수 있는 객체\n`;
+  text += `8. iterator: next()로 다음 요소를 반환, StopIteration시 종료\n`;
+  text += `9. for 문 = iter() + next() + StopIteration 처리를 자동화한 것\n`;
+  text += `10. input(): 항상 str 반환. int 변환 필요시 int(input(...))\n`;
+  text += `11. map(): iterator 반환 → for 소진 후 재사용 불가\n`;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `파이썬_자료형1_오답노트_${dateStr.replace(/\./g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== TABS =====
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = ['flashcard','code','quiz','practice','notes'].indexOf(id);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+
+buildQuiz();
+buildPractice();
+updateNotesPanel();
+renderCard();
+</script>
+</body>
+</html>

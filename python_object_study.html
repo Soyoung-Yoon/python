@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Object & OOP 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --accent: #f0883e;
+    --accent2: #3fb950;
+    --accent3: #f78166;
+    --accent4: #d2a8ff;
+    --warn: #e3b341;
+    --text: #e6edf3;
+    --text-sub: #8b949e;
+    --code-bg: #010409;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #1f1510 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px);
+  }
+  .logo { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; color: var(--accent); font-weight: 700; letter-spacing: -1px; }
+  .logo span { color: var(--accent2); }
+  header h1 { font-size: 1rem; font-weight: 400; color: var(--text-sub); }
+  header h1 strong { color: var(--text); font-weight: 600; }
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text-sub); background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 12px; text-decoration: none; white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .btn-back:hover { color: var(--text); border-color: #444c56; }
+
+  nav { display: flex; gap: 4px; padding: 16px 40px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab-btn {
+    font-family: 'Noto Sans KR', sans-serif; padding: 8px 20px; border-radius: 8px;
+    border: 1px solid transparent; background: transparent; color: var(--text-sub);
+    cursor: pointer; font-size: 0.875rem; font-weight: 400; transition: all 0.2s;
+    white-space: nowrap; display: flex; align-items: center; gap: 6px;
+  }
+  .tab-btn:hover { background: var(--surface2); color: var(--text); }
+  .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .tab-icon { font-size: 1rem; }
+
+  .section { display: none; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .section.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .section-subtitle { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 32px; font-weight: 300; }
+
+  /* ===== FLASHCARD ===== */
+  .flashcard-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .fc-progress { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 1rem; font-weight: 600; }
+  .fc-progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 4px; margin-bottom: 24px; overflow: hidden; }
+  .fc-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent4)); border-radius: 4px; transition: width 0.4s ease; }
+  .flashcard-wrap { perspective: 1200px; height: 340px; cursor: pointer; margin-bottom: 24px; }
+  .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1); }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .fc-front, .fc-back {
+    position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+    border-radius: var(--radius); border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center;
+  }
+  .fc-front { background: linear-gradient(135deg, var(--surface) 0%, #1f1a10 100%); }
+  .fc-back { background: linear-gradient(135deg, #0f1f0f 0%, #1a2a1a 100%); border-color: var(--accent2); transform: rotateY(180deg); }
+  .fc-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-sub); margin-bottom: 16px; }
+  .fc-front .fc-label { color: var(--accent); }
+  .fc-back .fc-label { color: var(--accent2); }
+  .fc-q { font-size: 1.2rem; font-weight: 600; line-height: 1.6; color: var(--text); }
+  .fc-a { font-size: 0.95rem; font-weight: 400; line-height: 1.8; color: var(--text); white-space: pre-line; }
+  .fc-hint { margin-top: 20px; font-size: 0.8rem; color: var(--text-sub); }
+  .nav-btns { display: flex; gap: 12px; justify-content: center; }
+  .btn { font-family: 'Noto Sans KR', sans-serif; padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-ghost { background: transparent; color: var(--text-sub); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #f0a060; }
+  .btn-danger { background: var(--accent3); color: #fff; border-color: var(--accent3); }
+
+  /* ===== CODE EXAMPLES ===== */
+  .code-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; transition: border-color 0.2s; }
+  .code-card:hover { border-color: var(--accent); }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .code-title { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+  .code-tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
+  .tag-class { background: #2a1a0a; color: var(--accent); border: 1px solid var(--accent); }
+  .tag-inherit { background: #1c2a4a; color: #58a6ff; border: 1px solid #58a6ff; }
+  .tag-poly { background: #2a1c2a; color: var(--accent4); border: 1px solid var(--accent4); }
+  .tag-magic { background: #1f2a1f; color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-mro { background: #2a2a0a; color: var(--warn); border: 1px solid var(--warn); }
+  .code-explain { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 0.9rem; line-height: 1.7; color: var(--text-sub); }
+  .code-explain strong { color: var(--text); }
+  pre { background: var(--code-bg); padding: 20px; overflow-x: auto; margin: 0; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.7; }
+  .kw { color: #ff7b72; } .fn { color: #d2a8ff; } .st { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; } .nm { color: #79c0ff; }
+  .op { color: #f0883e; } .num { color: #f0883e; } .cls { color: #ffa657; }
+  .output-box { background: #010409; border-top: 1px solid var(--border); padding: 12px 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent2); }
+  .output-label { color: var(--text-sub); font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+
+  .diagram-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+  .hier-diagram { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .hier-level { padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-align: center; min-width: 220px; }
+  .hier-arrow { color: var(--text-sub); font-size: 1.1rem; margin: 4px 0; }
+  .hl-instance { background: #0f1f0f; border: 2px solid var(--accent2); color: var(--accent2); }
+  .hl-class { background: #1f1a0a; border: 2px solid var(--accent); color: var(--accent); }
+  .hl-meta { background: #1a0f2a; border: 2px solid var(--accent4); color: var(--accent4); }
+  .hl-desc { font-size: 0.75rem; font-weight: 300; color: var(--text-sub); margin-top: 4px; }
+
+  /* ===== QUIZ ===== */
+  .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .quiz-score-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--accent2); font-weight: 600; background: #0f1f0f; border: 1px solid var(--accent2); padding: 4px 12px; border-radius: 20px; }
+  .quiz-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; }
+  .quiz-num { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 1px; margin-bottom: 12px; font-weight: 600; }
+  .quiz-q { font-size: 1rem; font-weight: 600; line-height: 1.7; margin-bottom: 20px; color: var(--text); white-space: pre-line; }
+  .quiz-code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-size: 0.8rem; color: #e6edf3; margin-bottom: 20px; white-space: pre; overflow-x: auto; line-height: 1.6; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn { font-family: 'Noto Sans KR', sans-serif; width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 0.9rem; text-align: left; transition: all 0.2s; display: flex; align-items: center; gap: 12px; }
+  .opt-btn:hover:not(:disabled) { border-color: var(--accent); background: #2a1a0a; }
+  .opt-btn:disabled { cursor: default; }
+  .opt-letter { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .opt-btn.correct { border-color: var(--accent2); background: #0f1f0f; color: var(--accent2); }
+  .opt-btn.correct .opt-letter { background: var(--accent2); color: #fff; }
+  .opt-btn.wrong { border-color: var(--accent3); background: #2a1c1c; color: var(--accent3); }
+  .opt-btn.wrong .opt-letter { background: var(--accent3); color: #fff; }
+  .feedback-box { margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; line-height: 1.6; display: none; }
+  .feedback-box.show { display: block; }
+  .feedback-correct { background: #0f2a0f; border: 1px solid var(--accent2); color: var(--accent2); }
+  .feedback-wrong { background: #2a0f0f; border: 1px solid var(--accent3); color: #e6edf3; }
+  .feedback-wrong strong { color: var(--accent3); }
+  .quiz-result { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; text-align: center; animation: fadeIn 0.4s ease; }
+  .quiz-result.show { display: block; }
+  .result-score { font-family: 'JetBrains Mono', monospace; font-size: 3rem; font-weight: 700; margin: 16px 0; }
+  .result-msg { font-size: 1rem; color: var(--text-sub); margin-bottom: 24px; }
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ===== PRACTICE ===== */
+  .practice-score-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+  .ps-label { font-size: 0.875rem; color: var(--text-sub); }
+  .ps-score { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 700; color: var(--accent4); background: #2a1c40; border: 1px solid var(--accent4); padding: 4px 14px; border-radius: 20px; }
+  .practice-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 28px; }
+  .practice-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .practice-num { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent4); font-weight: 700; letter-spacing: 1px; }
+  .practice-tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; background: #2a1c40; color: var(--accent4); border: 1px solid var(--accent4); }
+  .practice-body { padding: 20px; }
+  .practice-q { font-size: 1rem; font-weight: 600; line-height: 1.7; margin-bottom: 14px; white-space: pre-line; }
+  .practice-desc { font-size: 0.875rem; color: var(--text-sub); line-height: 1.7; margin-bottom: 16px; padding: 12px; background: var(--surface2); border-radius: 8px; border-left: 3px solid var(--accent4); }
+  .practice-given { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-size: 0.8rem; color: #e6edf3; margin-bottom: 14px; white-space: pre; overflow-x: auto; line-height: 1.7; }
+  .editor-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent4); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
+  .code-editor { width: 100%; background: #010409; border: 1px solid var(--accent4); border-radius: 8px; padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--accent4); resize: vertical; min-height: 100px; outline: none; line-height: 1.7; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+  .code-editor:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(240,136,62,0.15); color: var(--text); }
+  .practice-actions { display: flex; gap: 10px; margin-top: 12px; }
+  .btn-check { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--accent4); background: #2a1c40; color: var(--accent4); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-check:hover { background: var(--accent4); color: #000; }
+  .btn-hint { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-sub); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-hint:hover { border-color: var(--warn); color: var(--warn); }
+  .btn-reset-p { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-sub); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
+  .btn-reset-p:hover { border-color: var(--accent3); color: var(--accent3); }
+  .practice-feedback { margin-top: 14px; border-radius: 8px; overflow: hidden; display: none; }
+  .practice-feedback.show { display: block; }
+  .pf-result { padding: 12px 16px; font-size: 0.875rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .pf-correct { background: #0f2a0f; color: var(--accent2); border: 1px solid var(--accent2); border-bottom: none; }
+  .pf-wrong { background: #2a0f0f; color: var(--accent3); border: 1px solid var(--accent3); border-bottom: none; }
+  .pf-partial { background: #2a2a0f; color: var(--warn); border: 1px solid var(--warn); border-bottom: none; }
+  .pf-explain { padding: 14px 16px; font-size: 0.85rem; line-height: 1.7; color: var(--text-sub); background: var(--surface2); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; }
+  .pf-answer-code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 0.78rem; color: var(--accent2); margin-top: 10px; white-space: pre; overflow-x: auto; line-height: 1.6; }
+  .hint-box { margin-top: 10px; padding: 10px 14px; background: #2a200a; border: 1px solid var(--warn); border-radius: 8px; font-size: 0.85rem; color: var(--warn); display: none; line-height: 1.6; white-space: pre-line; font-family: 'JetBrains Mono', monospace; }
+  .hint-box.show { display: block; }
+
+  /* ===== WRONG NOTES ===== */
+  .wrong-note-card { background: var(--surface); border: 1px solid #2a1c1c; border-left: 4px solid var(--accent3); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; animation: fadeIn 0.3s ease; }
+  .wn-qnum { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent3); font-weight: 600; margin-bottom: 8px; }
+  .wn-q { font-size: 0.95rem; font-weight: 600; margin-bottom: 12px; line-height: 1.6; }
+  .wn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem; }
+  .wn-my { padding: 10px; border-radius: 6px; background: #2a1c1c; border: 1px solid var(--accent3); }
+  .wn-ans { padding: 10px; border-radius: 6px; background: #0f1f0f; border: 1px solid var(--accent2); }
+  .wn-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .wn-my .wn-label { color: var(--accent3); }
+  .wn-ans .wn-label { color: var(--accent2); }
+  .wn-explain { margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; padding: 10px; background: var(--surface2); border-radius: 6px; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .download-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; }
+  .download-info { font-size: 0.9rem; }
+  .download-info strong { color: var(--accent3); }
+
+  @media (max-width: 600px) {
+    nav, .section { padding: 12px 16px; }
+    header { padding: 14px 16px; }
+    .wn-row { grid-template-columns: 1fr; }
+    .flashcard-wrap { height: 300px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="btn-back" href="index.html">← 목록으로</a>
+  <div class="logo">py<span>.obj</span></div>
+  <h1>Python <strong>Object &amp; OOP</strong> 학습</h1>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')"><span class="tab-icon">🃏</span> 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')"><span class="tab-icon">💻</span> 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')"><span class="tab-icon">📝</span> 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('practice')"><span class="tab-icon">⌨️</span> 실습 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')"><span class="tab-icon">📋</span> 오답노트</button>
+</nav>
+
+<!-- ======== FLASHCARDS ======== -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 개념을 충분히 학습한 후 퀴즈로 넘어가세요.</div>
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 14</span>
+    <span style="font-size:0.8rem;color:var(--text-sub)">💡 클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:7.1%"></div></div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">👆 클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ======== CODE EXAMPLES ======== -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">실제 파이썬 코드를 통해 OOP 개념을 확인하세요.</div>
+
+  <!-- 계층 다이어그램 -->
+  <div class="diagram-box">
+    <div class="section-title" style="font-size:1rem;justify-content:center;margin-bottom:20px;">객체 타입 계층 구조</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+      <div class="hier-diagram">
+        <div class="hier-level hl-instance">a (instance)<div class="hl-desc">Student('철수')로 만들어진 객체</div></div>
+        <div class="hier-arrow">↓ type</div>
+        <div class="hier-level hl-class">Student (class)<div class="hl-desc">객체를 만들기 위한 객체</div></div>
+        <div class="hier-arrow">↓ type</div>
+        <div class="hier-level hl-meta">type (메타클래스)<div class="hl-desc">클래스를 만드는 클래스</div></div>
+      </div>
+      <div style="font-size:0.85rem;line-height:1.9;color:var(--text-sub);padding:16px;background:var(--surface2);border-radius:8px;">
+        <div style="color:var(--text);font-weight:600;margin-bottom:10px;">핵심 개념</div>
+        <div>• <strong style="color:var(--accent)">class</strong>: 객체를 만들기 위한 틀(설계도)</div>
+        <div>• <strong style="color:var(--accent2)">instance</strong>: class로부터 만들어진 실제 객체</div>
+        <div>• <strong style="color:var(--accent4)">self</strong>: 메서드 호출 시 인스턴스가 자신의 id를 자동 전달</div>
+        <div>• <strong style="color:var(--warn)">type()</strong>: 객체의 타입(클래스) 반환</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 예제 1: class / instance / self -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: class, instance, self</span>
+      <span class="code-tag tag-class">class · instance · self</span>
+    </div>
+    <div class="code-explain">
+      <strong>self</strong>는 메서드의 첫 번째 매개변수로, 인스턴스가 메서드를 호출할 때 자신의 id(주소)를 자동으로 전달합니다.<br>
+      따라서 <code style="color:var(--accent4)">s1.introduce()</code> 내부의 <code style="color:var(--accent4)">id(self)</code>는 외부의 <code style="color:var(--accent4)">id(s1)</code>과 동일합니다.
+    </div>
+    <pre><code><span class="kw">class</span> <span class="cls">Student</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>, <span class="nm">name</span>):
+        <span class="nm">self</span>.<span class="nm">name</span> <span class="op">=</span> <span class="nm">name</span>       <span class="cm"># 속성 등록</span>
+
+    <span class="kw">def</span> <span class="fn">introduce</span>(<span class="nm">self</span>):
+        <span class="fn">print</span>(<span class="fn">id</span>(<span class="nm">self</span>))        <span class="cm"># self의 id = 인스턴스의 id</span>
+        <span class="fn">print</span>(<span class="st">f'안녕하세요, 저는 </span>{<span class="nm">self</span>.<span class="nm">name</span>}<span class="st"> 입니다.'</span>)
+
+<span class="nm">s1</span> <span class="op">=</span> <span class="cls">Student</span>(<span class="st">'철수'</span>)
+<span class="nm">s2</span> <span class="op">=</span> <span class="cls">Student</span>(<span class="st">'영희'</span>)
+<span class="fn">print</span>(<span class="fn">id</span>(<span class="nm">s1</span>), <span class="fn">id</span>(<span class="nm">s2</span>))   <span class="cm"># 서로 다른 id</span>
+
+<span class="nm">s1</span>.<span class="fn">introduce</span>()           <span class="cm"># self == s1</span>
+<span class="nm">s2</span>.<span class="fn">introduce</span>()           <span class="cm"># self == s2</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      132721663415056 &nbsp;132722229195024 &nbsp;<span style="color:var(--warn)">← s1, s2는 다른 객체</span><br>
+      132721663415056 &nbsp;<span style="color:var(--warn)">← id(self) == id(s1) ✔</span><br>
+      안녕하세요, 저는 철수 입니다.<br>
+      132722229195024 &nbsp;<span style="color:var(--warn)">← id(self) == id(s2) ✔</span><br>
+      안녕하세요, 저는 영희 입니다.
+    </div>
+  </div>
+
+  <!-- 예제 2: type()과 메타클래스 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: type()과 메타클래스 활용</span>
+      <span class="code-tag tag-class">type() · 메타클래스</span>
+    </div>
+    <div class="code-explain">
+      <code style="color:var(--accent4)">type(객체)</code>는 그 객체의 클래스를 반환합니다. 반환된 클래스는 호출 가능하므로,
+      <code style="color:var(--accent4)">type(10)('123')</code>은 <code style="color:var(--accent4)">int('123')</code>과 동일합니다.
+    </div>
+    <pre><code><span class="fn">print</span>(<span class="fn">type</span>(<span class="num">10</span>))          <span class="cm"># &lt;class 'int'&gt;</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="st">'hello'</span>))     <span class="cm"># &lt;class 'str'&gt;</span>
+<span class="fn">print</span>(<span class="fn">type</span>([<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>]))    <span class="cm"># &lt;class 'list'&gt;</span>
+
+<span class="cm"># type(10) → int 클래스 → int('123') 호출</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="num">10</span>)(<span class="st">'123'</span>))  <span class="cm"># 123  (문자열 '123'을 정수로 변환)</span>
+
+<span class="cm"># 클래스도 객체다: type이 클래스의 타입</span>
+<span class="kw">class</span> <span class="cls">MyClass</span>: <span class="kw">pass</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="cls">MyClass</span>))   <span class="cm"># &lt;class 'type'&gt;</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      &lt;class 'int'&gt;<br>&lt;class 'str'&gt;<br>&lt;class 'list'&gt;<br>123<br>&lt;class 'type'&gt;
+    </div>
+  </div>
+
+  <!-- 예제 3: 캡슐화 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: 캡슐화 (Encapsulation) — getter / setter</span>
+      <span class="code-tag tag-class">캡슐화 · _score · getter/setter</span>
+    </div>
+    <div class="code-explain">
+      속성 앞에 <code style="color:var(--accent4)">_</code>를 붙이면 <strong>보호된 속성(protected)</strong>을 나타냅니다 (강제성 없음, 관례).<br>
+      <strong>getter/setter 메서드</strong>로 값의 유효성 검사 등 접근을 통제할 수 있습니다.
+    </div>
+    <pre><code><span class="kw">class</span> <span class="cls">Student</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>, <span class="nm">name</span>, <span class="nm">score</span>):
+        <span class="nm">self</span>.<span class="nm">name</span>   <span class="op">=</span> <span class="nm">name</span>    <span class="cm"># 일반 속성</span>
+        <span class="nm">self</span>.<span class="nm">_score</span> <span class="op">=</span> <span class="nm">score</span>   <span class="cm"># 보호된 속성 (캡슐화)</span>
+
+    <span class="kw">def</span> <span class="fn">get_score</span>(<span class="nm">self</span>):          <span class="cm"># getter</span>
+        <span class="kw">return</span> <span class="nm">self</span>.<span class="nm">_score</span>
+
+    <span class="kw">def</span> <span class="fn">set_score</span>(<span class="nm">self</span>, <span class="nm">value</span>):   <span class="cm"># setter (유효성 검사)</span>
+        <span class="kw">if</span> <span class="nm">value</span> <span class="op">&lt;</span> <span class="num">0</span> <span class="kw">or</span> <span class="nm">value</span> <span class="op">&gt;</span> <span class="num">100</span>:
+            <span class="fn">print</span>(<span class="st">'잘못된 점수입니다'</span>)
+        <span class="kw">else</span>:
+            <span class="nm">self</span>.<span class="nm">_score</span> <span class="op">=</span> <span class="nm">value</span>
+
+<span class="nm">s</span> <span class="op">=</span> <span class="cls">Student</span>(<span class="st">'철수'</span>, <span class="num">90</span>)
+<span class="fn">print</span>(<span class="nm">s</span>.<span class="fn">get_score</span>())    <span class="cm"># 90</span>
+<span class="nm">s</span>.<span class="fn">set_score</span>(<span class="num">150</span>)        <span class="cm"># 잘못된 점수입니다</span>
+<span class="nm">s</span>.<span class="fn">set_score</span>(<span class="num">95</span>)         <span class="cm"># 정상 설정</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      90<br>잘못된 점수입니다
+    </div>
+  </div>
+
+  <!-- 예제 4: 상속 + super() + 오버라이딩 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: 상속 · super() · 메서드 오버라이딩</span>
+      <span class="code-tag tag-inherit">상속 · super() · Override</span>
+    </div>
+    <div class="code-explain">
+      <strong>상속(Inheritance)</strong>: 부모 클래스의 속성과 메서드를 자식 클래스가 물려받습니다.<br>
+      <code style="color:var(--accent4)">super().__init__()</code>으로 부모의 초기화를 호출하고,
+      자식이 같은 이름의 메서드를 재정의하면 <strong>오버라이딩(Overriding)</strong>이 됩니다.
+    </div>
+    <pre><code><span class="kw">class</span> <span class="cls">Student</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>, <span class="nm">name</span>, <span class="nm">score</span>):
+        <span class="nm">self</span>.<span class="nm">name</span> <span class="op">=</span> <span class="nm">name</span>
+        <span class="nm">self</span>.<span class="nm">_score</span> <span class="op">=</span> <span class="nm">score</span>
+
+    <span class="kw">def</span> <span class="fn">introduce</span>(<span class="nm">self</span>):
+        <span class="fn">print</span>(<span class="st">f'이름: </span>{<span class="nm">self</span>.<span class="nm">name</span>}<span class="st">, 점수: </span>{<span class="nm">self</span>.<span class="nm">_score</span>}<span class="st">'</span>)
+
+<span class="kw">class</span> <span class="cls">GraduateStudent</span>(<span class="cls">Student</span>):   <span class="cm"># Student 상속</span>
+    <span class="kw">def</span> <span class="fn">__init__</span>(<span class="nm">self</span>, <span class="nm">name</span>, <span class="nm">score</span>, <span class="nm">thesis</span>):
+        <span class="fn">super</span>().<span class="fn">__init__</span>(<span class="nm">name</span>, <span class="nm">score</span>)  <span class="cm"># 부모 __init__ 호출</span>
+        <span class="nm">self</span>.<span class="nm">thesis</span> <span class="op">=</span> <span class="nm">thesis</span>
+
+    <span class="kw">def</span> <span class="fn">introduce</span>(<span class="nm">self</span>):             <span class="cm"># 메서드 오버라이딩</span>
+        <span class="fn">print</span>(<span class="st">f'대학원생: </span>{<span class="nm">self</span>.<span class="nm">name</span>}<span class="st">, 점수: </span>{<span class="nm">self</span>.<span class="nm">_score</span>}<span class="st">, 논문: </span>{<span class="nm">self</span>.<span class="nm">thesis</span>}<span class="st">'</span>)
+
+<span class="nm">s1</span> <span class="op">=</span> <span class="cls">Student</span>(<span class="st">'철수'</span>, <span class="num">90</span>)
+<span class="nm">s2</span> <span class="op">=</span> <span class="cls">GraduateStudent</span>(<span class="st">'영희'</span>, <span class="num">95</span>, <span class="st">'AI 연구'</span>)
+<span class="nm">s1</span>.<span class="fn">introduce</span>()
+<span class="nm">s2</span>.<span class="fn">introduce</span>()</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      이름: 철수, 점수: 90<br>
+      대학원생: 영희, 점수: 95, 논문: AI 연구
+    </div>
+  </div>
+
+  <!-- 예제 5: 다중 상속 + MRO -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 5: 다중 상속 · MRO (Method Resolution Order)</span>
+      <span class="code-tag tag-mro">다중상속 · MRO · __mro__</span>
+    </div>
+    <div class="code-explain">
+      여러 부모 클래스에 <strong>같은 메서드</strong>가 있을 때 파이썬은 <strong>MRO(Method Resolution Order)</strong>로 어느 것을 쓸지 결정합니다.<br>
+      <code style="color:var(--accent4)">C(A, B)</code>에서 A가 B보다 먼저 나열되었으므로 A의 메서드가 우선합니다.
+    </div>
+    <pre><code><span class="kw">class</span> <span class="cls">Flyable</span>:
+    <span class="kw">def</span> <span class="fn">fly</span>(<span class="nm">self</span>): <span class="fn">print</span>(<span class="st">'날다'</span>)
+
+<span class="kw">class</span> <span class="cls">Swimmable</span>:
+    <span class="kw">def</span> <span class="fn">swim</span>(<span class="nm">self</span>): <span class="fn">print</span>(<span class="st">'수영하다'</span>)
+
+<span class="kw">class</span> <span class="cls">Duck</span>(<span class="cls">Flyable</span>, <span class="cls">Swimmable</span>):  <span class="cm"># 다중 상속</span>
+    <span class="kw">pass</span>
+
+<span class="nm">d</span> <span class="op">=</span> <span class="cls">Duck</span>()
+<span class="nm">d</span>.<span class="fn">fly</span>()
+<span class="nm">d</span>.<span class="fn">swim</span>()
+
+<span class="cm"># MRO 충돌 예시</span>
+<span class="kw">class</span> <span class="cls">A</span>:
+    <span class="kw">def</span> <span class="fn">hello</span>(<span class="nm">self</span>): <span class="fn">print</span>(<span class="st">'A'</span>)
+<span class="kw">class</span> <span class="cls">B</span>:
+    <span class="kw">def</span> <span class="fn">hello</span>(<span class="nm">self</span>): <span class="fn">print</span>(<span class="st">'B'</span>)
+<span class="kw">class</span> <span class="cls">C</span>(<span class="cls">A</span>, <span class="cls">B</span>): <span class="kw">pass</span>
+
+<span class="nm">c</span> <span class="op">=</span> <span class="cls">C</span>()
+<span class="nm">c</span>.<span class="fn">hello</span>()           <span class="cm"># A → MRO 순서상 A가 먼저</span>
+<span class="fn">print</span>(<span class="cls">C</span>.__mro__)    <span class="cm"># (C, A, B, object)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      날다<br>수영하다<br>A<br>
+      (&lt;class 'C'&gt;, &lt;class 'A'&gt;, &lt;class 'B'&gt;, &lt;class 'object'&gt;)
+    </div>
+  </div>
+
+  <!-- 예제 6: 다형성 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 6: 다형성 (Polymorphism)</span>
+      <span class="code-tag tag-poly">다형성 · 덕타이핑</span>
+    </div>
+    <div class="code-explain">
+      <strong>다형성</strong>: 같은 이름의 메서드 호출인데, 객체의 타입에 따라 다르게 동작하는 것.<br>
+      파이썬은 타입 검사 없이 <code style="color:var(--accent4)">speak()</code> 메서드만 있으면 호출 가능한 <strong>덕 타이핑(Duck Typing)</strong> 방식을 사용합니다.
+    </div>
+    <pre><code><span class="kw">class</span> <span class="cls">Dog</span>:
+    <span class="kw">def</span> <span class="fn">speak</span>(<span class="nm">self</span>): <span class="fn">print</span>(<span class="st">'멍멍'</span>)
+
+<span class="kw">class</span> <span class="cls">Cat</span>:
+    <span class="kw">def</span> <span class="fn">speak</span>(<span class="nm">self</span>): <span class="fn">print</span>(<span class="st">'야옹'</span>)
+
+<span class="nm">animals</span> <span class="op">=</span> [<span class="cls">Dog</span>(), <span class="cls">Cat</span>()]
+
+<span class="kw">for</span> <span class="nm">a</span> <span class="kw">in</span> <span class="nm">animals</span>:
+    <span class="nm">a</span>.<span class="fn">speak</span>()   <span class="cm"># 타입에 따라 다르게 동작</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      멍멍<br>야옹
+    </div>
+  </div>
+
+  <!-- 예제 7: 매직 메서드 / dir / isinstance -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 7: 매직 메서드 · dir() · isinstance()</span>
+      <span class="code-tag tag-magic">__add__ · dir() · isinstance()</span>
+    </div>
+    <div class="code-explain">
+      <code style="color:var(--accent4)">y + 10</code>은 내부적으로 <code style="color:var(--accent4)">y.__add__(10)</code> 또는 <code style="color:var(--accent4)">int.__add__(y, 10)</code>을 호출합니다.<br>
+      <code style="color:var(--accent4)">dir()</code>은 객체가 가진 모든 속성/메서드 목록을, <code style="color:var(--accent4)">isinstance()</code>는 타입 확인을 수행합니다.
+    </div>
+    <pre><code><span class="nm">x</span> <span class="op">=</span> <span class="fn">int</span>(<span class="num">3.5</span>)   <span class="cm"># 3</span>
+<span class="nm">y</span> <span class="op">=</span> <span class="nm">x</span> <span class="op">+</span> <span class="num">10</span>     <span class="cm"># 13</span>
+
+<span class="cm"># 세 표현은 모두 동일</span>
+<span class="fn">print</span>(<span class="nm">y</span>.<span class="fn">__add__</span>(<span class="num">10</span>))        <span class="cm"># 23</span>
+<span class="fn">print</span>(<span class="nm">y</span> <span class="op">+</span> <span class="num">10</span>)                <span class="cm"># 23</span>
+<span class="fn">print</span>(<span class="fn">int</span>.<span class="fn">__add__</span>(<span class="nm">y</span>, <span class="num">10</span>))   <span class="cm"># 23</span>
+
+<span class="cm"># dir(): 사용 가능한 속성/메서드 목록</span>
+<span class="fn">print</span>(<span class="st">'__add__'</span> <span class="kw">in</span> <span class="fn">dir</span>(<span class="nm">y</span>))   <span class="cm"># True</span>
+
+<span class="cm"># isinstance(): 타입 확인</span>
+<span class="kw">from</span> <span class="nm">collections</span>.<span class="nm">abc</span> <span class="kw">import</span> <span class="cls">Iterable</span>
+<span class="fn">print</span>(<span class="fn">isinstance</span>([<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>], <span class="cls">Iterable</span>))  <span class="cm"># True</span>
+<span class="fn">print</span>(<span class="fn">isinstance</span>(<span class="num">10</span>, <span class="fn">int</span>))              <span class="cm"># True</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      23 &nbsp;23 &nbsp;23<br>True<br>True<br>True
+    </div>
+  </div>
+
+  <!-- 예제 8: int 상속 / __new__ -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 8: int 상속과 __new__</span>
+      <span class="code-tag tag-magic">__new__ · 상속 · 불변 객체</span>
+    </div>
+    <div class="code-explain">
+      <code style="color:var(--accent4)">int</code>처럼 불변(immutable) 객체를 상속할 때는 <code style="color:var(--accent4)">__init__</code> 대신 <strong>__new__</strong>를 사용합니다.<br>
+      <code style="color:var(--accent4)">__new__</code>는 인스턴스를 생성하는 단계, <code style="color:var(--accent4)">__init__</code>은 이미 만들어진 인스턴스를 초기화하는 단계입니다.
+    </div>
+    <pre><code><span class="kw">class</span> <span class="cls">A</span>(<span class="fn">int</span>):              <span class="cm"># int 상속</span>
+    <span class="kw">def</span> <span class="fn">__new__</span>(<span class="nm">cls</span>, <span class="nm">value</span>):
+        <span class="kw">return</span> <span class="fn">super</span>().<span class="fn">__new__</span>(<span class="nm">cls</span>, <span class="nm">value</span>)
+
+<span class="nm">x</span> <span class="op">=</span> <span class="cls">A</span>(<span class="num">3.5</span>)    <span class="cm"># 3.5 → 3 (int 변환)</span>
+<span class="nm">y</span> <span class="op">=</span> <span class="nm">x</span> <span class="op">+</span> <span class="num">10</span>    <span class="cm"># 13</span>
+<span class="fn">print</span>(<span class="nm">y</span>)
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="nm">x</span>))  <span class="cm"># &lt;class '__main__.A'&gt;</span>
+
+<span class="cm"># __new__ vs __init__</span>
+<span class="cm"># __new__  : 인스턴스 생성 (return 필요)</span>
+<span class="cm"># __init__ : 생성된 인스턴스 초기화 (return 불필요)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      13<br>&lt;class '__main__.A'&gt;
+    </div>
+  </div>
+</div>
+
+<!-- ======== QUIZ ======== -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div class="section-title">📝 퀴즈</div>
+    <div class="quiz-score-badge" id="score-badge">0 / 16</div>
+  </div>
+  <div class="section-subtitle">총 16문제 · 선택지를 클릭하면 즉시 정답 여부를 확인할 수 있습니다.</div>
+  <div id="quiz-list"></div>
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎯</div>
+    <div class="result-score" id="result-score-text"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" onclick="showTab('notes')">📋 오답노트 보기</button>
+      <button class="btn btn-primary" onclick="resetQuiz()">🔄 다시 풀기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== PRACTICE ======== -->
+<div id="practice" class="section">
+  <div class="section-title">⌨️ 실습 퀴즈</div>
+  <div class="section-subtitle">빈칸을 직접 코드로 채워보세요. 힌트 버튼을 사용할 수 있습니다.</div>
+  <div class="practice-score-bar">
+    <span class="ps-label">실습 진행 현황</span>
+    <span class="ps-score" id="ps-score">0 / 7 완료</span>
+  </div>
+  <div id="practice-list"></div>
+</div>
+
+<!-- ======== WRONG NOTES ======== -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">퀴즈에서 틀린 문제만 모아 정리합니다. 텍스트 파일로 다운로드할 수 있습니다.</div>
+  <div class="download-bar" id="download-bar" style="display:none">
+    <div class="download-info">틀린 문제 <strong id="wrong-count">0</strong>개가 기록되었습니다</div>
+    <button class="btn btn-danger" onclick="downloadNotes()">⬇ 오답노트 다운로드 (.txt)</button>
+  </div>
+  <div id="notes-list">
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div>아직 퀴즈를 풀지 않았습니다.<br>퀴즈 탭에서 문제를 풀면 오답이 여기에 기록됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== FLASHCARDS =====
+const cards = [
+  { q: "파이썬에서 객체(Object)란 무엇인가?", a: "데이터(속성)와 행동(메서드)을 함께 가진 하나의 독립된 단위.\n\n파이썬에서는 모든 것이 객체다.\n(Everything is an object)" },
+  { q: "class와 instance의 차이는?", a: "class: 객체를 만들기 위한 설계도(틀). 자체도 객체.\n\ninstance: class로부터 실제로 만들어진 객체.\n인스턴스는 자신을 만든 클래스의 속성을 사용 가능." },
+  { q: "메서드의 self 매개변수는 무슨 역할을 하는가?", a: "메서드 호출 시 인스턴스가 자신의 id(주소)를 self에 자동으로 전달.\n\n→ id(self) == id(인스턴스)" },
+  { q: "type() 함수는 무엇을 반환하는가?", a: "객체의 타입(클래스)을 반환한다.\n\ntype(10) → int\ntype('abc') → str\ntype(MyClass) → type (메타클래스)" },
+  { q: "캡슐화(Encapsulation)란 무엇인가?", a: "속성과 메서드를 하나로 묶고, 내부 구현을 숨기는 것.\n\n관례: 속성 앞 _ 붙이면 보호된 속성\ngetter/setter 메서드로 접근 통제" },
+  { q: "상속(Inheritance)이란 무엇인가?", a: "부모 클래스의 속성과 메서드를 자식 클래스가 물려받는 것.\n\nclass GraduateStudent(Student): ...\n\n자식은 부모의 모든 것을 사용 가능하며, super()로 부모 메서드를 호출." },
+  { q: "메서드 오버라이딩(Overriding)이란?", a: "자식 클래스에서 부모 클래스의 메서드를 같은 이름으로 재정의하는 것.\n\n→ 자식 클래스의 메서드가 우선 호출됨." },
+  { q: "super()는 무엇인가?", a: "부모 클래스를 참조하는 함수.\n\nsuper().__init__(name, score)\n→ 부모의 __init__를 자식에서 호출할 때 사용." },
+  { q: "다중 상속이란? 충돌 시 어떻게 해결하는가?", a: "여러 부모 클래스를 동시에 상속받는 것.\nclass Duck(Flyable, Swimmable)\n\n충돌 시 MRO(Method Resolution Order)에 따라 왼쪽 부모 클래스가 우선.\nC(A, B) → A의 메서드 우선" },
+  { q: "MRO란 무엇이고, 어떻게 확인하는가?", a: "Method Resolution Order: 메서드를 검색하는 순서.\n\nC.__mro__ 로 확인.\n결과: (C, A, B, object) 순서로 검색." },
+  { q: "다형성(Polymorphism)이란?", a: "같은 인터페이스(함수/메서드 호출)인데, 객체 타입에 따라 다르게 동작.\n\n예: a.speak() → Dog면 '멍멍', Cat이면 '야옹'" },
+  { q: "dir()과 isinstance()의 역할은?", a: "dir(obj): 객체가 가진 모든 속성/메서드 이름 목록을 반환.\n\nisinstance(obj, type): obj가 해당 타입인지 확인 (True/False)." },
+  { q: "__add__ 같은 매직 메서드란?", a: "언더스코어 두 개로 감싸인 특별한 메서드.\ny + 10은 내부적으로 y.__add__(10) 호출.\n\n== : __eq__\nstr() : __str__\nlen() : __len__ 등" },
+  { q: "__new__와 __init__의 차이는?", a: "__new__: 인스턴스를 생성하는 단계 (return 필요)\n__init__: 이미 만들어진 인스턴스를 초기화 (return 불필요)\n\n불변 객체(int 등)를 상속할 때는 __new__를 사용." }
+];
+
+let fcIndex = 0;
+function renderCard() {
+  document.getElementById('fc-q').innerHTML = escHtml(cards[fcIndex].q);
+  document.getElementById('fc-a').innerHTML = escHtml(cards[fcIndex].a);
+  document.getElementById('fc-counter').textContent = `${fcIndex + 1} / ${cards.length}`;
+  document.getElementById('fc-bar').style.width = `${((fcIndex + 1) / cards.length) * 100}%`;
+}
+function updateCard() {
+  const fc = document.getElementById('fc');
+  fc.classList.remove('flipped');
+  setTimeout(renderCard, 200);
+}
+function flipCard() { document.getElementById('fc').classList.toggle('flipped'); }
+function nextCard() { fcIndex = (fcIndex + 1) % cards.length; updateCard(); }
+function prevCard() { fcIndex = (fcIndex - 1 + cards.length) % cards.length; updateCard(); }
+
+// escCode: 코드 블록용 — \n을 <br>로 변환하지 않음
+function escCode(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ===== QUIZ =====
+const quizzes = [
+  {
+    q: "파이썬에서 '모든 것이 객체다'의 의미로 가장 올바른 것은?",
+    code: null,
+    opts: ["변수는 항상 정수형이다", "함수, 클래스, 숫자 모두 객체이며 속성과 메서드를 가진다", "객체는 클래스 없이 만들 수 없다", "객체는 데이터만 갖는다"],
+    ans: 1,
+    explain: "파이썬에서는 int, str, list, 함수, 클래스 모두 객체입니다. 모든 객체는 type()으로 타입을 확인할 수 있고, 속성과 메서드를 가집니다."
+  },
+  {
+    q: "아래 코드에서 id(self)와 id(s1)의 관계는?",
+    code: `class Student:
+    def introduce(self):
+        print(id(self))
+
+s1 = Student()
+s1.introduce()
+print(id(s1))`,
+    opts: ["항상 다르다", "같다 — self에 인스턴스 id가 자동 전달되므로", "introduce() 호출 시 복사본이 생성된다", "self는 항상 None이다"],
+    ans: 1,
+    explain: "s1.introduce() 호출 시 파이썬이 s1의 id를 self에 자동으로 전달합니다. 따라서 id(self) == id(s1)입니다."
+  },
+  {
+    q: "아래 코드의 실행 결과는?",
+    code: `print(type(10)('123'))`,
+    opts: ["SyntaxError", "123 (정수)", "'123' (문자열)", "TypeError"],
+    ans: 1,
+    explain: "type(10)은 int 클래스를 반환합니다. int('123')은 문자열 '123'을 정수 123으로 변환합니다. 결과는 정수 123."
+  },
+  {
+    q: "캡슐화에서 속성명 앞에 _ 를 붙이는 이유는?",
+    code: null,
+    opts: ["파이썬이 강제로 접근을 막는다", "관례상 보호된 속성임을 나타낸다 (강제성 없음)", "해당 속성은 삭제된다", "private으로 변환된다"],
+    ans: 1,
+    explain: "_score처럼 언더스코어를 붙이는 것은 '직접 접근하지 말라'는 관례입니다. 파이썬이 기술적으로 강제하지는 않습니다. __(두 개)를 붙이면 name mangling이 적용됩니다."
+  },
+  {
+    q: "아래 코드에서 s2.get_score()의 결과는?",
+    code: `class Student:
+    def __init__(self, score):
+        self._score = score
+    def get_score(self):
+        return self._score
+    def set_score(self, v):
+        if 0 <= v <= 100:
+            self._score = v
+
+s2 = Student(80)
+s2.set_score(150)
+print(s2.get_score())`,
+    opts: ["150", "80", "None", "ValueError 발생"],
+    ans: 1,
+    explain: "set_score(150)은 0~100 범위를 벗어나므로 _score를 변경하지 않습니다. 따라서 _score는 여전히 80이고 get_score()는 80을 반환합니다."
+  },
+  {
+    q: "아래 코드에서 s2.introduce() 출력 결과는?",
+    code: `class Student:
+    def __init__(self, name, score):
+        self.name = name
+        self._score = score
+    def introduce(self):
+        print(f'이름: {self.name}')
+
+class GraduateStudent(Student):
+    def __init__(self, name, score, thesis):
+        super().__init__(name, score)
+        self.thesis = thesis
+    def introduce(self):
+        print(f'대학원생: {self.name}, 논문: {self.thesis}')
+
+s2 = GraduateStudent('영희', 95, 'AI')
+s2.introduce()`,
+    opts: ["이름: 영희", "대학원생: 영희, 논문: AI", "AttributeError", "이름: 영희\n대학원생: 영희, 논문: AI"],
+    ans: 1,
+    explain: "GraduateStudent가 introduce()를 오버라이딩했으므로 자식 클래스의 introduce()가 호출됩니다. super().__init__()으로 name, score는 부모에서 초기화됩니다."
+  },
+  {
+    q: "super().__init__(name, score)의 역할은?",
+    code: null,
+    opts: ["자식 클래스의 __init__을 다시 호출한다", "부모 클래스의 __init__을 호출하여 부모 속성을 초기화한다", "모든 조상 클래스의 __init__을 순서대로 호출한다", "인스턴스를 새로 생성한다"],
+    ans: 1,
+    explain: "super()는 부모 클래스를 참조합니다. super().__init__(name, score)는 부모의 __init__을 호출하여 name, _score 속성을 초기화합니다."
+  },
+  {
+    q: "아래 코드에서 c.hello() 출력 결과와 그 이유는?",
+    code: `class A:
+    def hello(self): print('A')
+class B:
+    def hello(self): print('B')
+class C(A, B): pass
+
+c = C()
+c.hello()`,
+    opts: ["'B' — B가 마지막에 상속되었으므로", "'A' — MRO에 따라 A가 먼저 검색되므로", "A와 B 모두 출력", "AttributeError"],
+    ans: 1,
+    explain: "MRO(Method Resolution Order)는 C → A → B → object 순서입니다. C(A, B)에서 A가 먼저 나열되었으므로 A의 hello()가 호출됩니다."
+  },
+  {
+    q: "C.__mro__ 로 확인할 수 있는 것은?",
+    code: `class A: pass
+class B: pass
+class C(A, B): pass
+print(C.__mro__)`,
+    opts: [
+      "(C, B, A, object)",
+      "(C, A, B, object)",
+      "(A, B, C, object)",
+      "(C, object)"
+    ],
+    ans: 1,
+    explain: "MRO는 C(A, B) 정의 순서 그대로 C → A → B → object. 항상 자기 자신이 가장 앞에, object가 마지막에 옵니다."
+  },
+  {
+    q: "다형성의 핵심 개념으로 옳은 것은?",
+    code: null,
+    opts: [
+      "같은 클래스의 인스턴스는 항상 같은 동작을 한다",
+      "같은 이름의 메서드 호출이 객체 타입에 따라 다르게 동작한다",
+      "모든 클래스는 동일한 메서드를 가져야 한다",
+      "자식 클래스는 반드시 부모의 메서드를 그대로 사용해야 한다"
+    ],
+    ans: 1,
+    explain: "다형성: 같은 인터페이스(speak())를 호출해도 Dog이면 '멍멍', Cat이면 '야옹'처럼 타입에 따라 다르게 동작합니다."
+  },
+  {
+    q: "아래 세 표현식 중 결과가 다른 것은?",
+    code: `y = 13
+A: y.__add__(10)
+B: y + 10
+C: int.__add__(y, 10)`,
+    opts: ["A", "B", "C", "모두 같다 (23)"],
+    ans: 3,
+    explain: "y + 10은 내부적으로 y.__add__(10)을 호출합니다. int.__add__(y, 10)은 클래스에서 직접 호출하는 방식으로, 인스턴스 y를 첫 인자로 넘깁니다. 세 가지 모두 23으로 동일합니다."
+  },
+  {
+    q: "dir(obj)가 반환하는 것은?",
+    code: null,
+    opts: ["obj의 타입(클래스)", "obj가 가진 속성과 메서드 이름의 목록", "obj의 메모리 주소", "obj의 값"],
+    ans: 1,
+    explain: "dir(obj)는 obj가 가진 모든 속성과 메서드의 이름을 리스트로 반환합니다. __add__, __str__ 같은 매직 메서드도 포함됩니다."
+  },
+  {
+    q: "isinstance([1,2,3], Iterable)의 결과는?",
+    code: `from collections.abc import Iterable
+print(isinstance([1, 2, 3], Iterable))`,
+    opts: ["False", "True", "TypeError", "None"],
+    ans: 1,
+    explain: "리스트는 __iter__ 메서드를 가지고 있으므로 Iterable입니다. isinstance()로 확인하면 True가 반환됩니다."
+  },
+  {
+    q: "__new__와 __init__의 차이로 올바른 것은?",
+    code: null,
+    opts: [
+      "__new__는 초기화, __init__은 생성 담당",
+      "__new__는 인스턴스 생성(return 필요), __init__은 초기화(return 불필요)",
+      "둘 다 인스턴스를 생성한다",
+      "__new__는 자식 클래스에서만 사용 가능하다"
+    ],
+    ans: 1,
+    explain: "__new__는 인스턴스를 실제로 생성하는 단계(return super().__new__(cls, ...))이고, __init__은 이미 만들어진 인스턴스에 속성을 설정하는 초기화 단계입니다. 불변 객체(int 등)를 상속할 때는 __new__를 사용합니다."
+  },
+  {
+    q: "아래 Duck 클래스에서 dir(d)에 포함되는 메서드는?",
+    code: `class Flyable:
+    def fly(self): print('날다')
+class Swimmable:
+    def swim(self): print('수영하다')
+class Duck(Flyable, Swimmable): pass
+
+d = Duck()`,
+    opts: ["fly만 포함", "swim만 포함", "fly와 swim 모두 포함", "아무것도 포함되지 않음"],
+    ans: 2,
+    explain: "다중 상속으로 Duck은 Flyable의 fly()와 Swimmable의 swim()을 모두 상속받습니다. dir(d)에 두 메서드 모두 포함됩니다."
+  },
+  {
+    q: "다음 중 클래스와 인스턴스의 type() 결과가 옳게 짝지어진 것은?",
+    code: `class MyClass: pass
+obj = MyClass()`,
+    opts: [
+      "type(MyClass) == object, type(obj) == MyClass",
+      "type(MyClass) == type, type(obj) == MyClass",
+      "type(MyClass) == MyClass, type(obj) == type",
+      "둘 다 object"
+    ],
+    ans: 1,
+    explain: "클래스 자체의 타입은 메타클래스인 type입니다. 인스턴스의 타입은 자신을 만든 클래스입니다. type(MyClass) → type, type(obj) → MyClass."
+  }
+];
+
+let userAnswers = Array(quizzes.length).fill(null);
+let score = 0;
+let answered = 0;
+
+function buildQuiz() {
+  const list = document.getElementById('quiz-list');
+  list.innerHTML = '';
+  quizzes.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-card';
+    div.id = `qcard-${qi}`;
+    let codeHtml = q.code ? `<div class="quiz-code">${escCode(q.code)}</div>` : '';
+    let optsHtml = q.opts.map((o, oi) =>
+      `<button class="opt-btn" id="opt-${qi}-${oi}" onclick="selectOpt(${qi},${oi})">
+        <span class="opt-letter">${'ABCD'[oi]}</span>${escHtml(o)}
+      </button>`
+    ).join('');
+    div.innerHTML = `
+      <div class="quiz-num">Q${qi+1} / ${quizzes.length}</div>
+      <div class="quiz-q">${escHtml(q.q)}</div>
+      ${codeHtml}
+      <div class="options" id="opts-${qi}">${optsHtml}</div>
+      <div class="feedback-box" id="fb-${qi}"></div>`;
+    list.appendChild(div);
+  });
+}
+
+function escHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function selectOpt(qi, oi) {
+  if (userAnswers[qi] !== null) return;
+  userAnswers[qi] = oi;
+  answered++;
+  const correct = quizzes[qi].ans;
+  const fb = document.getElementById(`fb-${qi}`);
+  for (let i = 0; i < quizzes[qi].opts.length; i++) {
+    const btn = document.getElementById(`opt-${qi}-${i}`);
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    if (i === oi && oi !== correct) btn.classList.add('wrong');
+  }
+  if (oi === correct) {
+    score++;
+    fb.className = 'feedback-box show feedback-correct';
+    fb.innerHTML = `✅ 정답입니다! ${escHtml(quizzes[qi].explain)}`;
+  } else {
+    fb.className = 'feedback-box show feedback-wrong';
+    fb.innerHTML = `❌ 오답입니다. <strong>정답: ${'ABCD'[correct]}</strong><br>${escHtml(quizzes[qi].explain)}`;
+    addWrongNote(qi, oi);
+  }
+  document.getElementById('score-badge').textContent = `${score} / ${quizzes.length}`;
+  if (answered === quizzes.length) setTimeout(showResult, 600);
+}
+
+function showResult() {
+  document.getElementById('quiz-result').classList.add('show');
+  const pct = Math.round((score / quizzes.length) * 100);
+  let color = pct >= 80 ? 'var(--accent2)' : pct >= 60 ? 'var(--warn)' : 'var(--accent3)';
+  document.getElementById('result-score-text').innerHTML = `<span style="color:${color}">${score}</span> / ${quizzes.length}`;
+  let msg = pct === 100 ? '🏆 완벽합니다! OOP 개념을 완전히 마스터했습니다.' :
+            pct >= 80 ? '👍 잘 이해하고 있습니다! 오답을 복습해보세요.' :
+            pct >= 60 ? '📖 절반 이상 맞혔습니다. 오답노트로 부족한 부분을 채워보세요.' :
+            '💪 아직 학습이 더 필요합니다. 플래시카드와 코드 예제를 다시 확인해보세요.';
+  document.getElementById('result-msg').textContent = msg;
+}
+
+function resetQuiz() {
+  userAnswers = Array(quizzes.length).fill(null);
+  score = 0; answered = 0; wrongNotes = [];
+  document.getElementById('score-badge').textContent = `0 / ${quizzes.length}`;
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz();
+  updateNotesPanel();
+}
+
+// ===== PRACTICE =====
+const practices = [
+  {
+    title: "클래스와 인스턴스 기본",
+    tag: "class · __init__ · self",
+    q: "Animal 클래스를 완성하세요.\n\n조건:\n① __init__에서 name 속성을 등록\n② speak() 메서드: '(name)이/가 소리를 냅니다.' 출력",
+    desc: "__init__은 인스턴스 생성 시 자동 호출됩니다. self.name = name으로 속성을 등록하고, speak()에서 self.name으로 접근합니다.",
+    given: `class Animal:
+    def __init__(self, ___):
+        self.___ = name
+
+    def speak(self):
+        print(f'{self.___}이/가 소리를 냅니다.')
+
+a = Animal('강아지')
+a.speak()   # 강아지이/가 소리를 냅니다.`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasSelfName = /self\.name=name/.test(c);
+      const hasSpeak = /self\.name/.test(c) && /print/.test(c);
+      if (hasSelfName && hasSpeak) return 'correct';
+      if (hasSelfName || hasSpeak) return 'partial';
+      return 'wrong';
+    },
+    hint: "__init__(self, name):\n    self.name = name\n\nspeak(self):\n    print(f'{self.name}이/가 소리를 냅니다.')",
+    answer: `class Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        print(f'{self.name}이/가 소리를 냅니다.')`
+  },
+  {
+    title: "self와 id() 확인",
+    tag: "self · id()",
+    q: "아래 클래스의 show_id() 메서드를 완성하세요.\n\n조건:\n① id(self)를 출력\n② 인스턴스 생성 후 id(인스턴스)와 비교해 같은지 확인",
+    desc: "메서드 호출 시 인스턴스 자신이 self로 자동 전달됩니다. id(self)와 id(외부 변수)가 같아야 합니다.",
+    given: `class Box:
+    def show_id(self):
+        print("self id:", ___(___))
+
+b = Box()
+b.show_id()
+print("b id:   ", id(b))
+# 두 id가 같아야 합니다`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      return /id\(self\)/.test(c) ? 'correct' : 'wrong';
+    },
+    hint: "id(self) 를 출력하면 됩니다.",
+    answer: `class Box:\n    def show_id(self):\n        print("self id:", id(self))\n\nb = Box()\nb.show_id()\nprint("b id:   ", id(b))   # 두 값이 동일`
+  },
+  {
+    title: "캡슐화: getter / setter",
+    tag: "캡슐화 · _속성 · getter/setter",
+    q: "BankAccount 클래스의 getter/setter를 완성하세요.\n\n조건:\n① _balance 보호된 속성 사용\n② get_balance() → _balance 반환\n③ deposit(amount) → amount가 0보다 클 때만 _balance에 추가",
+    desc: "보호된 속성(_balance)은 직접 접근 대신 메서드로 통제합니다. setter에서 유효성 검사를 수행하세요.",
+    given: `class BankAccount:
+    def __init__(self, balance):
+        self.___ = balance     # 보호된 속성
+
+    def get_balance(self):
+        return self.___        # _balance 반환
+
+    def deposit(self, amount):
+        if ___ > 0:            # 유효성 검사
+            self.___ += amount
+
+acc = BankAccount(1000)
+acc.deposit(500)
+print(acc.get_balance())   # 1500
+acc.deposit(-100)          # 무시됨
+print(acc.get_balance())   # 1500`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasAttr = /self\._balance/.test(c);
+      const hasGetter = /returnself\._balance/.test(c);
+      const hasCheck = /amount>0/.test(c) || /0<amount/.test(c);
+      if (hasAttr && hasGetter && hasCheck) return 'correct';
+      if (hasAttr || hasGetter) return 'partial';
+      return 'wrong';
+    },
+    hint: "self._balance = balance\nreturn self._balance\nif amount > 0: self._balance += amount",
+    answer: `class BankAccount:\n    def __init__(self, balance):\n        self._balance = balance\n\n    def get_balance(self):\n        return self._balance\n\n    def deposit(self, amount):\n        if amount > 0:\n            self._balance += amount`
+  },
+  {
+    title: "상속과 super()",
+    tag: "상속 · super() · override",
+    q: "ElectricCar가 Car를 상속받도록 완성하세요.\n\n조건:\n① super().__init__으로 부모 초기화\n② describe()를 오버라이딩: '전기차: (brand), 배터리: (battery)kWh' 출력",
+    desc: "자식 클래스 __init__에서 super().__init__()으로 부모 속성을 먼저 초기화한 후, 자식만의 속성을 추가합니다.",
+    given: `class Car:
+    def __init__(self, brand):
+        self.brand = brand
+    def describe(self):
+        print(f'자동차: {self.brand}')
+
+class ElectricCar(___):         # Car 상속
+    def __init__(self, brand, battery):
+        ___.__init__(brand)     # 부모 초기화
+        self.battery = battery
+
+    def describe(self):         # 오버라이딩
+        print(f'전기차: {self.___}, 배터리: {self.battery}kWh')
+
+ec = ElectricCar('Tesla', 100)
+ec.describe()   # 전기차: Tesla, 배터리: 100kWh`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasInherit = /classElectricCar\(Car\)/.test(c);
+      const hasSuper = /super\(\).__init__/.test(c);
+      const hasOverride = /self\.brand/.test(c) && /self\.battery/.test(c);
+      if (hasInherit && hasSuper && hasOverride) return 'correct';
+      if (hasInherit || hasSuper) return 'partial';
+      return 'wrong';
+    },
+    hint: "class ElectricCar(Car):\n    def __init__(self, brand, battery):\n        super().__init__(brand)\n        self.battery = battery",
+    answer: `class ElectricCar(Car):\n    def __init__(self, brand, battery):\n        super().__init__(brand)\n        self.battery = battery\n\n    def describe(self):\n        print(f'전기차: {self.brand}, 배터리: {self.battery}kWh')`
+  },
+  {
+    title: "다중 상속과 MRO",
+    tag: "다중상속 · MRO · __mro__",
+    q: "아래 클래스를 완성하고 MRO를 확인하세요.\n\n조건:\n① SmartPhone이 Phone과 Camera를 다중 상속\n② SmartPhone 인스턴스로 call()과 take_photo() 호출\n③ SmartPhone.__mro__ 출력",
+    desc: "다중 상속 시 class 정의에 괄호 안에 여러 부모를 나열합니다. __mro__로 메서드 검색 순서를 확인할 수 있습니다.",
+    given: `class Phone:
+    def call(self): print('전화하다')
+
+class Camera:
+    def take_photo(self): print('사진찍다')
+
+class SmartPhone(___, ___):   # 다중 상속
+    pass
+
+sp = SmartPhone()
+sp.___()           # call() 호출
+sp.___()           # take_photo() 호출
+print(SmartPhone.___)  # MRO 출력`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasMulti = /classSmartPhone\(Phone,Camera\)/.test(c);
+      const hasCall = /sp\.call\(\)/.test(c);
+      const hasMro = /__mro__/.test(c);
+      if (hasMulti && hasCall && hasMro) return 'correct';
+      if (hasMulti || hasMro) return 'partial';
+      return 'wrong';
+    },
+    hint: "class SmartPhone(Phone, Camera): pass\nsp.call()\nsp.take_photo()\nprint(SmartPhone.__mro__)",
+    answer: `class SmartPhone(Phone, Camera):\n    pass\n\nsp = SmartPhone()\nsp.call()\nsp.take_photo()\nprint(SmartPhone.__mro__)`
+  },
+  {
+    title: "다형성 구현",
+    tag: "다형성 · Polymorphism",
+    q: "다형성을 활용해 make_sound() 함수를 완성하세요.\n\n조건:\n① Dog, Cat, Bird 클래스 각각 speak() 메서드 구현\n② make_sound(animal) 함수: animal.speak() 호출\n③ 리스트로 반복 호출",
+    desc: "다형성의 핵심은 같은 메서드 이름(speak())으로 다른 동작을 하는 것입니다. 타입 검사 없이 메서드만 있으면 호출 가능합니다.",
+    given: `class Dog:
+    def speak(self): print('멍멍')
+
+class Cat:
+    def speak(self): print('야옹')
+
+class Bird:
+    def speak(self): print('짹짹')
+
+def make_sound(animal):
+    ___.___ ()          # speak() 호출
+
+animals = [Dog(), Cat(), Bird()]
+for a in ___:           # 반복
+    make_sound(___)`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasSpeak = /animal\.speak\(\)/.test(c);
+      const hasLoop = /forain/.test(c) || /foriinanimals/.test(c) || /forainimals/.test(c);
+      const hasMakeSound = /make_sound/.test(c);
+      if (hasSpeak && hasLoop && hasMakeSound) return 'correct';
+      if (hasSpeak || hasLoop) return 'partial';
+      return 'wrong';
+    },
+    hint: "def make_sound(animal):\n    animal.speak()\n\nfor a in animals:\n    make_sound(a)",
+    answer: `def make_sound(animal):\n    animal.speak()\n\nfor a in animals:\n    make_sound(a)\n# 멍멍\n# 야옹\n# 짹짹`
+  },
+  {
+    title: "종합: OOP 클래스 작성",
+    tag: "종합 실습",
+    q: "아래 조건을 만족하는 Shape 클래스 계층을 직접 작성하세요.\n\n조건:\n① Shape 클래스: __init__(color), describe() 메서드\n② Circle(Shape) 상속: __init__(color, radius), super() 사용\n③ describe() 오버라이딩: '색상: (color), 반지름: (radius)'\n④ isinstance()로 Circle이 Shape인지 확인",
+    desc: "지금까지 배운 모든 OOP 개념(클래스, 상속, super(), 오버라이딩, isinstance())을 활용해보세요.",
+    given: `# Shape와 Circle 클래스를 아래에 작성하세요.
+
+
+
+
+# 테스트
+c = Circle('빨강', 5)
+c.describe()
+print(isinstance(c, Shape))   # True`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasShape = /classShape/.test(c);
+      const hasCircle = /classCircle\(Shape\)/.test(c);
+      const hasSuper = /super\(\).__init__/.test(c);
+      const hasIsinstance = /isinstance/.test(c);
+      const hasOverride = /defdescribe/.test(c);
+      const s = [hasShape, hasCircle, hasSuper, hasIsinstance, hasOverride].filter(Boolean).length;
+      if (s >= 5) return 'correct';
+      if (s >= 3) return 'partial';
+      return 'wrong';
+    },
+    hint: "class Shape:\n    def __init__(self, color): self.color = color\n    def describe(self): print(f'색상: {self.color}')\n\nclass Circle(Shape):\n    def __init__(self, color, radius):\n        super().__init__(color)\n        self.radius = radius\n    def describe(self):\n        print(f'색상: {self.color}, 반지름: {self.radius}')",
+    answer: `class Shape:\n    def __init__(self, color):\n        self.color = color\n    def describe(self):\n        print(f'색상: {self.color}')\n\nclass Circle(Shape):\n    def __init__(self, color, radius):\n        super().__init__(color)\n        self.radius = radius\n    def describe(self):\n        print(f'색상: {self.color}, 반지름: {self.radius}')\n\nc = Circle('빨강', 5)\nc.describe()   # 색상: 빨강, 반지름: 5\nprint(isinstance(c, Shape))   # True`
+  }
+];
+
+let practiceResults = {};
+let practiceCompleted = 0;
+
+function buildPractice() {
+  const list = document.getElementById('practice-list');
+  list.innerHTML = '';
+  practices.forEach((p, pi) => {
+    const div = document.createElement('div');
+    div.className = 'practice-card';
+    div.innerHTML = `
+      <div class="practice-header">
+        <span class="practice-num">실습 ${pi+1} / ${practices.length} &nbsp;·&nbsp; ${p.title}</span>
+        <span class="practice-tag">${p.tag}</span>
+      </div>
+      <div class="practice-body">
+        <div class="practice-q">${escHtml(p.q)}</div>
+        <div class="practice-desc">${escHtml(p.desc)}</div>
+        <div class="editor-label">▶ 주어진 코드 (참고용)</div>
+        <div class="practice-given">${escCode(p.given)}</div>
+        <div class="editor-label" style="margin-top:14px">✏️ 답안 코드 작성</div>
+        <textarea class="code-editor" id="editor-${pi}" rows="5" placeholder="여기에 코드를 작성하세요..."></textarea>
+        <div class="hint-box" id="hint-${pi}">${escCode(p.hint)}</div>
+        <div class="practice-actions">
+          <button class="btn-check" onclick="checkPractice(${pi})">✔ 확인</button>
+          <button class="btn-hint" onclick="toggleHint(${pi})">💡 힌트</button>
+          <button class="btn-reset-p" onclick="resetPractice(${pi})">↺ 초기화</button>
+        </div>
+        <div class="practice-feedback" id="pfb-${pi}">
+          <div class="pf-result" id="pfr-${pi}"></div>
+          <div class="pf-explain" id="pfe-${pi}"></div>
+        </div>
+      </div>`;
+    list.appendChild(div);
+    document.getElementById(`editor-${pi}`).addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = this.selectionStart;
+        this.value = this.value.substring(0, s) + '    ' + this.value.substring(this.selectionEnd);
+        this.selectionStart = this.selectionEnd = s + 4;
+      }
+    });
+  });
+}
+
+function checkPractice(pi) {
+  const code = document.getElementById(`editor-${pi}`).value.trim();
+  if (!code) { alert('코드를 입력해주세요!'); return; }
+  const p = practices[pi];
+  const result = p.check(code);
+  const fb = document.getElementById(`pfb-${pi}`);
+  const pfr = document.getElementById(`pfr-${pi}`);
+  const pfe = document.getElementById(`pfe-${pi}`);
+  fb.className = 'practice-feedback show';
+  const wasOk = practiceResults[pi] === 'correct';
+  if (result === 'correct') {
+    pfr.className = 'pf-result pf-correct';
+    pfr.innerHTML = '✅ 정답입니다! 핵심 개념을 잘 이해했습니다.';
+    if (!wasOk) { practiceCompleted++; practiceResults[pi] = 'correct'; updatePracticeScore(); }
+  } else if (result === 'partial') {
+    pfr.className = 'pf-result pf-partial';
+    pfr.innerHTML = '🔶 부분 정답입니다. 조금 더 완성해보세요!';
+    practiceResults[pi] = 'partial';
+  } else {
+    pfr.className = 'pf-result pf-wrong';
+    pfr.innerHTML = '❌ 아직 정확하지 않습니다. 힌트를 참고해보세요.';
+    practiceResults[pi] = 'wrong';
+  }
+  pfe.innerHTML = `<div class="pf-answer-code">${escCode(p.answer)}</div>`;
+}
+
+function toggleHint(pi) { document.getElementById(`hint-${pi}`).classList.toggle('show'); }
+function resetPractice(pi) {
+  document.getElementById(`editor-${pi}`).value = '';
+  document.getElementById(`pfb-${pi}`).className = 'practice-feedback';
+  document.getElementById(`hint-${pi}`).classList.remove('show');
+  if (practiceResults[pi] === 'correct') { practiceCompleted = Math.max(0, practiceCompleted - 1); updatePracticeScore(); }
+  delete practiceResults[pi];
+}
+function updatePracticeScore() {
+  document.getElementById('ps-score').textContent = `${practiceCompleted} / ${practices.length} 완료`;
+}
+
+// ===== WRONG NOTES =====
+let wrongNotes = [];
+function addWrongNote(qi, myAns) { wrongNotes.push({ qi, myAns }); updateNotesPanel(); }
+function updateNotesPanel() {
+  const list = document.getElementById('notes-list');
+  const bar = document.getElementById('download-bar');
+  document.getElementById('wrong-count').textContent = wrongNotes.length;
+  if (wrongNotes.length === 0) {
+    bar.style.display = 'none';
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div>오답이 없습니다! 퀴즈를 풀면 틀린 문제가 여기에 기록됩니다.</div></div>`;
+    return;
+  }
+  bar.style.display = 'flex';
+  list.innerHTML = wrongNotes.map((wn, i) => {
+    const q = quizzes[wn.qi];
+    return `<div class="wrong-note-card">
+      <div class="wn-qnum">오답 #${i+1} · Q${wn.qi+1}</div>
+      <div class="wn-q">${escHtml(q.q)}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답변</div>${'ABCD'[wn.myAns]}. ${escHtml(q.opts[wn.myAns])}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${'ABCD'[q.ans]}. ${escHtml(q.opts[q.ans])}</div>
+      </div>
+      <div class="wn-explain">💡 ${escHtml(q.explain)}</div>
+    </div>`;
+  }).join('');
+}
+function downloadNotes() {
+  if (wrongNotes.length === 0) { alert('오답이 없습니다!'); return; }
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ko-KR');
+  let text = `================================================================\n`;
+  text += `  Python Object & OOP 오답노트\n`;
+  text += `  작성일: ${dateStr}  |  오답 수: ${wrongNotes.length} / ${quizzes.length}\n`;
+  text += `================================================================\n\n`;
+  wrongNotes.forEach((wn, i) => {
+    const q = quizzes[wn.qi];
+    text += `[오답 ${i+1}] Q${wn.qi+1}\n문제: ${q.q}\n`;
+    if (q.code) text += `\n코드:\n${q.code}\n`;
+    text += `\n선택지:\n`;
+    q.opts.forEach((o, oi) => {
+      const mark = oi === wn.myAns ? '  ← 내 답변 ❌' : oi === q.ans ? '  ← 정답 ✅' : '';
+      text += `  ${'ABCD'[oi]}. ${o}${mark}\n`;
+    });
+    text += `\n해설: ${q.explain}\n\n${'─'.repeat(60)}\n\n`;
+  });
+  text += `================================================================\n  학습 팁\n================================================================\n`;
+  text += `1. 모든 것이 객체: int, str, 함수, 클래스 모두 객체\n`;
+  text += `2. self: 메서드 호출 시 인스턴스 id가 자동 전달 (id(self)==id(인스턴스))\n`;
+  text += `3. 캡슐화: _속성으로 보호, getter/setter로 접근 통제\n`;
+  text += `4. 상속: super().__init__()으로 부모 초기화, 오버라이딩으로 재정의\n`;
+  text += `5. MRO: C(A,B)에서 A가 B보다 먼저 검색됨, __mro__로 확인\n`;
+  text += `6. 다형성: 같은 메서드명, 다른 동작 (덕 타이핑)\n`;
+  text += `7. 매직 메서드: y+10 → y.__add__(10)\n`;
+  text += `8. __new__: 인스턴스 생성, __init__: 초기화\n`;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `파이썬_OOP_오답노트_${dateStr.replace(/\./g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== TABS =====
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = ['flashcard','code','quiz','practice','notes'].indexOf(id);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+
+buildQuiz();
+buildPractice();
+updateNotesPanel();
+renderCard();
+</script>
+</body>
+</html>

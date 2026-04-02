@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Name & Namespace 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #f78166;
+    --accent4: #d2a8ff;
+    --warn: #e3b341;
+    --text: #e6edf3;
+    --text-sub: #8b949e;
+    --code-bg: #010409;
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #1a1f35 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  .logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+  .logo span { color: var(--accent2); }
+  header h1 {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--text-sub);
+  }
+  header h1 strong { color: var(--text); font-weight: 600; }
+  .btn-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text-sub); background: var(--surface2);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 12px; text-decoration: none; white-space: nowrap;
+    transition: color .15s, border-color .15s;
+  }
+  .btn-back:hover { color: var(--text); border-color: #444c56; }
+
+  /* NAV TABS */
+  nav {
+    display: flex;
+    gap: 4px;
+    padding: 16px 40px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    font-family: 'Noto Sans KR', sans-serif;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 400;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tab-btn:hover { background: var(--surface2); color: var(--text); }
+  .tab-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .tab-icon { font-size: 1rem; }
+
+  /* SECTIONS */
+  .section { display: none; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .section.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-subtitle {
+    color: var(--text-sub);
+    font-size: 0.9rem;
+    margin-bottom: 32px;
+    font-weight: 300;
+  }
+
+  /* ===================== FLASHCARDS ===================== */
+  .flashcard-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+  .fc-progress {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .fc-progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .fc-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent4));
+    border-radius: 4px;
+    transition: width 0.4s ease;
+  }
+
+  .flashcard-wrap {
+    perspective: 1200px;
+    height: 320px;
+    cursor: pointer;
+    margin-bottom: 24px;
+  }
+  .flashcard {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+
+  .fc-front, .fc-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+  }
+  .fc-front {
+    background: linear-gradient(135deg, var(--surface) 0%, #1e2a3a 100%);
+  }
+  .fc-back {
+    background: linear-gradient(135deg, #0f1f0f 0%, #1a2a1a 100%);
+    border-color: var(--accent2);
+    transform: rotateY(180deg);
+  }
+  .fc-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    margin-bottom: 16px;
+  }
+  .fc-front .fc-label { color: var(--accent); }
+  .fc-back .fc-label { color: var(--accent2); }
+  .fc-q {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  .fc-a {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.7;
+    color: var(--text);
+    white-space: pre-line;
+  }
+  .fc-hint {
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .fc-code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 0.8rem;
+    color: var(--accent4);
+    margin-top: 12px;
+    text-align: left;
+    width: 100%;
+    white-space: pre;
+  }
+
+  .nav-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .btn {
+    font-family: 'Noto Sans KR', sans-serif;
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn-ghost { background: transparent; color: var(--text-sub); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #79b8ff; }
+  .btn-success { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+  .btn-success:hover { background: #56d364; }
+  .btn-danger { background: var(--accent3); color: #fff; border-color: var(--accent3); }
+
+  /* ===================== CODE EXAMPLES ===================== */
+  .code-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 24px;
+    transition: border-color 0.2s;
+  }
+  .code-card:hover { border-color: var(--accent); }
+  .code-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .code-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .code-tag {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .tag-namespace { background: #1c2a4a; color: var(--accent); border: 1px solid var(--accent); }
+  .tag-error { background: #2a1c1c; color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-name { background: #2a1c2a; color: var(--accent4); border: 1px solid var(--accent4); }
+
+  .code-body { padding: 0; }
+  .code-explain {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-sub);
+  }
+  .code-explain strong { color: var(--text); }
+
+  pre {
+    background: var(--code-bg);
+    padding: 20px;
+    overflow-x: auto;
+    margin: 0;
+  }
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+  .kw { color: #ff7b72; }
+  .fn { color: #d2a8ff; }
+  .st { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; }
+  .nm { color: #79c0ff; }
+  .op { color: #f0883e; }
+  .num { color: #f0883e; }
+
+  .output-box {
+    background: #010409;
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--accent2);
+  }
+  .output-label {
+    color: var(--text-sub);
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .diagram-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  .ns-diagram {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+  }
+  .ns-level {
+    width: 100%;
+    max-width: 480px;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    position: relative;
+  }
+  .ns-arrow {
+    color: var(--text-sub);
+    font-size: 1.2rem;
+    margin: 4px 0;
+  }
+  .ns-built { background: #1a1040; border: 2px solid var(--accent4); color: var(--accent4); }
+  .ns-global { background: #0f1f2a; border: 2px solid var(--accent); color: var(--accent); }
+  .ns-local { background: #0f1f0f; border: 2px solid var(--accent2); color: var(--accent2); }
+  .ns-desc { font-size: 0.75rem; font-weight: 300; color: var(--text-sub); margin-top: 4px; }
+
+  /* ===================== QUIZ ===================== */
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .quiz-score-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.875rem;
+    color: var(--accent2);
+    font-weight: 600;
+    background: #0f1f0f;
+    border: 1px solid var(--accent2);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .quiz-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .quiz-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .quiz-q {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+  .quiz-code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 0.8rem;
+    color: #e6edf3;
+    margin-bottom: 20px;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn {
+    font-family: 'Noto Sans KR', sans-serif;
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-align: left;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--accent); background: #1a2a3a; }
+  .opt-btn:disabled { cursor: default; }
+  .opt-letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .opt-btn.correct { border-color: var(--accent2); background: #0f1f0f; color: var(--accent2); }
+  .opt-btn.correct .opt-letter { background: var(--accent2); color: #fff; }
+  .opt-btn.wrong { border-color: var(--accent3); background: #2a1c1c; color: var(--accent3); }
+  .opt-btn.wrong .opt-letter { background: var(--accent3); color: #fff; }
+
+  .feedback-box {
+    margin-top: 14px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    display: none;
+  }
+  .feedback-box.show { display: block; }
+  .feedback-correct { background: #0f2a0f; border: 1px solid var(--accent2); color: var(--accent2); }
+  .feedback-wrong { background: #2a0f0f; border: 1px solid var(--accent3); color: #e6edf3; }
+  .feedback-wrong strong { color: var(--accent3); }
+
+  .quiz-result {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px;
+    text-align: center;
+    animation: fadeIn 0.4s ease;
+  }
+  .quiz-result.show { display: block; }
+  .result-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 16px 0;
+  }
+  .result-msg { font-size: 1rem; color: var(--text-sub); margin-bottom: 24px; }
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ===================== WRONG NOTES ===================== */
+  .wrong-note-card {
+    background: var(--surface);
+    border: 1px solid #2a1c1c;
+    border-left: 4px solid var(--accent3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    animation: fadeIn 0.3s ease;
+  }
+  .wn-qnum {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent3);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .wn-q { font-size: 0.95rem; font-weight: 600; margin-bottom: 12px; line-height: 1.6; }
+  .wn-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    font-size: 0.85rem;
+  }
+  .wn-my { padding: 10px; border-radius: 6px; background: #2a1c1c; border: 1px solid var(--accent3); }
+  .wn-ans { padding: 10px; border-radius: 6px; background: #0f1f0f; border: 1px solid var(--accent2); }
+  .wn-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .wn-my .wn-label { color: var(--accent3); }
+  .wn-ans .wn-label { color: var(--accent2); }
+  .wn-explain { margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); line-height: 1.6; padding: 10px; background: var(--surface2); border-radius: 6px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-sub);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .download-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+  }
+  .download-info { font-size: 0.9rem; }
+  .download-info strong { color: var(--accent3); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    nav, .section { padding: 12px 16px; }
+    header { padding: 14px 16px; }
+    .wn-row { grid-template-columns: 1fr; }
+    .flashcard-wrap { height: 280px; }
+  }
+
+  /* ===================== PRACTICE QUIZ ===================== */
+  .practice-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 28px;
+    transition: border-color 0.2s;
+  }
+  .practice-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .practice-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--accent4);
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .practice-tag {
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+    background: #2a1c40;
+    color: var(--accent4);
+    border: 1px solid var(--accent4);
+  }
+  .practice-body { padding: 20px; }
+  .practice-q {
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+  .practice-desc {
+    font-size: 0.875rem;
+    color: var(--text-sub);
+    line-height: 1.7;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent4);
+  }
+  .practice-given {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 0.8rem;
+    color: #e6edf3;
+    margin-bottom: 14px;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.7;
+  }
+  .editor-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--accent4);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .code-editor {
+    width: 100%;
+    background: #010409;
+    border: 1px solid var(--accent4);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent4);
+    resize: vertical;
+    min-height: 90px;
+    outline: none;
+    line-height: 1.7;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+  }
+  .code-editor:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88,166,255,0.15);
+    color: var(--text);
+  }
+  .practice-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .btn-check {
+    font-family: 'Noto Sans KR', sans-serif;
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--accent4);
+    background: #2a1c40;
+    color: var(--accent4);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn-check:hover { background: var(--accent4); color: #000; }
+  .btn-hint {
+    font-family: 'Noto Sans KR', sans-serif;
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+  .btn-hint:hover { border-color: var(--warn); color: var(--warn); }
+  .btn-reset-p {
+    font-family: 'Noto Sans KR', sans-serif;
+    padding: 9px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-sub);
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+  }
+  .btn-reset-p:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  .practice-feedback {
+    margin-top: 14px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: none;
+  }
+  .practice-feedback.show { display: block; }
+  .pf-result {
+    padding: 12px 16px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pf-correct { background: #0f2a0f; color: var(--accent2); border: 1px solid var(--accent2); border-bottom: none; }
+  .pf-wrong { background: #2a0f0f; color: var(--accent3); border: 1px solid var(--accent3); border-bottom: none; }
+  .pf-partial { background: #2a2a0f; color: var(--warn); border: 1px solid var(--warn); border-bottom: none; }
+  .pf-explain {
+    padding: 14px 16px;
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--text-sub);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+  }
+  .pf-answer-code {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 0.78rem;
+    color: var(--accent2);
+    margin-top: 10px;
+    white-space: pre;
+    overflow-x: auto;
+    line-height: 1.6;
+  }
+  .hint-box {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: #2a200a;
+    border: 1px solid var(--warn);
+    border-radius: 8px;
+    font-size: 0.85rem;
+    color: var(--warn);
+    display: none;
+    line-height: 1.6;
+  }
+  .hint-box.show { display: block; }
+
+  .practice-score-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .ps-label { font-size: 0.875rem; color: var(--text-sub); }
+  .ps-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--accent4);
+    background: #2a1c40;
+    border: 1px solid var(--accent4);
+    padding: 4px 14px;
+    border-radius: 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="btn-back" href="index.html">← 목록으로</a>
+  <div class="logo">py<span>._ns</span></div>
+  <h1>Python <strong>Name &amp; Namespace</strong> 학습</h1>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')"><span class="tab-icon">🃏</span> 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')"><span class="tab-icon">💻</span> 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')"><span class="tab-icon">📝</span> 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('practice')"><span class="tab-icon">⌨️</span> 실습 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')"><span class="tab-icon">📋</span> 오답노트</button>
+</nav>
+
+<!-- ======================== FLASHCARDS ======================== -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 개념을 충분히 학습한 후 퀴즈로 넘어가세요.</div>
+
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 12</span>
+    <span style="font-size:0.8rem;color:var(--text-sub)">💡 클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:10%"></div></div>
+
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q">파이썬의 3가지 Namespace 계층은?</div>
+        <div class="fc-hint">👆 클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a">Built-in → Global → Local<br><br>상위 순서로 검색하며, 없으면 NameError 발생</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ======================== CODE EXAMPLES ======================== -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">실제 파이썬 코드를 통해 Name과 Namespace 개념을 확인하세요.</div>
+
+  <!-- Namespace 구조 -->
+  <div class="diagram-box">
+    <div class="section-title" style="font-size:1rem;justify-content:center;margin-bottom:20px;">Namespace 검색 순서 (Read)</div>
+    <div class="ns-diagram">
+      <div class="ns-level ns-local">
+        Local Namespace
+        <div class="ns-desc">함수 내부에서 선언된 이름 ▶ 함수 내부 명령일 때 시작위치</div>
+      </div>
+      <div class="ns-arrow">↓ 없으면 상위로</div>
+      <div class="ns-level ns-global">
+        Global Namespace
+        <div class="ns-desc">함수 외부에서 선언된 이름 ▶ 함수 외부 명령일 때 시작위치</div>
+      </div>
+      <div class="ns-arrow">↓ 없으면 상위로</div>
+      <div class="ns-level ns-built">
+        Built-in Namespace
+        <div class="ns-desc">파이썬 내장함수, 예외 이름 (Read Only)</div>
+      </div>
+      <div class="ns-arrow" style="margin-top:4px">↓ 없으면 NameError ❌</div>
+    </div>
+  </div>
+
+  <!-- 예제 1 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: 변수 타입과 재할당</span>
+      <span class="code-tag tag-namespace">Namespace · Dynamic Typing</span>
+    </div>
+    <div class="code-explain">
+      파이썬은 <strong>동적 타입 언어</strong>입니다. 같은 이름(name)에 서로 다른 타입의 객체를 할당할 수 있습니다.
+      변수 이름은 <strong>Global Namespace</strong>에 등록됩니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="nm">a</span>))   <span class="cm"># &lt;class 'int'&gt;</span>
+
+<span class="nm">a</span> <span class="op">=</span> <span class="st">'python'</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="nm">a</span>))   <span class="cm"># &lt;class 'str'&gt;</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      &lt;class 'int'&gt;<br>&lt;class 'str'&gt;
+    </div>
+  </div>
+
+  <!-- 예제 2 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: 객체 ID와 불변성 (immutability)</span>
+      <span class="code-tag tag-namespace">id() · 객체 동일성</span>
+    </div>
+    <div class="code-explain">
+      <code style="font-size:0.8rem;color:var(--accent4)">a = 10</code>과 <code style="font-size:0.8rem;color:var(--accent4)">a += 1</code>은 서로 <strong>다른 객체</strong>입니다.
+      정수는 불변(immutable) 객체이므로, 값이 변경되면 새 객체가 생성되고 이름이 새 객체를 가리킵니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>
+<span class="fn">print</span>(<span class="nm">a</span>, <span class="fn">id</span>(<span class="nm">a</span>))   <span class="cm"># 10 11645640</span>
+
+<span class="nm">a</span> <span class="op">+=</span> <span class="num">1</span>
+<span class="fn">print</span>(<span class="nm">a</span>, <span class="fn">id</span>(<span class="nm">a</span>))   <span class="cm"># 11 11645672  ← 다른 id!</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      10 &nbsp;11645640<br>11 &nbsp;11645672 &nbsp;<span style="color:var(--warn)">← id가 달라짐 (새 객체)</span>
+    </div>
+  </div>
+
+  <!-- 예제 3 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: Built-in 이름 가리기 (shadowing)</span>
+      <span class="code-tag tag-error">Shadowing · del</span>
+    </div>
+    <div class="code-explain">
+      Global namespace에 Built-in과 <strong>같은 이름</strong>을 등록하면, 검색 시 Global이 먼저 발견되어
+      내장 함수를 가립니다(shadowing). <code style="font-size:0.8rem;color:var(--accent4)">del</code>로 Global 이름을 제거하면 다시 Built-in을 사용할 수 있습니다.
+    </div>
+    <pre><code><span class="nm">sum</span> <span class="op">=</span> <span class="num">100</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="nm">sum</span>))    <span class="cm"># &lt;class 'int'&gt;</span>
+<span class="cm"># sum(range(1,101)) → TypeError: 'int' object is not callable</span>
+
+<span class="kw">del</span> <span class="nm">sum</span>              <span class="cm"># Global에서 sum 제거</span>
+<span class="fn">print</span>(<span class="fn">sum</span>(<span class="fn">range</span>(<span class="num">1</span>, <span class="num">101</span>)))  <span class="cm"># 5050 (Built-in sum 사용 가능)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      &lt;class 'int'&gt;<br>5050
+    </div>
+  </div>
+
+  <!-- 예제 4 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: Local / Global Namespace 분리</span>
+      <span class="code-tag tag-namespace">Local · Global · locals()</span>
+    </div>
+    <div class="code-explain">
+      함수 내부의 이름(a, b, c)은 <strong>Local namespace</strong>에 등록됩니다. 외부의 Global namespace와 독립적이며,
+      <code style="font-size:0.8rem;color:var(--accent4)">locals()</code>로 확인할 수 있습니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="nm">a</span>, <span class="nm">b</span>):
+    <span class="nm">c</span> <span class="op">=</span> <span class="nm">a</span> <span class="op">*</span> <span class="nm">b</span>
+    <span class="fn">print</span>(<span class="fn">locals</span>())   <span class="cm"># Local namespace 확인</span>
+    <span class="kw">return</span> <span class="nm">c</span>
+
+<span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="num">20</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="fn">func</span>(<span class="nm">a</span>, <span class="nm">b</span>)
+<span class="fn">print</span>(<span class="nm">c</span>)             <span class="cm"># 200 (Global의 c)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      {'a': 10, 'b': 20, 'c': 200} &nbsp;<span style="color:var(--warn)">← Local namespace</span><br>200 &nbsp;<span style="color:var(--warn)">← Global c</span>
+    </div>
+  </div>
+
+  <!-- 예제 5 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 5: NameError vs UnboundLocalError</span>
+      <span class="code-tag tag-error">NameError · UnboundLocalError</span>
+    </div>
+    <div class="code-explain">
+      <strong>NameError</strong>: 이름 자체가 어느 namespace에도 없는 경우<br>
+      <strong>UnboundLocalError</strong>: 이름은 Local namespace에 등록되어 있지만(컴파일 시점에 x=10 때문에), 아직 객체가 연결되지 않은 상태에서 읽으려 할 때
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func1</span>():
+    <span class="fn">print</span>(<span class="nm">x</span>)       <span class="cm"># NameError: x가 어디에도 없음</span>
+
+<span class="kw">def</span> <span class="fn">func2</span>():
+    <span class="fn">print</span>(<span class="nm">x</span>)       <span class="cm"># UnboundLocalError: x는 local에 있지만 아직 미할당</span>
+    <span class="nm">x</span> <span class="op">=</span> <span class="num">10</span>         <span class="cm"># 이 줄 때문에 x가 local에 등록됨</span>
+
+<span class="cm"># co_varnames: 컴파일 시점에 파악된 local 변수 목록</span>
+<span class="fn">print</span>(<span class="fn">func1</span>.__code__.co_varnames)  <span class="cm"># ()</span>
+<span class="fn">print</span>(<span class="fn">func2</span>.__code__.co_varnames)  <span class="cm"># ('x',)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ co_varnames 출력</div>
+      ()<br>('x',)
+    </div>
+  </div>
+
+  <!-- 예제 6 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 6: 이름 규칙과 pandas DataFrame</span>
+      <span class="code-tag tag-name">Name Rule · pandas</span>
+    </div>
+    <div class="code-explain">
+      dict의 key나 DataFrame 컬럼명도 파이썬 이름 규칙을 따르면 <strong>점 표기법(dot notation)</strong>으로 접근 가능합니다.
+      숫자로 시작하는 이름(<code style="font-size:0.8rem;color:var(--accent4)">'1c'</code>)은 규칙에 어긋나서 <code style="font-size:0.8rem;color:var(--accent4)">x['1c']</code>는 되지만 <code style="font-size:0.8rem;color:var(--accent4)">x.1c</code>는 SyntaxError 발생.
+    </div>
+    <pre><code><span class="kw">import</span> <span class="nm">pandas</span> <span class="kw">as</span> <span class="nm">pd</span>
+<span class="nm">x</span> <span class="op">=</span> <span class="nm">pd</span>.<span class="fn">DataFrame</span>({'a':[<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>], 'b':[<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>], '1c':[<span class="num">7</span>,<span class="num">8</span>,<span class="num">9</span>]})
+
+<span class="fn">print</span>(<span class="nm">x</span>.<span class="nm">a</span>)       <span class="cm"># 정상: 이름 규칙 준수</span>
+<span class="fn">print</span>(<span class="nm">x</span>[<span class="st">'1c'</span>])  <span class="cm"># 정상: key 접근</span>
+<span class="cm"># print(x.1c) → SyntaxError: 숫자로 시작하는 이름 불가</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 이름 규칙 요약</div>
+      ✅ &nbsp;x.a &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ 이름 규칙 준수 (dot notation 사용 가능)<br>
+      ✅ &nbsp;x['1c'] → key 접근 (항상 가능)<br>
+      ❌ &nbsp;x.1c &nbsp;&nbsp;&nbsp;→ SyntaxError (숫자로 시작 불가)
+    </div>
+  </div>
+
+  <!-- 예제 7 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 7: 이름은 다르지만 같은 객체 — id()로 확인</span>
+      <span class="code-tag tag-namespace">id() · Local vs Global · 객체 공유</span>
+    </div>
+    <div class="code-explain">
+      <strong>이름(name)</strong>은 namespace별로 독립적이지만, 그 이름이 가리키는 <strong>객체(object)</strong>는 공유될 수 있습니다.<br>
+      Global의 <code style="font-size:0.8rem;color:var(--accent4)">a, b</code>를 함수에 전달하면, Local의 <code style="font-size:0.8rem;color:var(--accent4)">a, b</code>는 <strong>이름은 다르지만 동일한 객체</strong>를 가리킵니다.
+      반환된 <code style="font-size:0.8rem;color:var(--accent4)">c</code>도 마찬가지로 Local과 Global이 같은 객체를 공유합니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="nm">a</span>, <span class="nm">b</span>):             <span class="cm"># Local: a, b, c</span>
+    <span class="nm">c</span> <span class="op">=</span> <span class="nm">a</span> <span class="op">+</span> <span class="nm">b</span>
+    <span class="fn">print</span>(<span class="fn">id</span>(<span class="nm">a</span>), <span class="fn">id</span>(<span class="nm">b</span>), <span class="fn">id</span>(<span class="nm">c</span>))  <span class="cm"># Local id</span>
+    <span class="fn">print</span>(<span class="fn">locals</span>())
+    <span class="kw">return</span> <span class="nm">c</span>
+
+<span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>                        <span class="cm"># Global: a, b, c</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="num">20</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="fn">func</span>(<span class="nm">a</span>, <span class="nm">b</span>)
+<span class="fn">print</span>(<span class="fn">id</span>(<span class="nm">a</span>), <span class="fn">id</span>(<span class="nm">b</span>), <span class="fn">id</span>(<span class="nm">c</span>))  <span class="cm"># Global id</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력 (id 값은 실행 환경마다 다름)</div>
+      <span style="color:var(--accent4)">▶ func 내부 (Local)</span><br>
+      {'a': 10, 'b': 20, 'c': 30}<br>
+      11645640 &nbsp;11645960 &nbsp;11646280<br><br>
+      <span style="color:var(--accent)">▶ func 외부 (Global)</span><br>
+      11645640 &nbsp;11645960 &nbsp;11646280<br><br>
+      <span style="color:var(--warn)">
+        ✔ id(Local.a) == id(Global.a) &nbsp;→ 같은 객체 (10)<br>
+        ✔ id(Local.b) == id(Global.b) &nbsp;→ 같은 객체 (20)<br>
+        ✔ id(Local.c) == id(Global.c) &nbsp;→ 같은 객체 (30, return으로 전달)
+      </span>
+    </div>
+  </div>
+
+  <!-- 개념 정리 박스 -->
+  <div class="diagram-box" style="text-align:left;">
+    <div style="font-size:1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+      🔑 핵심 정리: 이름(Name) vs 객체(Object)
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div style="background:#0f1f2a;border:1px solid var(--accent);border-radius:8px;padding:16px;">
+        <div style="color:var(--accent);font-size:0.75rem;font-weight:700;letter-spacing:1px;margin-bottom:8px;">NAMESPACE (이름 공간)</div>
+        <div style="font-size:0.85rem;line-height:1.7;color:var(--text-sub)">
+          <code style="color:var(--accent4)">a</code>, <code style="color:var(--accent4)">b</code>, <code style="color:var(--accent4)">c</code> 라는 <strong style="color:var(--text)">이름</strong>은<br>
+          Local과 Global에 <strong style="color:var(--text)">각각 독립적</strong>으로 존재
+        </div>
+      </div>
+      <div style="background:#0f1f0f;border:1px solid var(--accent2);border-radius:8px;padding:16px;">
+        <div style="color:var(--accent2);font-size:0.75rem;font-weight:700;letter-spacing:1px;margin-bottom:8px;">OBJECT (객체)</div>
+        <div style="font-size:0.85rem;line-height:1.7;color:var(--text-sub)">
+          <code style="color:var(--accent4)">10</code>, <code style="color:var(--accent4)">20</code>, <code style="color:var(--accent4)">30</code> 이라는 <strong style="color:var(--text)">객체</strong>는<br>
+          namespace에 관계없이 <strong style="color:var(--text)">하나만 존재</strong>하며 공유됨
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:0.8rem;background:var(--code-bg);border-radius:8px;padding:14px;color:var(--text-sub);line-height:1.8;">
+      Global.a ──┐<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──▶ <span style="color:var(--accent2)">객체 10 (id: 11645640)</span><br>
+      Local.a &nbsp;──┘<br><br>
+      Global.c ──┐<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├──▶ <span style="color:var(--accent2)">객체 30 (id: 11646280)</span><br>
+      Local.c &nbsp;──┘ &nbsp;<span style="color:var(--warn)">← return으로 전달됨</span>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== QUIZ ======================== -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div class="section-title">📝 퀴즈</div>
+    <div class="quiz-score-badge" id="score-badge">0 / 17</div>
+  </div>
+  <div class="section-subtitle">총 17문제 · 선택지를 클릭하면 즉시 정답 여부를 확인할 수 있습니다.</div>
+  <div id="quiz-list"></div>
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎯</div>
+    <div class="result-score" id="result-score-text"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" onclick="showTab('notes')">📋 오답노트 보기</button>
+      <button class="btn btn-primary" onclick="resetQuiz()">🔄 다시 풀기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== PRACTICE QUIZ ======================== -->
+<div id="practice" class="section">
+  <div class="section-title">⌨️ 실습 퀴즈</div>
+  <div class="section-subtitle">빈칸을 직접 코드로 채워보세요. 힌트 버튼을 사용할 수 있습니다.</div>
+
+  <div class="practice-score-bar">
+    <span class="ps-label">실습 진행 현황</span>
+    <span class="ps-score" id="ps-score">0 / 8 완료</span>
+  </div>
+
+  <div id="practice-list"></div>
+</div>
+
+<!-- ======================== WRONG NOTES ======================== -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">퀴즈에서 틀린 문제만 모아 정리합니다. 텍스트 파일로 다운로드할 수 있습니다.</div>
+
+  <div class="download-bar" id="download-bar" style="display:none">
+    <div class="download-info">틀린 문제 <strong id="wrong-count">0</strong>개가 기록되었습니다</div>
+    <button class="btn btn-danger" onclick="downloadNotes()">⬇ 오답노트 다운로드 (.txt)</button>
+  </div>
+
+  <div id="notes-list">
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div>아직 퀴즈를 풀지 않았습니다.<br>퀴즈 탭에서 문제를 풀면 오답이 여기에 기록됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===================== FLASHCARD DATA =====================
+const cards = [
+  {
+    q: "파이썬의 3가지 Namespace 계층은?",
+    a: "Local → Global → Built-in\n\n검색은 Local에서 시작해 Built-in으로 올라가고, 없으면 NameError 발생"
+  },
+  {
+    q: "Built-in Namespace란 무엇인가?",
+    a: "파이썬이 제공하는 내장함수(print, sum, len...)와 예외(Exception) 이름을 관리하는 공간이다.\n사용자는 Read만 가능 (수정 불가)"
+  },
+  {
+    q: "Global Namespace에는 어떤 이름이 등록되는가?",
+    a: "함수 외부 (모듈 수준)에서 선언된 이름이 등록된다.\na = 10, def func(): 등"
+  },
+  {
+    q: "Local Namespace에는 어떤 이름이 등록되는가?",
+    a: "함수 내부에서 선언된 이름이 등록된다.\n매개변수, 함수 내 변수 모두 포함"
+  },
+  {
+    q: "이름(Name) 검색 시 Write는 어떻게 동작하는가?",
+    a: "Write: 명령이 위치한 namespace에 이름을 등록하거나 수정한다.\n함수 내부라면 Local, 외부라면 Global에 등록"
+  },
+  {
+    q: "a = 10 과 a += 1 은 같은 객체인가?",
+    a: "아니다. 다른 객체이다.\n정수는 불변(immutable) 객체라서 값이 바뀌면 새 객체가 생성되고, a가 새 객체를 가리킨다.\nid()로 확인 가능"
+  },
+  {
+    q: "NameError란 어떤 상황에서 발생하는가?",
+    a: "이름이 Built-in, Global, Local 어느 Namespace에도 등록되어 있지 않을 때 발생"
+  },
+  {
+    q: "UnboundLocalError란 어떤 상황에서 발생하는가?",
+    a: "이름은 Local namespace에 등록되어 있지만(컴파일 시점),\n아직 객체가 연결되지 않은 상태에서 읽으려 할 때 발생"
+  },
+  {
+    q: "del 키워드의 역할은?",
+    a: "namespace에 등록된 이름을 제거한다.\n예: Built-in 이름을 Global에서 가렸을 때, del로 Global 이름을 지우면 다시 Built-in을 사용할 수 있다"
+  },
+  {
+    q: "파이썬 이름 규칙이 중요한 이유는?",
+    a: "dict key나 DataFrame 컬럼명 등도 이름 규칙을 따르면\n점 표기법(dot notation) 등 언어/라이브러리 기능을 활용할 수 있다.\n규칙에 어긋나면 접근 방법이 제한됨"
+  },
+  {
+    q: "함수 호출 시 Global의 a, b를 인자로 전달하면\nLocal의 a, b와 id()가 같은가?",
+    a: "같다. 이름은 다른 namespace에 있지만,\n같은 객체를 가리키고 있기 때문에 id()가 동일하다.\n\n이름(name)은 namespace별로 독립적이지만,\n연결된 객체(object)는 공유될 수 있다."
+  },
+  {
+    q: "Local의 c와 Global의 c의 id()는 같은가?\n(func가 c를 반환하고 Global c에 할당한 경우)",
+    a: "같다.\nfunc 내부의 c 객체가 return되어\nGlobal의 c에 그대로 할당되므로 동일한 객체를 가리킨다.\n\n→ 이름은 다른 namespace에 있지만, 가리키는 객체는 하나."
+  }
+];
+
+let fcIndex = 0;
+
+function updateCard() {
+  const fc = document.getElementById('fc');
+  fc.classList.remove('flipped');
+  setTimeout(() => {
+    document.getElementById('fc-q').textContent = cards[fcIndex].q;
+    document.getElementById('fc-a').textContent = cards[fcIndex].a;
+    document.getElementById('fc-counter').textContent = `${fcIndex + 1} / ${cards.length}`;
+    document.getElementById('fc-bar').style.width = `${((fcIndex + 1) / cards.length) * 100}%`;
+  }, 200);
+}
+
+function flipCard() {
+  document.getElementById('fc').classList.toggle('flipped');
+}
+
+function nextCard() {
+  fcIndex = (fcIndex + 1) % cards.length;
+  updateCard();
+}
+
+function prevCard() {
+  fcIndex = (fcIndex - 1 + cards.length) % cards.length;
+  updateCard();
+}
+
+// ===================== QUIZ DATA =====================
+const quizzes = [
+  {
+    q: "다음 중 Namespace 검색 순서로 올바른 것은?",
+    code: null,
+    opts: ["Global → Local → Built-in", "Built-in → Global → Local", "Local → Global → Built-in", "Local → Built-in → Global"],
+    ans: 2,
+    explain: "Read 시 검색 순서: Local → Global → Built-in. 없으면 NameError 발생. Write는 현재 위치의 namespace에 바로 등록."
+  },
+  {
+    q: "아래 코드 실행 시 어떤 결과가 출력되는가?",
+    code: `a = 10
+a = 'hello'
+print(type(a))`,
+    opts: ["<class 'int'>", "<class 'str'>", "TypeError 발생", "NameError 발생"],
+    ans: 1,
+    explain: "파이썬은 동적 타입 언어. a에 문자열을 재할당하면 a는 str 객체를 가리킨다."
+  },
+  {
+    q: "아래 코드 실행 후 두 print의 id() 값은 같은가?",
+    code: `a = 10
+print(id(a))
+a += 1
+print(id(a))`,
+    opts: ["같다 — 같은 객체를 수정하므로", "다르다 — 정수는 불변 객체라 새 객체 생성", "항상 같다 — int는 캐싱됨", "오류 발생"],
+    ans: 1,
+    explain: "정수는 불변(immutable) 객체. += 연산은 값을 변경하는 것이 아니라 새 객체를 만들고 a가 그것을 가리키게 한다. id()가 달라진다."
+  },
+  {
+    q: "아래 코드에서 마지막 줄 실행 결과는?",
+    code: `sum = 100
+del sum
+print(sum(range(1, 101)))`,
+    opts: ["TypeError: 'int' is not callable", "5050", "NameError: sum is not defined", "100"],
+    ans: 1,
+    explain: "del sum으로 Global namespace에서 sum을 제거하면 Built-in namespace의 sum(내장함수)이 사용된다. range(1,101)의 합은 5050."
+  },
+  {
+    q: "다음 중 Built-in Namespace에 대한 설명으로 옳은 것은?",
+    code: null,
+    opts: ["사용자가 이름을 추가하고 수정할 수 있다", "함수 내부에서 선언한 이름이 등록된다", "print, len, sum 같은 내장함수 이름이 포함된다", "Global보다 먼저 검색된다"],
+    ans: 2,
+    explain: "Built-in namespace는 파이썬이 제공하는 내장함수와 예외 이름을 관리. 사용자는 Read만 가능하며, 검색 순서상 가장 마지막(최상위)이다."
+  },
+  {
+    q: "함수 내부에서 선언된 변수 x의 이름은 어느 namespace에 등록되는가?",
+    code: `def func():
+    x = 10
+    return x`,
+    opts: ["Built-in namespace", "Global namespace", "Local namespace", "함수마다 다름"],
+    ans: 2,
+    explain: "함수 내부에서 선언된 이름은 Local namespace에 등록된다. 함수 호출이 끝나면 Local namespace는 사라진다."
+  },
+  {
+    q: "아래 코드에서 func2() 호출 시 발생하는 오류는?",
+    code: `def func2():
+    print(x)   # 이 줄에서 오류
+    x = 10`,
+    opts: ["NameError", "UnboundLocalError", "TypeError", "정상 실행"],
+    ans: 1,
+    explain: "x = 10이 있어서 파이썬 컴파일 시 x가 Local namespace에 등록된다. 하지만 print(x) 시점에는 아직 객체가 연결되지 않아 UnboundLocalError 발생."
+  },
+  {
+    q: "아래 코드에서 func1() 호출 시 발생하는 오류는?",
+    code: `def func1():
+    print(x)   # x를 어디서도 선언하지 않음`,
+    opts: ["NameError", "UnboundLocalError", "TypeError", "정상 실행"],
+    ans: 0,
+    explain: "func1의 Local, Global, Built-in 어디에도 x가 없으므로 NameError가 발생한다. UnboundLocalError와 다르게 이름 자체가 없는 경우."
+  },
+  {
+    q: "locals() 함수가 반환하는 것은?",
+    code: null,
+    opts: ["Global namespace 전체", "현재 위치의 Local namespace 딕셔너리", "Built-in namespace 전체", "모든 namespace 합친 딕셔너리"],
+    ans: 1,
+    explain: "locals()는 현재 함수의 Local namespace를 딕셔너리 형태로 반환한다. 매개변수와 내부 변수 모두 포함."
+  },
+  {
+    q: "아래 코드 실행 시 결과는?",
+    code: `print = 10
+del print
+a = 'test'
+print(a)`,
+    opts: ["TypeError: 'int' object is not callable", "test", "NameError: print is not defined", "10"],
+    ans: 1,
+    explain: "print = 10으로 Global에서 print를 가렸다가, del print로 제거하면 Built-in의 print 함수가 다시 사용 가능해진다."
+  },
+  {
+    q: "아래 DataFrame에서 SyntaxError가 발생하는 접근 방법은?",
+    code: `import pandas as pd
+x = pd.DataFrame({'a':[1,2], '1c':[3,4]})`,
+    opts: ["x['a']", "x.a", "x['1c']", "x.1c"],
+    ans: 3,
+    explain: "이름 규칙상 숫자로 시작하는 이름은 불가. x.1c는 SyntaxError. x['1c']는 key 접근이므로 허용된다."
+  },
+  {
+    q: "dict 생성 시 아래 코드에서 오류가 발생하는 것은?",
+    code: null,
+    opts: ["dict(1a=100)", "{'1a': 100}", "dict(myKey=10)", "{'key name': 5}"],
+    ans: 0,
+    explain: "dict(1a=100)은 키워드 인자 방식으로 dict를 만들 때 '1a'처럼 숫자로 시작하는 이름을 사용하므로 SyntaxError가 발생합니다. {'1a':100}은 문자열 key이므로 허용되고, dict(myKey=10)·{'key name':5}도 정상입니다."
+  },
+  {
+    q: "파이썬 이름(Name) 규칙 중 올바른 것은?",
+    code: null,
+    opts: ["숫자로 시작해도 된다", "공백을 포함할 수 있다", "언더스코어(_)로 시작할 수 있다", "예약어를 변수명으로 쓸 수 있다"],
+    ans: 2,
+    explain: "파이썬 이름 규칙: 문자(a-z, A-Z)나 언더스코어(_)로 시작, 이후 문자/숫자/언더스코어 가능. 공백 불가, 숫자 시작 불가, 예약어 사용 불가."
+  },
+  {
+    q: "아래 코드에서 Global namespace의 c와 func 내부 Local namespace의 c는?",
+    code: `def func(a, b):
+    c = a + b
+    return c
+
+c = func(3, 4)
+print(c)`,
+    opts: ["같은 객체 (같은 id)", "다른 객체 (다른 id, 값은 같을 수 있음)", "func의 c가 Global의 c를 덮어씀", "오류 발생"],
+    ans: 0,
+    explain: "return은 Local c가 가리키던 객체(정수 7)의 참조를 그대로 전달합니다. c = func(3, 4)는 Global c를 그 동일한 객체에 연결하므로 id()가 같습니다. 이름은 각각의 namespace에 별도로 존재하지만 가리키는 객체는 동일합니다."
+  },
+  {
+    q: "다음 중 NameError가 아닌 UnboundLocalError가 발생하는 경우는?",
+    code: null,
+    opts: [
+      "함수 내에서 선언하지 않은 이름을 읽을 때",
+      "함수 내에서 할당보다 먼저 같은 이름을 읽을 때",
+      "Built-in 이름을 del로 지운 후 사용할 때",
+      "Global 이름을 del로 지운 후 사용할 때"
+    ],
+    ans: 1,
+    explain: "UnboundLocalError는 같은 함수 내에 할당(x=10)이 있어 Local namespace에 x가 등록되었지만, 그 줄 이전에 x를 읽으려 할 때 발생. 이름은 있지만 값이 없는 상태."
+  },
+  {
+    q: "아래 코드에서 func 내부의 id(a)와 외부의 id(a)는 어떤 관계인가?",
+    code: `def func(a, b):
+    print(id(a), id(b))   # Local
+
+a = 10
+b = 20
+func(a, b)
+print(id(a), id(b))       # Global`,
+    opts: [
+      "항상 다르다 — Local과 Global은 별개의 namespace이므로",
+      "항상 같다 — 이름은 달라도 같은 객체를 가리키므로",
+      "a는 같고 b는 다르다",
+      "호출 방식에 따라 다르다"
+    ],
+    ans: 1,
+    explain: "Global의 a(=10)를 인자로 전달하면, Local의 a도 같은 객체 10을 가리킨다. Namespace(이름 공간)는 분리되어 있지만, 가리키는 객체는 동일하므로 id()가 같다."
+  },
+  {
+    q: "아래 코드에서 func 내부 c와 외부 c의 id()는 같은가?",
+    code: `def func(a, b):
+    c = a + b
+    print(id(c))    # Local c
+    return c
+
+a, b = 10, 20
+c = func(a, b)
+print(id(c))        # Global c`,
+    opts: [
+      "다르다 — c는 함수 안에서 만들어진 새 객체이므로",
+      "같다 — return으로 Local c 객체가 Global c에 그대로 연결되므로",
+      "실행 때마다 달라진다",
+      "Local c는 함수 종료 시 사라지므로 비교 불가"
+    ],
+    ans: 1,
+    explain: "func 내부에서 c = a + b로 만들어진 객체(30)가 return되면, Global의 c = func(...)가 그 객체를 그대로 가리킨다. 이름은 각각의 namespace에 있지만 가리키는 객체는 동일하여 id()가 같다."
+  }
+];
+
+let userAnswers = Array(quizzes.length).fill(null);
+let score = 0;
+let answered = 0;
+
+function buildQuiz() {
+  const list = document.getElementById('quiz-list');
+  list.innerHTML = '';
+  quizzes.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-card';
+    div.id = `qcard-${qi}`;
+    let codeHtml = q.code ? `<div class="quiz-code">${escHtml(q.code)}</div>` : '';
+    let optsHtml = q.opts.map((o, oi) =>
+      `<button class="opt-btn" id="opt-${qi}-${oi}" onclick="selectOpt(${qi},${oi})">
+        <span class="opt-letter">${'ABCD'[oi]}</span>${escHtml(o)}
+      </button>`
+    ).join('');
+    div.innerHTML = `
+      <div class="quiz-num">Q${qi+1} / ${quizzes.length}</div>
+      <div class="quiz-q">${escHtml(q.q)}</div>
+      ${codeHtml}
+      <div class="options" id="opts-${qi}">${optsHtml}</div>
+      <div class="feedback-box" id="fb-${qi}"></div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function selectOpt(qi, oi) {
+  if (userAnswers[qi] !== null) return;
+  userAnswers[qi] = oi;
+  answered++;
+
+  const correct = quizzes[qi].ans;
+  const fb = document.getElementById(`fb-${qi}`);
+
+  for (let i = 0; i < quizzes[qi].opts.length; i++) {
+    const btn = document.getElementById(`opt-${qi}-${i}`);
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    if (i === oi && oi !== correct) btn.classList.add('wrong');
+  }
+
+  if (oi === correct) {
+    score++;
+    fb.className = 'feedback-box show feedback-correct';
+    fb.innerHTML = `✅ 정답입니다! ${escHtml(quizzes[qi].explain)}`;
+  } else {
+    fb.className = 'feedback-box show feedback-wrong';
+    fb.innerHTML = `❌ 오답입니다. <strong>정답: ${'ABCD'[correct]}</strong><br>${escHtml(quizzes[qi].explain)}`;
+    addWrongNote(qi, oi);
+  }
+
+  document.getElementById('score-badge').textContent = `${score} / ${quizzes.length}`;
+
+  if (answered === quizzes.length) {
+    setTimeout(showResult, 600);
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz-result').classList.add('show');
+  const pct = Math.round((score / quizzes.length) * 100);
+  let color = pct >= 80 ? 'var(--accent2)' : pct >= 60 ? 'var(--warn)' : 'var(--accent3)';
+  document.getElementById('result-score-text').innerHTML =
+    `<span style="color:${color}">${score}</span> / ${quizzes.length}`;
+  let msg = pct === 100 ? '🏆 완벽합니다! 모든 개념을 마스터했습니다.' :
+            pct >= 80 ? '👍 잘 이해하고 있습니다! 오답을 복습해보세요.' :
+            pct >= 60 ? '📖 절반 이상 맞혔습니다. 오답노트로 부족한 부분을 채워보세요.' :
+            '💪 아직 학습이 더 필요합니다. 플래시카드와 코드 예제를 다시 확인해보세요.';
+  document.getElementById('result-msg').textContent = msg;
+}
+
+function resetQuiz() {
+  userAnswers = Array(quizzes.length).fill(null);
+  score = 0;
+  answered = 0;
+  wrongNotes = [];
+  document.getElementById('score-badge').textContent = `0 / ${quizzes.length}`;
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz();
+  updateNotesPanel();
+}
+
+// ===================== WRONG NOTES =====================
+let wrongNotes = [];
+
+function addWrongNote(qi, myAns) {
+  wrongNotes.push({ qi, myAns });
+  updateNotesPanel();
+}
+
+function updateNotesPanel() {
+  const list = document.getElementById('notes-list');
+  const bar = document.getElementById('download-bar');
+  document.getElementById('wrong-count').textContent = wrongNotes.length;
+
+  if (wrongNotes.length === 0) {
+    bar.style.display = 'none';
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div>오답이 없습니다! 퀴즈를 풀면 틀린 문제가 여기에 기록됩니다.</div></div>`;
+    return;
+  }
+
+  bar.style.display = 'flex';
+  list.innerHTML = wrongNotes.map((wn, i) => {
+    const q = quizzes[wn.qi];
+    const myLabel = 'ABCD'[wn.myAns];
+    const ansLabel = 'ABCD'[q.ans];
+    return `
+      <div class="wrong-note-card">
+        <div class="wn-qnum">오답 #${i+1} &nbsp;·&nbsp; Q${wn.qi+1}</div>
+        <div class="wn-q">${escHtml(q.q)}</div>
+        <div class="wn-row">
+          <div class="wn-my"><div class="wn-label">내 답변</div>${myLabel}. ${escHtml(q.opts[wn.myAns])}</div>
+          <div class="wn-ans"><div class="wn-label">정답</div>${ansLabel}. ${escHtml(q.opts[q.ans])}</div>
+        </div>
+        <div class="wn-explain">💡 ${escHtml(q.explain)}</div>
+      </div>`;
+  }).join('');
+}
+
+function downloadNotes() {
+  if (wrongNotes.length === 0) { alert('오답이 없습니다!'); return; }
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('ko-KR');
+  let text = `================================================================\n`;
+  text += `  Python Name & Namespace 오답노트\n`;
+  text += `  작성일: ${dateStr}  |  오답 수: ${wrongNotes.length} / ${quizzes.length}\n`;
+  text += `================================================================\n\n`;
+
+  wrongNotes.forEach((wn, i) => {
+    const q = quizzes[wn.qi];
+    text += `[오답 ${i+1}] Q${wn.qi+1}\n`;
+    text += `문제: ${q.q}\n`;
+    if (q.code) text += `\n코드:\n${q.code}\n`;
+    text += `\n선택지:\n`;
+    q.opts.forEach((o, oi) => {
+      const mark = oi === wn.myAns ? '  ← 내 답변 ❌' : oi === q.ans ? '  ← 정답 ✅' : '';
+      text += `  ${'ABCD'[oi]}. ${o}${mark}\n`;
+    });
+    text += `\n해설: ${q.explain}\n`;
+    text += `\n${'─'.repeat(60)}\n\n`;
+  });
+
+  text += `================================================================\n`;
+  text += `  학습 팁\n`;
+  text += `================================================================\n`;
+  text += `1. Namespace 검색 순서: Local → Global → Built-in\n`;
+  text += `2. NameError: 이름이 어디에도 없을 때\n`;
+  text += `3. UnboundLocalError: 이름은 있지만 아직 객체 미연결\n`;
+  text += `4. del: namespace에서 이름 제거\n`;
+  text += `5. 이름 규칙: 문자/언더스코어 시작, 숫자 시작 불가\n`;
+  text += `6. 이름(name)은 namespace별로 독립적, 객체(object)는 공유 가능\n`;
+  text += `   → Global.a와 Local.a가 같은 객체를 가리키면 id()가 동일\n`;
+  text += `   → return으로 반환된 객체도 동일한 id()를 가짐\n`;
+
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `파이썬_네임스페이스_오답노트_${dateStr.replace(/\./g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===================== PRACTICE QUIZ =====================
+const practices = [
+  {
+    title: "Namespace 검색 순서",
+    tag: "Read · Built-in",
+    q: "아래 코드의 빈칸을 채워, 1~100의 합을 출력하세요.\n(힌트: Global에서 sum을 가렸다가 복원하는 과정을 완성하세요)",
+    desc: "sum은 Built-in namespace의 내장함수입니다. Global에 같은 이름으로 할당하면 내장함수가 가려집니다. del로 제거하면 다시 사용할 수 있습니다.",
+    given: `sum = 100
+print(type(sum))   # <class 'int'>
+
+# Global에서 sum 이름을 제거하는 코드를 작성하세요
+_______________
+
+# 이제 내장함수 sum으로 1~100 합계를 출력하세요
+print(_______________)`,
+    placeholder: `del sum\nprint(sum(range(1, 101)))`,
+    check: (code) => {
+      const c = code.replace(/\s/g, '');
+      const hasDelSum = /delsum/.test(c);
+      const hasSumRange = /sum\(range\(1,101\)\)/.test(c) || /sum\(range\(1,100\+1\)\)/.test(c);
+      if (hasDelSum && hasSumRange) return 'correct';
+      if (hasDelSum || hasSumRange) return 'partial';
+      return 'wrong';
+    },
+    hint: "del 키워드로 이름을 제거합니다: del sum\n그 다음 sum(range(1, 101))을 호출하세요.",
+    answer: `del sum\nprint(sum(range(1, 101)))   # 5050`,
+    explain: "del sum으로 Global namespace에서 sum을 제거하면, 검색 시 Built-in namespace의 sum(내장함수)이 사용됩니다. 검색 순서: Local → Global → Built-in"
+  },
+  {
+    title: "Local Namespace 확인",
+    tag: "locals() · Local",
+    q: "함수 내부의 Local namespace를 출력하고, c를 반환하는 함수를 완성하세요.",
+    desc: "locals()는 현재 함수의 Local namespace를 딕셔너리로 반환합니다. 매개변수 a, b와 내부 변수 c가 모두 포함됩니다.",
+    given: `def func(a, b):
+    c = a + b
+    # Local namespace를 출력하는 코드
+    _______________
+    return ___
+
+a, b = 10, 20
+result = func(a, b)
+print(result)   # 30`,
+    placeholder: `print(locals())\n    return c`,
+    check: (code) => {
+      const c = code.replace(/\s/g, '');
+      const hasLocals = /print\(locals\(\)\)/.test(c);
+      const hasReturn = /returnc/.test(c);
+      if (hasLocals && hasReturn) return 'correct';
+      if (hasLocals || hasReturn) return 'partial';
+      return 'wrong';
+    },
+    hint: "locals()를 print()로 감싸 출력하고, return c로 반환하세요.",
+    answer: `print(locals())   # {'a': 10, 'b': 20, 'c': 30}\n    return c`,
+    explain: "locals()는 함수 내부의 모든 Local 이름과 객체를 딕셔너리로 반환합니다. 매개변수(a, b)와 내부 변수(c) 모두 포함됩니다."
+  },
+  {
+    title: "NameError vs UnboundLocalError",
+    tag: "Error · co_varnames",
+    q: "두 함수 중 UnboundLocalError가 발생하는 함수는 어느 것인지\n그 이유를 주석으로 작성하고, co_varnames로 확인하세요.",
+    desc: "파이썬 컴파일러는 함수 내 할당문(x = ...)을 발견하면 x를 Local 변수로 등록합니다. 할당 이전에 읽으려 하면 UnboundLocalError가 발생합니다.",
+    given: `def func1():
+    print(x)       # 이 함수에서 발생하는 오류: ___________
+
+def func2():
+    print(x)       # 이 함수에서 발생하는 오류: ___________
+    x = 10
+
+# co_varnames로 각 함수의 Local 변수 목록을 출력하세요
+print(func1.__code__._______________)
+print(func2.__code__._______________)`,
+    placeholder: `# func1: NameError\n# func2: UnboundLocalError\nprint(func1.__code__.co_varnames)\nprint(func2.__code__.co_varnames)`,
+    check: (code) => {
+      const c = code.replace(/\s/g, '');
+      const hasCoVar = /co_varnames/.test(c);
+      const hasNameError = /NameError/i.test(code);
+      const hasUnbound = /UnboundLocalError/i.test(code);
+      if (hasCoVar && hasNameError && hasUnbound) return 'correct';
+      if (hasCoVar) return 'partial';
+      return 'wrong';
+    },
+    hint: "func1은 x가 어디에도 없어 NameError, func2는 x가 Local에 등록되었지만 미할당이라 UnboundLocalError\n.co_varnames 속성으로 확인하세요.",
+    answer: `# func1: NameError  (x가 어디에도 없음)\n# func2: UnboundLocalError  (x는 Local에 있지만 미할당)\nprint(func1.__code__.co_varnames)  # ()\nprint(func2.__code__.co_varnames)  # ('x',)`,
+    explain: "co_varnames는 컴파일 시점에 결정된 Local 변수 목록입니다. func2에 x=10이 있으므로 x가 Local에 등록되지만, print(x) 시점에는 아직 값이 없어 UnboundLocalError 발생."
+  },
+  {
+    title: "id()로 객체 동일성 확인",
+    tag: "id() · 객체 공유",
+    q: "Global의 a, b를 함수에 전달했을 때\nLocal과 Global의 id()를 비교하는 코드를 완성하세요.",
+    desc: "이름(name)은 namespace마다 독립적이지만, 가리키는 객체는 공유될 수 있습니다. id()가 같으면 동일한 객체입니다.",
+    given: `def func(a, b):
+    c = a + b
+    # Local의 id 출력
+    print("Local :", _______________)
+    return c
+
+x = 10
+y = 20
+z = func(x, y)
+
+# Global의 id 출력
+print("Global:", _______________)
+# 결과: Local과 Global의 id(x), id(y)는 같아야 합니다`,
+    placeholder: `print("Local :", id(a), id(b), id(c))\nprint("Global:", id(x), id(y), id(z))`,
+    check: (code) => {
+      const c = code.replace(/\s/g, '');
+      const hasLocalId = /id\(a\)/.test(c) && /id\(b\)/.test(c);
+      const hasGlobalId = /id\(x\)/.test(c) && /id\(y\)/.test(c);
+      if (hasLocalId && hasGlobalId) return 'correct';
+      if (hasLocalId || hasGlobalId) return 'partial';
+      return 'wrong';
+    },
+    hint: "함수 내부: id(a), id(b), id(c) 를 출력\n함수 외부: id(x), id(y), id(z) 를 출력하세요.",
+    answer: `print("Local :", id(a), id(b), id(c))\nprint("Global:", id(x), id(y), id(z))\n# Local의 id(a)==id(x), id(b)==id(y)  ← 같은 객체!`,
+    explain: "인자로 전달된 객체는 복사되지 않습니다. Local의 a와 Global의 x가 가리키는 객체는 동일하므로 id()가 같습니다. return된 c와 z도 마찬가지입니다."
+  },
+  {
+    title: "이름 규칙과 dict",
+    tag: "Name Rule · dict",
+    q: "아래 두 가지 방식으로 dict를 만들고,\n이름 규칙을 따르는 방식과 따르지 않는 방식의 차이를 확인하세요.",
+    desc: "dict()의 키워드 인자 방식은 파이썬 이름 규칙을 따라야 합니다. 이름 규칙에 어긋나는 키는 문자열 방식으로만 만들 수 있습니다.",
+    given: `# 방법 1: 키워드 인자 방식 (이름 규칙 필수)
+d1 = dict(___ = 1, ___ = 2)   # a=1, b=2 가 되도록 채우세요
+
+# 방법 2: 문자열 key 방식 (이름 규칙 불필요)
+d2 = {'___': 100, '___': 200}  # '1a'=100, '1b'=200 이 되도록 채우세요
+
+print(d1)   # {'a': 1, 'b': 2}
+print(d2)   # {'1a': 100, '1b': 200}
+
+# d1에서 이름 규칙을 따르는 방식으로 'a' 값 접근
+print(d1.___)  # 1`,
+    placeholder: `d1 = dict(a=1, b=2)\nd2 = {'1a': 100, '1b': 200}\nprint(d1.a)`,
+    check: (code) => {
+      const c = code.replace(/\s/g, '');
+      const hasDict1 = /dict\(a=1,b=2\)/.test(c) || /dict\(a\s*=\s*1,\s*b\s*=\s*2\)/.test(code);
+      const hasDict2 = /'1a'/.test(c) && /'1b'/.test(c);
+      const hasDotA = /d1\.a/.test(c);
+      if (hasDict1 && hasDict2 && hasDotA) return 'correct';
+      if (hasDict1 || hasDict2) return 'partial';
+      return 'wrong';
+    },
+    hint: "dict(a=1, b=2) — 키워드 인자\n{'1a': 100} — 문자열 키\nd1.a — dot notation으로 접근",
+    answer: `d1 = dict(a=1, b=2)\nd2 = {'1a': 100, '1b': 200}\nprint(d1.a)   # 1`,
+    explain: "dict()의 키워드 인자는 이름 규칙을 따라야 합니다. '1a'처럼 숫자로 시작하는 키는 문자열 방식으로만 만들 수 있고, dot notation(d1.a)도 사용 불가합니다."
+  },
+  {
+    title: "Global 변수와 Local 변수 분리",
+    tag: "Global · Local · 분리",
+    q: "아래 코드에서 함수 내부와 외부의 x가 서로 다른 객체임을\nid()를 이용해 출력하는 코드를 완성하세요.",
+    desc: "함수 내부에서 x = 999로 할당하면 Local namespace에 새 이름이 생깁니다. Global의 x와는 별개의 이름이고, 당연히 가리키는 객체도 다릅니다.",
+    given: `x = 100   # Global x
+
+def show_ids():
+    x = 999   # Local x (Global과 별개)
+    print("Local  x:", x, "/ id:", ___)
+
+show_ids()
+print("Global x:", x, "/ id:", ___)
+
+# 예상 출력:
+# Local  x: 999 / id: (어떤 숫자)
+# Global x: 100 / id: (다른 숫자)`,
+    placeholder: `id(x)  # 함수 내부\nid(x)  # 함수 외부`,
+    check: (code) => {
+      const idMatches = (code.match(/id\(x\)/g) || []).length;
+      if (idMatches >= 2) return 'correct';
+      if (idMatches === 1) return 'partial';
+      return 'wrong';
+    },
+    hint: "두 곳 모두 id(x)를 사용하세요.\n함수 내부의 x와 외부의 x는 다른 namespace에 있으므로 id가 다릅니다.",
+    answer: `print("Local  x:", x, "/ id:", id(x))  # 함수 내부\nprint("Global x:", x, "/ id:", id(x))  # 함수 외부`,
+    explain: "함수 내부에서 x = 999를 할당하면 Local namespace에 x가 새로 등록됩니다. Global의 x(=100)와는 완전히 별개이며, id()를 비교하면 다른 객체임을 확인할 수 있습니다."
+  },
+  {
+    title: "불변 객체와 id() 변화",
+    tag: "immutable · id()",
+    q: "정수 a에 += 연산을 적용할 때마다 id()가 변하는 것을\n반복문으로 확인하는 코드를 완성하세요.",
+    desc: "정수(int)는 불변(immutable) 객체입니다. a += 1은 기존 객체를 수정하는 것이 아니라, 새 객체를 만들고 a가 그것을 가리키게 합니다.",
+    given: `a = 10
+print(f"초기값: a={a}, id={id(a)}")
+
+for i in range(___):   # 3번 반복하도록 채우세요
+    ___ += 1           # a를 1씩 증가
+    print(f"a={a}, id={___(a)}")   # id 출력`,
+    placeholder: `for i in range(3):\n    a += 1\n    print(f"a={a}, id={id(a)}")`,
+    check: (code) => {
+      const c = code.replace(/\s/g, '');
+      const hasRange3 = /range\(3\)/.test(c);
+      const hasIncr = /a\+=1/.test(c);
+      const hasId = /id\(a\)/.test(c);
+      if (hasRange3 && hasIncr && hasId) return 'correct';
+      if ((hasRange3 && hasIncr) || (hasIncr && hasId)) return 'partial';
+      return 'wrong';
+    },
+    hint: "range(3)으로 3번 반복, a += 1로 증가, id(a)로 id 출력",
+    answer: `for i in range(3):\n    a += 1\n    print(f"a={a}, id={id(a)}")\n# 매번 id가 달라집니다 → 새 객체 생성됨`,
+    explain: "정수는 불변(immutable)이므로 += 연산 시 새 객체가 만들어지고 a가 그 객체를 가리킵니다. 반복할 때마다 id()가 달라지는 것으로 확인할 수 있습니다."
+  },
+  {
+    title: "종합: 함수 작성",
+    tag: "종합 실습",
+    q: "아래 조건을 만족하는 함수 ns_demo()를 직접 작성하세요.\n\n조건:\n① 매개변수 x, y를 받아 합계 z = x + y를 계산\n② locals()로 Local namespace 출력\n③ id(x), id(y), id(z) 출력\n④ z를 반환",
+    desc: "지금까지 배운 개념(Local namespace, locals(), id())을 모두 활용해 함수를 직접 작성해보세요.",
+    given: `# ns_demo 함수를 아래에 직접 작성하세요
+
+
+
+
+# 테스트
+a, b = 10, 20
+result = ns_demo(a, b)
+print("반환값:", result)
+print("Global id(a):", id(a), "/ id(b):", id(b), "/ id(result):", id(result))`,
+    placeholder: `def ns_demo(x, y):\n    z = x + y\n    print("locals:", locals())\n    print("id:", id(x), id(y), id(z))\n    return z`,
+    check: (code) => {
+      const c = code.replace(/\s/g, '');
+      const hasDef = /defns_demo\(/.test(c);
+      const hasZ = /z=x\+y/.test(c);
+      const hasLocals = /locals\(\)/.test(c);
+      const hasId = /id\(/.test(c);
+      const hasReturn = /returnz/.test(c);
+      const score = [hasDef, hasZ, hasLocals, hasId, hasReturn].filter(Boolean).length;
+      if (score >= 5) return 'correct';
+      if (score >= 3) return 'partial';
+      return 'wrong';
+    },
+    hint: "def ns_demo(x, y): 로 시작\n    z = x + y\n    print(locals())\n    print(id(x), id(y), id(z))\n    return z",
+    answer: `def ns_demo(x, y):\n    z = x + y\n    print("locals:", locals())\n    print("id:", id(x), id(y), id(z))\n    return z`,
+    explain: "함수 내에서 x, y, z는 Local namespace에 등록됩니다. locals()로 확인하고, id()로 Global 변수와 같은 객체를 가리키는지 비교할 수 있습니다."
+  }
+];
+
+let practiceResults = {};
+let practiceCompleted = 0;
+
+function buildPractice() {
+  const list = document.getElementById('practice-list');
+  list.innerHTML = '';
+  practices.forEach((p, pi) => {
+    const div = document.createElement('div');
+    div.className = 'practice-card';
+    div.id = `pc-${pi}`;
+    div.innerHTML = `
+      <div class="practice-header">
+        <span class="practice-num">실습 ${pi+1} / ${practices.length} &nbsp;·&nbsp; ${p.title}</span>
+        <span class="practice-tag">${p.tag}</span>
+      </div>
+      <div class="practice-body">
+        <div class="practice-q">${escHtml(p.q)}</div>
+        <div class="practice-desc">${escHtml(p.desc)}</div>
+        <div class="editor-label">▶ 주어진 코드 (참고용)</div>
+        <div class="practice-given">${escHtml(p.given)}</div>
+        <div class="editor-label" style="margin-top:14px">✏️ 빈칸 / 답안 코드 작성</div>
+        <textarea class="code-editor" id="editor-${pi}" rows="4" placeholder="여기에 코드를 작성하세요...
+Tab키 대신 스페이스 4칸을 사용하세요."></textarea>
+        <div class="hint-box" id="hint-${pi}">${escHtml(p.hint)}</div>
+        <div class="practice-actions">
+          <button class="btn-check" onclick="checkPractice(${pi})">✔ 확인</button>
+          <button class="btn-hint" onclick="toggleHint(${pi})">💡 힌트</button>
+          <button class="btn-reset-p" onclick="resetPractice(${pi})">↺ 초기화</button>
+        </div>
+        <div class="practice-feedback" id="pfb-${pi}">
+          <div class="pf-result" id="pfr-${pi}"></div>
+          <div class="pf-explain" id="pfe-${pi}"></div>
+        </div>
+      </div>`;
+    list.appendChild(div);
+
+    // Tab key → 4 spaces
+    document.getElementById(`editor-${pi}`).addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = this.selectionStart, end = this.selectionEnd;
+        this.value = this.value.substring(0, s) + '    ' + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = s + 4;
+      }
+    });
+  });
+}
+
+function checkPractice(pi) {
+  const code = document.getElementById(`editor-${pi}`).value.trim();
+  if (!code) { alert('코드를 입력해주세요!'); return; }
+
+  const p = practices[pi];
+  const result = p.check(code);
+  const fb = document.getElementById(`pfb-${pi}`);
+  const pfr = document.getElementById(`pfr-${pi}`);
+  const pfe = document.getElementById(`pfe-${pi}`);
+
+  fb.className = 'practice-feedback show';
+
+  const wasCompleted = practiceResults[pi] === 'correct';
+
+  if (result === 'correct') {
+    pfr.className = 'pf-result pf-correct';
+    pfr.innerHTML = '✅ 정답입니다! 핵심 개념을 잘 이해했습니다.';
+    if (!wasCompleted) {
+      practiceCompleted++;
+      practiceResults[pi] = 'correct';
+      updatePracticeScore();
+    }
+  } else if (result === 'partial') {
+    pfr.className = 'pf-result pf-partial';
+    pfr.innerHTML = '🔶 부분 정답입니다. 조금 더 완성해보세요!';
+    practiceResults[pi] = 'partial';
+  } else {
+    pfr.className = 'pf-result pf-wrong';
+    pfr.innerHTML = '❌ 아직 정확하지 않습니다. 힌트를 참고해보세요.';
+    practiceResults[pi] = 'wrong';
+  }
+
+  pfe.innerHTML = `<div style="margin-bottom:8px;color:var(--text);">${escHtml(p.explain)}</div>
+    <div style="color:var(--text-sub);font-size:0.8rem;margin-bottom:6px;">▶ 모범 답안</div>
+    <div class="pf-answer-code">${escHtml(p.answer)}</div>`;
+}
+
+function toggleHint(pi) {
+  const h = document.getElementById(`hint-${pi}`);
+  h.classList.toggle('show');
+}
+
+function resetPractice(pi) {
+  document.getElementById(`editor-${pi}`).value = '';
+  document.getElementById(`pfb-${pi}`).className = 'practice-feedback';
+  document.getElementById(`hint-${pi}`).classList.remove('show');
+  if (practiceResults[pi] === 'correct') {
+    practiceCompleted = Math.max(0, practiceCompleted - 1);
+    updatePracticeScore();
+  }
+  delete practiceResults[pi];
+}
+
+function updatePracticeScore() {
+  document.getElementById('ps-score').textContent = `${practiceCompleted} / ${practices.length} 완료`;
+}
+
+// ===================== TABS =====================
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = ['flashcard','code','quiz','practice','notes'].indexOf(id);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+
+// ===================== INIT =====================
+buildQuiz();
+buildPractice();
+updateNotesPanel();
+</script>
+</body>
+</html>
