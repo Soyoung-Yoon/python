@@ -209,10 +209,10 @@
   <div class="section-title">🃏 플래시카드</div>
   <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 개념을 충분히 학습한 후 퀴즈로 넘어가세요.</div>
   <div class="flashcard-nav">
-    <span class="fc-progress" id="fc-counter">1 / 16</span>
+    <span class="fc-progress" id="fc-counter">1 / 17</span>
     <span style="font-size:.8rem;color:var(--text-sub)">💡 클릭하여 뒤집기</span>
   </div>
-  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:6.25%"></div></div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:5.88%"></div></div>
   <div class="flashcard-wrap" onclick="flipCard()">
     <div class="flashcard" id="fc">
       <div class="fc-front">
@@ -624,6 +624,8 @@ const cards = [
    a:"a['없는key'] → KeyError 발생 (예외 처리 필요)\n\na.get('없는key') → None 반환 (안전한 조회)\na.get('없는key', 기본값) → 기본값 반환 가능\n\n안전한 조회가 필요할 때는 get()을 사용"},
   {q:"dict를 순회(for문)하면 무엇이 나오는가?",
    a:"기본적으로 key가 순회됨.\n\nfor x in a:       → key 순회\nfor x in a.keys(): → key 순회 (명시적)\nfor x in a.values(): → value 순회\nfor k,v in a.items(): → (key, value) 튜플 순회"},
+  {q:"set의 집합 연산 — 합집합·교집합·차집합·대칭차집합의 연산자와 메서드는?",
+   a:"합집합 (모든 원소):\n  s1 | s2  또는  s1.union(s2)\n  예: {1,2,3} | {3,4,5} → {1,2,3,4,5}\n\n교집합 (공통 원소):\n  s1 & s2  또는  s1.intersection(s2)\n  예: {1,2,3} & {3,4,5} → {3}\n\n차집합 (s1에만 있는 원소):\n  s1 - s2  또는  s1.difference(s2)\n  예: {1,2,3} - {3,4,5} → {1,2}\n\n대칭차집합 (한쪽에만 있는 원소):\n  s1 ^ s2  또는  s1.symmetric_difference(s2)\n  예: {1,2,3} ^ {3,4,5} → {1,2,4,5}"},
   {q:"dict 생성 두 가지 방법과 차이는?",
    a:"① 중괄호 방식:\na = {'A': 65, 'B': 66}\nkey로 모든 hashable 타입 사용 가능\n\n② dict() 키워드 인자 방식:\nb = dict(A=65, B=66)\nkey는 반드시 파이썬 이름 규칙을 따라야 함\n(숫자 시작, 특수문자 불가)"},
 ];
@@ -673,10 +675,10 @@ const quizzes=[
    code:null,
    opts:["['2026', '04', '03']","['2026-04', '03']","['2026', '04-03']","['03', '2026-04']"],
    ans:1,explain:"rsplit()은 오른쪽에서부터 분리합니다. maxsplit=1이므로 한 번만 분리합니다. 오른쪽 가장 마지막 '-'에서 분리 → ['2026-04', '03']."},
-  {q:"아래 두 코드의 결과가 같은 이유는?",
+  {q:"아래 두 코드의 출력 결과는?",
    code:`a = '2026-04-03'\nprint(a.replace('-', '/'))\nprint('/'.join(a.split('-')))`,
-   opts:["replace가 join+split의 별칭이기 때문","둘 다 '-'를 기준으로 분리한 뒤 '/'로 연결하는 동일한 로직이기 때문","항상 같은 결과를 보장하는 파이썬 규칙 때문","우연히 같을 뿐 다른 경우도 있다"],
-   ans:1,explain:"replace('-','/')는 '-'를 '/'로 치환합니다. '/'.join(a.split('-'))는 '-'로 분리 후 '/'로 재결합합니다. 이 경우 결과는 동일하지만 내부 동작은 다릅니다."},
+   opts:["두 줄 모두 '2026/04/03' 출력","첫 줄만 '2026/04/03', 둘째 줄은 오류","첫 줄은 '2026/04/03', 둘째 줄은 ['2026','04','03']","두 줄 모두 '2026-04-03' 출력 (원본 불변)"],
+   ans:0,explain:"replace('-','/')는 모든 '-'를 '/'로 바꿔 '2026/04/03'을 반환합니다. '/'.join(a.split('-'))는 split('-')으로 ['2026','04','03']을 만든 뒤 '/'로 join해 역시 '2026/04/03'을 반환합니다. 두 방식 모두 같은 결과이지만 내부 동작은 다릅니다. str은 불변 객체이므로 원본 a는 변경되지 않습니다."},
   {q:"아래 코드의 출력 결과는?",
    code:`a = 'www.rapa.com'\nprint(a.strip('wcom.'))`,
    opts:["www.rapa.com","rapa","wcom","''"],
