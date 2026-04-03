@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 객체 생성 & 명령 실행 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #f78166;
+    --accent4: #d2a8ff;
+    --warn: #e3b341;
+    --text: #e6edf3;
+    --text-sub: #8b949e;
+    --code-bg: #010409;
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+
+  header {
+    background: linear-gradient(135deg, #0d1117 0%, #0f1a2e 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px);
+  }
+  .logo { font-family: 'JetBrains Mono', monospace; font-size: 1.3rem; color: var(--accent); font-weight: 700; letter-spacing: -1px; }
+  .logo span { color: var(--accent2); }
+  header h1 { font-size: 1rem; font-weight: 400; color: var(--text-sub); }
+  header h1 strong { color: var(--text); font-weight: 600; }
+
+  nav { display: flex; gap: 4px; padding: 16px 40px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab-btn {
+    font-family: 'Noto Sans KR', sans-serif; padding: 8px 20px; border-radius: 8px;
+    border: 1px solid transparent; background: transparent; color: var(--text-sub);
+    cursor: pointer; font-size: 0.875rem; font-weight: 400; transition: all 0.2s;
+    white-space: nowrap; display: flex; align-items: center; gap: 6px;
+  }
+  .tab-btn:hover { background: var(--surface2); color: var(--text); }
+  .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+
+  .section { display: none; padding: 40px; max-width: 900px; margin: 0 auto; }
+  .section.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .section-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .section-subtitle { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 32px; font-weight: 300; }
+
+  /* ===== FLASHCARD ===== */
+  .flashcard-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .fc-progress { font-family: 'JetBrains Mono', monospace; color: var(--accent); font-size: 1rem; font-weight: 600; }
+  .fc-progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 4px; margin-bottom: 24px; overflow: hidden; }
+  .fc-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent4)); border-radius: 4px; transition: width 0.4s ease; }
+  .flashcard-wrap { perspective: 1200px; height: 340px; cursor: pointer; margin-bottom: 24px; }
+  .flashcard { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(0.4,0,0.2,1); }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .fc-front, .fc-back {
+    position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
+    border-radius: var(--radius); border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px; text-align: center;
+  }
+  .fc-front { background: linear-gradient(135deg, var(--surface) 0%, #0e1c30 100%); }
+  .fc-back { background: linear-gradient(135deg, #0f1f0f 0%, #1a2a1a 100%); border-color: var(--accent2); transform: rotateY(180deg); }
+  .fc-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px; }
+  .fc-front .fc-label { color: var(--accent); }
+  .fc-back .fc-label { color: var(--accent2); }
+  .fc-q { font-size: 1.15rem; font-weight: 600; line-height: 1.65; color: var(--text); }
+  .fc-a { font-size: 0.92rem; font-weight: 400; line-height: 1.85; color: var(--text); }
+  .fc-hint { margin-top: 20px; font-size: 0.8rem; color: var(--text-sub); }
+  .nav-btns { display: flex; gap: 12px; justify-content: center; }
+  .btn { font-family: 'Noto Sans KR', sans-serif; padding: 10px 24px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-ghost { background: transparent; color: var(--text-sub); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #79b8ff; }
+  .btn-danger { background: var(--accent3); color: #fff; border-color: var(--accent3); }
+
+  /* ===== CODE EXAMPLES ===== */
+  .code-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; transition: border-color 0.2s; }
+  .code-card:hover { border-color: var(--accent); }
+  .code-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
+  .code-title { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+  .code-tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; }
+  .tag-blue   { background: #1c2a4a; color: var(--accent);  border: 1px solid var(--accent); }
+  .tag-green  { background: #1f2a1f; color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-purple { background: #2a1c40; color: var(--accent4); border: 1px solid var(--accent4); }
+  .tag-orange { background: #2a1a0a; color: var(--warn);   border: 1px solid var(--warn); }
+  .tag-red    { background: #2a1c1c; color: var(--accent3); border: 1px solid var(--accent3); }
+  .code-explain { padding: 16px 20px; border-bottom: 1px solid var(--border); font-size: 0.9rem; line-height: 1.75; color: var(--text-sub); }
+  .code-explain strong { color: var(--text); }
+  .code-explain code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--accent4); background: var(--code-bg); padding: 1px 5px; border-radius: 4px; }
+  pre { background: var(--code-bg); padding: 20px; overflow-x: auto; margin: 0; }
+  code { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.7; }
+  .kw { color: #ff7b72; } .fn { color: #d2a8ff; } .st { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; } .nm { color: #79c0ff; }
+  .op { color: #f0883e; } .num { color: #f0883e; } .cls { color: #ffa657; }
+  .output-box { background: #010409; border-top: 1px solid var(--border); padding: 12px 20px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent2); line-height: 1.7; }
+  .output-label { color: var(--text-sub); font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+
+  /* 개념 요약 박스 */
+  .concept-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 24px; }
+  .concept-box h3 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .concept-item { padding: 14px 16px; border-radius: 8px; font-size: 0.87rem; line-height: 1.75; }
+  .ci-blue   { background: #0e1c30; border: 1px solid var(--accent);  }
+  .ci-green  { background: #0f1f0f; border: 1px solid var(--accent2); }
+  .ci-purple { background: #1a1030; border: 1px solid var(--accent4); }
+  .ci-orange { background: #1f180a; border: 1px solid var(--warn);   }
+  .ci-red    { background: #1f0f0f; border: 1px solid var(--accent3); }
+  .ci-label  { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .ci-blue   .ci-label { color: var(--accent); }
+  .ci-green  .ci-label { color: var(--accent2); }
+  .ci-purple .ci-label { color: var(--accent4); }
+  .ci-orange .ci-label { color: var(--warn); }
+  .ci-red    .ci-label { color: var(--accent3); }
+
+  /* 비교 테이블 */
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.87rem; margin-top: 12px; }
+  .compare-table th { background: var(--surface2); padding: 10px 14px; text-align: left; font-weight: 600; border: 1px solid var(--border); color: var(--text-sub); font-size: 0.78rem; letter-spacing: 0.5px; }
+  .compare-table td { padding: 10px 14px; border: 1px solid var(--border); vertical-align: top; line-height: 1.6; }
+  .compare-table tr:nth-child(even) td { background: var(--surface2); }
+  .compare-table code { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--accent4); }
+
+  /* ===== QUIZ ===== */
+  .quiz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .quiz-score-badge { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--accent2); font-weight: 600; background: #0f1f0f; border: 1px solid var(--accent2); padding: 4px 12px; border-radius: 20px; }
+  .quiz-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; margin-bottom: 20px; }
+  .quiz-num { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent); letter-spacing: 1px; margin-bottom: 12px; font-weight: 600; }
+  .quiz-q { font-size: 1rem; font-weight: 600; line-height: 1.7; margin-bottom: 20px; color: var(--text); }
+  .quiz-code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-size: 0.8rem; color: #e6edf3; margin-bottom: 20px; white-space: pre; overflow-x: auto; line-height: 1.6; }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt-btn { font-family: 'Noto Sans KR', sans-serif; width: 100%; padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; font-size: 0.9rem; text-align: left; transition: all 0.2s; display: flex; align-items: flex-start; gap: 12px; }
+  .opt-btn:hover:not(:disabled) { border-color: var(--accent); background: #0e1c30; }
+  .opt-btn:disabled { cursor: default; }
+  .opt-letter { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 700; width: 24px; height: 24px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .opt-btn.correct { border-color: var(--accent2); background: #0f1f0f; color: var(--accent2); }
+  .opt-btn.correct .opt-letter { background: var(--accent2); color: #fff; }
+  .opt-btn.wrong { border-color: var(--accent3); background: #2a1c1c; color: var(--accent3); }
+  .opt-btn.wrong .opt-letter { background: var(--accent3); color: #fff; }
+  .feedback-box { margin-top: 14px; padding: 12px 16px; border-radius: 8px; font-size: 0.875rem; line-height: 1.65; display: none; }
+  .feedback-box.show { display: block; }
+  .feedback-correct { background: #0f2a0f; border: 1px solid var(--accent2); color: var(--accent2); }
+  .feedback-wrong { background: #2a0f0f; border: 1px solid var(--accent3); color: #e6edf3; }
+  .feedback-wrong strong { color: var(--accent3); }
+  .quiz-result { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; text-align: center; }
+  .quiz-result.show { display: block; animation: fadeIn 0.4s ease; }
+  .result-score { font-family: 'JetBrains Mono', monospace; font-size: 3rem; font-weight: 700; margin: 16px 0; }
+  .result-msg { font-size: 1rem; color: var(--text-sub); margin-bottom: 24px; }
+  .result-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  /* ===== PRACTICE ===== */
+  .practice-score-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; }
+  .ps-label { font-size: 0.875rem; color: var(--text-sub); }
+  .ps-score { font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 700; color: var(--accent4); background: #2a1c40; border: 1px solid var(--accent4); padding: 4px 14px; border-radius: 20px; }
+  .practice-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 28px; }
+  .practice-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; background: var(--surface2); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px; }
+  .practice-num { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent4); font-weight: 700; letter-spacing: 1px; }
+  .practice-tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 600; background: #2a1c40; color: var(--accent4); border: 1px solid var(--accent4); }
+  .practice-body { padding: 20px; }
+  .practice-q { font-size: 1rem; font-weight: 600; line-height: 1.7; margin-bottom: 14px; }
+  .practice-desc { font-size: 0.875rem; color: var(--text-sub); line-height: 1.75; margin-bottom: 16px; padding: 12px; background: var(--surface2); border-radius: 8px; border-left: 3px solid var(--accent4); }
+  .practice-given { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; font-size: 0.8rem; color: #e6edf3; margin-bottom: 14px; white-space: pre; overflow-x: auto; line-height: 1.7; }
+  .editor-label { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; color: var(--accent4); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
+  .code-editor { width: 100%; background: #010409; border: 1px solid var(--accent4); border-radius: 8px; padding: 14px 16px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--accent4); resize: vertical; min-height: 90px; outline: none; line-height: 1.7; transition: border-color 0.2s, box-shadow 0.2s; box-sizing: border-box; }
+  .code-editor:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(88,166,255,0.15); color: var(--text); }
+  .practice-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .btn-check { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--accent4); background: #2a1c40; color: var(--accent4); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-check:hover { background: var(--accent4); color: #000; }
+  .btn-hint { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-sub); cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; }
+  .btn-hint:hover { border-color: var(--warn); color: var(--warn); }
+  .btn-reset-p { font-family: 'Noto Sans KR', sans-serif; padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--text-sub); cursor: pointer; font-size: 0.875rem; transition: all 0.2s; }
+  .btn-reset-p:hover { border-color: var(--accent3); color: var(--accent3); }
+  .practice-feedback { margin-top: 14px; border-radius: 8px; overflow: hidden; display: none; }
+  .practice-feedback.show { display: block; }
+  .pf-result { padding: 12px 16px; font-size: 0.875rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .pf-correct { background: #0f2a0f; color: var(--accent2); border: 1px solid var(--accent2); border-bottom: none; }
+  .pf-wrong   { background: #2a0f0f; color: var(--accent3); border: 1px solid var(--accent3); border-bottom: none; }
+  .pf-partial { background: #2a2a0f; color: var(--warn);    border: 1px solid var(--warn);    border-bottom: none; }
+  .pf-explain { padding: 14px 16px; font-size: 0.85rem; line-height: 1.75; color: var(--text-sub); background: var(--surface2); border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; }
+  .pf-answer-code { font-family: 'JetBrains Mono', monospace; background: var(--code-bg); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; font-size: 0.78rem; color: var(--accent2); margin-top: 10px; white-space: pre; overflow-x: auto; line-height: 1.6; }
+  .hint-box { margin-top: 10px; padding: 12px 14px; background: #2a200a; border: 1px solid var(--warn); border-radius: 8px; font-size: 0.85rem; color: var(--warn); display: none; line-height: 1.7; white-space: pre-line; font-family: 'JetBrains Mono', monospace; }
+  .hint-box.show { display: block; }
+
+  /* ===== WRONG NOTES ===== */
+  .wrong-note-card { background: var(--surface); border: 1px solid #2a1c1c; border-left: 4px solid var(--accent3); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; animation: fadeIn 0.3s ease; }
+  .wn-qnum { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: var(--accent3); font-weight: 600; margin-bottom: 8px; }
+  .wn-q { font-size: 0.95rem; font-weight: 600; margin-bottom: 12px; line-height: 1.6; }
+  .wn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem; }
+  .wn-my  { padding: 10px; border-radius: 6px; background: #2a1c1c; border: 1px solid var(--accent3); }
+  .wn-ans { padding: 10px; border-radius: 6px; background: #0f1f0f; border: 1px solid var(--accent2); }
+  .wn-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px; }
+  .wn-my  .wn-label { color: var(--accent3); }
+  .wn-ans .wn-label { color: var(--accent2); }
+  .wn-explain { margin-top: 12px; font-size: 0.85rem; color: var(--text-sub); line-height: 1.65; padding: 10px; background: var(--surface2); border-radius: 6px; }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-sub); }
+  .empty-icon { font-size: 3rem; margin-bottom: 12px; }
+  .download-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; flex-wrap: wrap; gap: 12px; }
+  .download-info { font-size: 0.9rem; }
+  .download-info strong { color: var(--accent3); }
+
+  @media (max-width: 600px) {
+    nav, .section { padding: 12px 16px; }
+    header { padding: 14px 16px; }
+    .wn-row { grid-template-columns: 1fr; }
+    .flashcard-wrap { height: 300px; }
+    .concept-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">py<span>.stmt</span></div>
+  <h1>Python <strong>객체 생성 &amp; 명령 실행</strong> 학습</h1>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')"><span>🃏</span> 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')"><span>💻</span> 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')"><span>📝</span> 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('practice')"><span>⌨️</span> 실습 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')"><span>📋</span> 오답노트</button>
+</nav>
+
+<!-- ======== FLASHCARDS ======== -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 개념을 충분히 학습한 후 퀴즈로 넘어가세요.</div>
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 14</span>
+    <span style="font-size:0.8rem;color:var(--text-sub)">💡 클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:7%"></div></div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">👆 클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ======== CODE EXAMPLES ======== -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">객체 생성 방법과 명령 실행의 세 가지 기준을 코드로 확인하세요.</div>
+
+  <!-- 전체 개념 지도 -->
+  <div class="concept-box">
+    <h3>🗺️ 전체 개념 구조</h3>
+    <div class="concept-grid">
+      <div class="concept-item ci-blue">
+        <div class="ci-label">객체 생성 방법</div>
+        <div style="color:var(--text-sub);font-size:0.85rem;line-height:1.75">
+          <span style="color:var(--accent)">①</span> ( )를 사용한 생성<br>
+          <span style="color:var(--accent)">②</span> 이름(변수)에 할당<br>
+          <span style="color:var(--accent)">③</span> 함수 인자/반환값으로
+        </div>
+      </div>
+      <div class="concept-item ci-green">
+        <div class="ci-label">실행 방식 기준</div>
+        <div style="color:var(--text-sub);font-size:0.85rem;line-height:1.75">
+          <span style="color:var(--accent2)">①</span> 연산자 사용<br>
+          <span style="color:var(--accent2)">②</span> 함수 사용<br>
+          <span style="color:var(--accent2)">③</span> 메서드 사용
+        </div>
+      </div>
+      <div class="concept-item ci-purple">
+        <div class="ci-label">표현 구조 기준</div>
+        <div style="color:var(--text-sub);font-size:0.85rem;line-height:1.75">
+          <span style="color:var(--accent4)">①</span> 중첩 명령 (nested)<br>
+          <span style="color:var(--accent4)">②</span> 연쇄 명령 (chained)
+        </div>
+      </div>
+      <div class="concept-item ci-orange">
+        <div class="ci-label">제어 구조 기준</div>
+        <div style="color:var(--text-sub);font-size:0.85rem;line-height:1.75">
+          <span style="color:var(--warn)">①</span> 조건문 (if)<br>
+          <span style="color:var(--warn)">②</span> 반복문 (for, while)<br>
+          <span style="color:var(--warn)">③</span> 흐름 제어 (break, continue, return)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 예제 1: 객체 생성 세 가지 방법 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: 객체를 만드는 세 가지 방법</span>
+      <span class="code-tag tag-blue">객체 생성 · ( ) · 이름 · argument/return</span>
+    </div>
+    <div class="code-explain">
+      파이썬에서 객체를 생성하는 방법은 크게 세 가지입니다.<br>
+      <strong>( )로 생성</strong>: 표현식을 묶어 즉시 사용 가능한 객체를 만듭니다.<br>
+      <strong>이름 부여</strong>: 변수에 할당해 이후에도 재사용할 수 있습니다.<br>
+      <strong>함수 인자/반환값</strong>: 함수에 넘기거나 함수가 반환한 객체에 바로 메서드를 호출할 수 있습니다.
+    </div>
+    <pre><code><span class="cm"># ① ( )를 사용한 객체 생성 → 즉시 메서드 호출 가능</span>
+<span class="nm">a</span> <span class="op">=</span> (<span class="num">1</span>)
+<span class="fn">print</span>(<span class="nm">a</span>, <span class="fn">type</span>(<span class="num">1</span>))   <span class="cm"># 1  &lt;class 'int'&gt;</span>
+
+(<span class="num">3</span> <span class="op">+</span> <span class="num">4</span>).bit_length()   <span class="cm"># 7을 2진수로 표현할 때 필요한 비트 수 → 3</span>
+
+<span class="cm"># ② 이름을 부여하여 객체 생성</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">3</span> <span class="op">+</span> <span class="num">4</span>   <span class="cm"># Global namespace에 a = 7 등록</span>
+
+<span class="cm"># ③ 함수의 argument, return으로 사용</span>
+<span class="kw">def</span> <span class="fn">func</span>(<span class="nm">a</span>, <span class="nm">b</span>):
+    <span class="kw">return</span> <span class="nm">a</span> <span class="op">+</span> <span class="nm">b</span>
+
+<span class="fn">func</span>(<span class="num">5</span>, <span class="num">3</span>).bit_length()   <span class="cm"># 반환값 8에 바로 .bit_length() → 4</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      1 &lt;class 'int'&gt;<br>
+      4 &nbsp;<span style="color:var(--warn)">← func(5,3)=8, 8의 비트 길이는 4</span>
+    </div>
+  </div>
+
+  <!-- 예제 2: 실행 방식 3가지 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: 실행 방식 기준 — 연산자 / 함수 / 메서드</span>
+      <span class="code-tag tag-green">연산자 · 함수 · 메서드</span>
+    </div>
+    <div class="code-explain">
+      같은 결과라도 <strong>연산자</strong>, <strong>함수</strong>, <strong>메서드</strong> 세 가지 방식으로 실행할 수 있습니다.<br>
+      연산자는 내부적으로 <strong>매직 메서드(__add__, __abs__ 등)</strong>를 호출합니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="num">100</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="op">-</span><span class="num">5</span>
+
+<span class="cm"># ① 연산자 사용 → 내부적으로 int.__add__() 호출</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="op">+</span> <span class="nm">b</span>)            <span class="cm"># 95</span>
+<span class="fn">print</span>(<span class="nm">a</span>.<span class="fn">__add__</span>(<span class="nm">b</span>))     <span class="cm"># 95 (동일)</span>
+
+<span class="cm"># ② 함수 사용 → 내부적으로 int.__abs__() 호출</span>
+<span class="fn">print</span>(<span class="fn">abs</span>(<span class="nm">b</span>))            <span class="cm"># 5</span>
+
+<span class="cm"># ③ 객체의 메서드 사용</span>
+<span class="fn">print</span>(<span class="nm">a</span>.bit_length())    <span class="cm"># 7 (100을 2진수로 표현: 1100100 → 7비트)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      95<br>95<br>5<br>7
+    </div>
+  </div>
+
+  <!-- 예제 3: 메서드 vs 함수 구분 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: 메서드 vs 함수 — self의 유무</span>
+      <span class="code-tag tag-blue">self · 메서드 · 함수</span>
+    </div>
+    <div class="code-explain">
+      <strong>메서드</strong>는 첫 번째 parameter가 <code>self</code>입니다. 호출 시 인스턴스가 자신의 id를 self에 자동 전달합니다.<br>
+      <strong>함수</strong>는 <code>self</code>가 없습니다. 객체에 종속되지 않고 독립적으로 존재합니다.
+    </div>
+    <pre><code><span class="cm"># 메서드: parameter에 self가 있음</span>
+<span class="fn">help</span>(<span class="fn">int</span>.__add__)
+<span class="cm"># __add__(self, value, /)  ← self가 있음</span>
+
+<span class="cm"># 함수: parameter에 self가 없음</span>
+<span class="fn">help</span>(<span class="fn">map</span>)
+<span class="cm"># map(func, *iterables) --> map object  ← self 없음</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 핵심 차이</div>
+      <table class="compare-table">
+        <tr>
+          <th>구분</th>
+          <th>self 여부</th>
+          <th>호출 방법</th>
+          <th>예시</th>
+        </tr>
+        <tr>
+          <td style="color:var(--accent2);font-weight:600">메서드</td>
+          <td>있음 ✅</td>
+          <td><code>객체.메서드()</code></td>
+          <td><code>a.bit_length()</code></td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent);font-weight:600">함수</td>
+          <td>없음 ❌</td>
+          <td><code>함수(인자)</code></td>
+          <td><code>abs(b)</code>, <code>map(f, lst)</code></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 예제 4: 중첩 명령 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: 중첩 명령 (Nested)</span>
+      <span class="code-tag tag-purple">중첩 · nested · 안→바깥</span>
+    </div>
+    <div class="code-explain">
+      <strong>중첩 명령</strong>: 함수 안에 함수를 넣는 방식. <strong>안쪽</strong>부터 <strong>바깥쪽</strong> 순서로 실행됩니다.<br>
+      <code>print(int(input(...)))</code> → ① input() 실행 → ② int() 변환 → ③ print() 출력
+    </div>
+    <pre><code><span class="cm"># 중첩 명령: 안쪽 → 바깥쪽 순서로 실행</span>
+<span class="cm"># ① input('숫자를 입력하세요 :')  → 문자열 반환</span>
+<span class="cm"># ② int(문자열)                   → 정수로 변환</span>
+<span class="cm"># ③ print(정수)                   → 출력</span>
+<span class="fn">print</span>(<span class="fn">int</span>(<span class="fn">input</span>(<span class="st">'숫자를 입력하세요 :'</span>)))
+
+<span class="cm"># 동일한 코드를 단계별로 나눠 쓰면:</span>
+<span class="nm">user_input</span> <span class="op">=</span> <span class="fn">input</span>(<span class="st">'숫자를 입력하세요 :'</span>)  <span class="cm"># ① '42' (문자열)</span>
+<span class="nm">number</span>     <span class="op">=</span> <span class="fn">int</span>(<span class="nm">user_input</span>)              <span class="cm"># ② 42  (정수)</span>
+<span class="fn">print</span>(<span class="nm">number</span>)                              <span class="cm"># ③ 출력</span>
+
+<span class="cm"># 또 다른 예시</span>
+<span class="fn">print</span>(<span class="fn">len</span>(<span class="fn">str</span>(<span class="num">12345</span>)))   <span class="cm"># str(12345)='12345' → len=5</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 실행 흐름</div>
+      <span style="color:var(--accent4)">print( int( input('숫자를 입력하세요 :') ) )</span><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <span style="color:var(--warn)">① 먼저</span> &nbsp;&rarr;&nbsp;
+      <span style="color:var(--accent2)">② 다음</span> &nbsp;&rarr;&nbsp;
+      <span style="color:var(--accent)">③ 마지막</span>
+    </div>
+  </div>
+
+  <!-- 예제 5: 연쇄 명령 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 5: 연쇄 명령 (Chained)</span>
+      <span class="code-tag tag-purple">연쇄 · chained · 왼→오른쪽</span>
+    </div>
+    <div class="code-explain">
+      <strong>연쇄 명령</strong>: 메서드 실행 후 <strong>반환된 객체</strong>에 바로 다음 메서드를 호출하는 방식. <strong>왼쪽</strong>에서 <strong>오른쪽</strong>으로 실행됩니다.<br>
+      단, <strong>반환값이 None인 메서드</strong>(inplace 동작, 예: <code>list.append()</code>)에는 연쇄 명령을 사용할 수 없습니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="st">'Good Morning'</span>
+
+<span class="cm"># 연쇄 명령: 왼쪽 → 오른쪽 순서로 실행</span>
+<span class="cm"># ① a.upper()  → 'GOOD MORNING'</span>
+<span class="cm"># ② .lower()   → 'good morning'</span>
+<span class="cm"># ③ .split()   → ['good', 'morning']</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="nm">a</span>.upper().lower().<span class="fn">split</span>()
+<span class="fn">print</span>(<span class="nm">b</span>)   <span class="cm"># ['good', 'morning']</span>
+
+<span class="cm"># ❌ append()는 None 반환 → 연쇄 불가</span>
+<span class="nm">b</span>.<span class="fn">append</span>(<span class="st">'tom'</span>)   <span class="cm"># inplace: b 자체를 변경, 반환값 없음</span>
+<span class="fn">print</span>(<span class="nm">b</span>)           <span class="cm"># ['good', 'morning', 'tom']</span>
+
+<span class="cm"># ❌ 잘못된 연쇄 명령 예시</span>
+<span class="cm"># b.append('alice').append('bob')  → AttributeError: 'NoneType' has no attribute 'append'</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      ['good', 'morning']<br>
+      ['good', 'morning', 'tom']<br><br>
+      <span style="color:var(--warn)">⚠ append()는 None을 반환하므로 연쇄 명령 불가!</span>
+    </div>
+  </div>
+
+  <!-- 예제 6: 중첩 vs 연쇄 비교 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 6: 중첩 vs 연쇄 — 한눈에 비교</span>
+      <span class="code-tag tag-purple">nested vs chained · 실행 방향</span>
+    </div>
+    <div class="code-explain">
+      <strong>중첩</strong>과 <strong>연쇄</strong>의 가장 큰 차이는 <strong>실행 방향</strong>과 <strong>구조</strong>입니다.
+    </div>
+    <pre><code><span class="cm"># 같은 결과를 내는 두 가지 방식 비교</span>
+
+<span class="nm">text</span> <span class="op">=</span> <span class="st">'  Hello World  '</span>
+
+<span class="cm"># 중첩 명령: 안 → 밖 / 함수 안에 함수</span>
+<span class="nm">result1</span> <span class="op">=</span> <span class="fn">list</span>(<span class="fn">reversed</span>(<span class="nm">text</span>.<span class="fn">strip</span>().<span class="fn">split</span>()))
+<span class="cm"># strip()→'Hello World', split()→['Hello','World']</span>
+<span class="cm"># reversed(...)→역순 이터레이터, list(...)→리스트</span>
+
+<span class="cm"># 연쇄 명령: 왼 → 오른쪽 / 반환값에 바로 호출</span>
+<span class="nm">result2</span> <span class="op">=</span> <span class="nm">text</span>.<span class="fn">strip</span>().<span class="fn">split</span>()
+<span class="cm"># 여기서 reversed는 메서드가 아닌 함수라 연쇄 불가</span>
+<span class="cm"># → 변수에 받아서 함수에 전달해야 함</span>
+
+<span class="fn">print</span>(<span class="nm">result1</span>)   <span class="cm"># ['World', 'Hello']</span>
+<span class="fn">print</span>(<span class="nm">result2</span>)   <span class="cm"># ['Hello', 'World']</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 중첩 vs 연쇄 요약</div>
+      <table class="compare-table">
+        <tr>
+          <th>구분</th><th>실행 방향</th><th>구조</th><th>특징</th>
+        </tr>
+        <tr>
+          <td style="color:var(--accent4);font-weight:600">중첩 (Nested)</td>
+          <td>안 → 바깥</td>
+          <td><code>f(g(h(x)))</code></td>
+          <td>함수 안에 함수</td>
+        </tr>
+        <tr>
+          <td style="color:var(--accent4);font-weight:600">연쇄 (Chained)</td>
+          <td>왼 → 오른쪽</td>
+          <td><code>x.f().g().h()</code></td>
+          <td>반환값에 연속 호출. None 반환 시 불가</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 예제 7: bit_length 설명 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 7: bit_length() — 반환값에 바로 메서드 호출</span>
+      <span class="code-tag tag-green">반환값 · 메서드 체이닝 · bit_length</span>
+    </div>
+    <div class="code-explain">
+      함수의 <strong>반환값도 객체</strong>이므로 바로 메서드를 호출할 수 있습니다.<br>
+      <code>bit_length()</code>는 정수를 2진수로 표현할 때 필요한 최소 비트 수를 반환합니다.
+    </div>
+    <pre><code><span class="cm"># 반환값이 객체 → 바로 메서드 사용 가능</span>
+<span class="fn">func</span>(<span class="num">5</span>, <span class="num">3</span>).bit_length()   <span class="cm"># func(5,3)=8 → 8의 bit_length = 4</span>
+
+<span class="cm"># bit_length 원리</span>
+<span class="fn">print</span>(<span class="fn">bin</span>(<span class="num">8</span>))              <span class="cm"># '0b1000' → 4비트</span>
+<span class="fn">print</span>((<span class="num">8</span>).bit_length())    <span class="cm"># 4</span>
+<span class="fn">print</span>((<span class="num">7</span>).bit_length())    <span class="cm"># 3  (111)</span>
+<span class="fn">print</span>((<span class="num">100</span>).bit_length())  <span class="cm"># 7  (1100100)</span>
+<span class="fn">print</span>((<span class="num">1</span>).bit_length())    <span class="cm"># 1  (1)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      0b1000<br>4<br>3<br>7<br>1
+    </div>
+  </div>
+</div>
+
+<!-- ======== QUIZ ======== -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div class="section-title">📝 퀴즈</div>
+    <div class="quiz-score-badge" id="score-badge">0 / 18</div>
+  </div>
+  <div class="section-subtitle">총 18문제 · 선택지를 클릭하면 즉시 정답 여부를 확인할 수 있습니다.</div>
+  <div id="quiz-list"></div>
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎯</div>
+    <div class="result-score" id="result-score-text"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" onclick="showTab('notes')">📋 오답노트 보기</button>
+      <button class="btn btn-primary" onclick="resetQuiz()">🔄 다시 풀기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======== PRACTICE ======== -->
+<div id="practice" class="section">
+  <div class="section-title">⌨️ 실습 퀴즈</div>
+  <div class="section-subtitle">빈칸을 직접 코드로 채워보세요. Tab키는 스페이스 4칸으로 입력됩니다.</div>
+  <div class="practice-score-bar">
+    <span class="ps-label">실습 진행 현황</span>
+    <span class="ps-score" id="ps-score">0 / 7 완료</span>
+  </div>
+  <div id="practice-list"></div>
+</div>
+
+<!-- ======== WRONG NOTES ======== -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">퀴즈에서 틀린 문제만 모아 정리합니다. 텍스트 파일로 다운로드할 수 있습니다.</div>
+  <div class="download-bar" id="download-bar" style="display:none">
+    <div class="download-info">틀린 문제 <strong id="wrong-count">0</strong>개가 기록되었습니다</div>
+    <button class="btn btn-danger" onclick="downloadNotes()">⬇ 오답노트 다운로드 (.txt)</button>
+  </div>
+  <div id="notes-list">
+    <div class="empty-state">
+      <div class="empty-icon">📝</div>
+      <div>아직 퀴즈를 풀지 않았습니다.<br>퀴즈 탭에서 문제를 풀면 오답이 여기에 기록됩니다.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== HELPERS =====
+function escHtml(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+function escCode(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ===== FLASHCARDS =====
+const cards = [
+  {
+    q: "파이썬에서 객체를 생성하는 세 가지 방법은?",
+    a: "① ( )를 사용한 객체 생성\n예: (3 + 4).bit_length()\n\n② 이름(변수)을 부여하여 생성\n예: a = 3 + 4\n\n③ 함수의 argument 또는 return값으로 사용\n예: func(5, 3).bit_length()"
+  },
+  {
+    q: "( )를 사용한 객체 생성이란 무엇인가?\n예: (3 + 4).bit_length()",
+    a: "괄호 안의 표현식을 먼저 계산하여 객체를 만들고,\n그 객체에 바로 메서드나 연산을 적용하는 방식.\n\n(3 + 4) → 7이라는 int 객체가 생성되고\n.bit_length()를 바로 호출할 수 있음."
+  },
+  {
+    q: "함수의 return값에 바로 메서드를 호출할 수 있는 이유는?",
+    a: "파이썬에서 함수의 return값도 객체이기 때문.\n\nfunc(5, 3) → 8(int 객체) 반환\n→ 8.bit_length() → 4\n\n반환값이 객체인 한 바로 메서드를 호출할 수 있음."
+  },
+  {
+    q: "명령의 실행 방식 3가지를 예시와 함께 설명하세요.",
+    a: "① 연산자 사용: a + b\n   (내부적으로 a.__add__(b) 호출)\n\n② 함수 사용: abs(b)\n   (내부적으로 b.__abs__() 호출)\n\n③ 메서드 사용: a.bit_length()"
+  },
+  {
+    q: "연산자와 매직 메서드의 관계는?",
+    a: "연산자는 내부적으로 매직 메서드를 호출합니다.\n\na + b  →  a.__add__(b) 또는 int.__add__(a, b)\nabs(b)  →  b.__abs__()\nstr(x)  →  x.__str__()\n\n즉, 연산자는 매직 메서드의 문법적 단축 표현."
+  },
+  {
+    q: "메서드와 함수의 차이점은?",
+    a: "메서드: parameter에 self가 있음\n→ 호출 시 인스턴스가 자신을 self에 자동 전달\n→ 예: a.bit_length(), [1,2].append(3)\n\n함수: parameter에 self가 없음\n→ 독립적으로 존재, 객체에 종속되지 않음\n→ 예: abs(b), map(f, lst), print(x)"
+  },
+  {
+    q: "중첩 명령(Nested)이란 무엇인가?",
+    a: "함수 안에 함수를 넣는 방식.\n실행 순서는 안쪽 → 바깥쪽.\n\n예: print(int(input('입력:')))  \n① input() 먼저 실행 → 문자열 반환\n② int() 변환 → 정수 반환\n③ print() 출력"
+  },
+  {
+    q: "연쇄 명령(Chained)이란 무엇인가?",
+    a: "메서드 실행 후 반환된 객체에 바로 다음 메서드를 호출.\n실행 순서는 왼쪽 → 오른쪽.\n\n예: 'Good Morning'.upper().lower().split()\n① upper() → 'GOOD MORNING'\n② lower() → 'good morning'\n③ split() → ['good', 'morning']"
+  },
+  {
+    q: "연쇄 명령이 불가능한 경우는?",
+    a: "메서드의 반환값이 None인 경우.\n\n예: list.append()는 리스트를 inplace로 수정하고\nNone을 반환하므로 연쇄 불가.\n\n[1,2].append(3).append(4) → AttributeError\n(NoneType에는 append 메서드가 없음)"
+  },
+  {
+    q: "중첩 명령과 연쇄 명령의 실행 방향 차이는?",
+    a: "중첩(Nested): 안쪽 → 바깥쪽\nf(g(h(x))) → h, g, f 순서로 실행\n\n연쇄(Chained): 왼쪽 → 오른쪽\nx.h().g().f() → h, g, f 순서로 실행\n\n두 방식 모두 동일한 순서로 처리될 수 있으나\n코드 가독성에서 차이가 있음."
+  },
+  {
+    q: "bit_length()는 무엇을 반환하는가?",
+    a: "정수를 2진수로 표현할 때 필요한 최소 비트 수.\n\n예:\n(7).bit_length()  → 3  (111)\n(8).bit_length()  → 4  (1000)\n(100).bit_length() → 7 (1100100)\n(1).bit_length()  → 1  (1)"
+  },
+  {
+    q: "inplace 동작이란 무엇인가?",
+    a: "객체 자체를 직접 수정하는 방식.\n반환값이 None인 경우가 많음.\n\n예: list.append(), list.sort(), list.reverse()\n\n이런 메서드는 새 객체를 만들지 않고\n기존 객체를 수정하므로 반환값(None)을\n다시 변수에 받으면 None이 됨.\n\n예: a = [1,2].append(3) → a는 None!"
+  },
+  {
+    q: "제어 구조 기준의 3가지 분류는?",
+    a: "① 조건문: if / elif / else\n   → 조건에 따라 실행 블록 선택\n\n② 반복문: for / while\n   → 특정 블록을 반복 실행\n\n③ 흐름 제어: break / continue / return\n   → 반복이나 함수의 흐름을 중간에 변경"
+  },
+  {
+    q: "명령 분류의 3가지 기준을 정리하면?",
+    a: "① 실행 방식 기준: 무엇으로 실행?\n   연산자 / 함수 / 메서드\n\n② 표현 구조 기준: 어떻게 조합?\n   중첩(Nested) / 연쇄(Chained)\n\n③ 제어 구조 기준: 순서를 어떻게 통제?\n   조건문 / 반복문 / 흐름 제어"
+  }
+];
+
+let fcIndex = 0;
+function renderCard() {
+  document.getElementById('fc-q').innerHTML = escHtml(cards[fcIndex].q);
+  document.getElementById('fc-a').innerHTML = escHtml(cards[fcIndex].a);
+  document.getElementById('fc-counter').textContent = `${fcIndex + 1} / ${cards.length}`;
+  document.getElementById('fc-bar').style.width = `${((fcIndex + 1) / cards.length) * 100}%`;
+}
+function updateCard() {
+  document.getElementById('fc').classList.remove('flipped');
+  setTimeout(renderCard, 200);
+}
+function flipCard() { document.getElementById('fc').classList.toggle('flipped'); }
+function nextCard() { fcIndex = (fcIndex + 1) % cards.length; updateCard(); }
+function prevCard() { fcIndex = (fcIndex - 1 + cards.length) % cards.length; updateCard(); }
+
+// ===== QUIZ =====
+const quizzes = [
+  {
+    q: "파이썬에서 (3 + 4).bit_length() 가 가능한 이유는?",
+    code: null,
+    opts: [
+      "3 + 4는 특별한 내장 함수이기 때문",
+      "( )로 묶인 표현식의 결과도 객체이므로 메서드를 바로 호출할 수 있음",
+      "bit_length()는 모든 타입에 적용 가능하기 때문",
+      "괄호 안의 연산은 항상 정수를 반환하기 때문"
+    ],
+    ans: 1,
+    explain: "파이썬에서 ( )로 묶인 표현식의 결과도 객체입니다. (3 + 4)는 7이라는 int 객체를 생성하고, 그 객체에 바로 .bit_length() 메서드를 호출할 수 있습니다."
+  },
+  {
+    q: "아래 코드의 실행 결과로 올바른 것은?",
+    code: `def func(a, b):
+    return a + b
+
+print(func(5, 3).bit_length())`,
+    opts: ["3", "4", "8", "TypeError 발생"],
+    ans: 1,
+    explain: "func(5, 3)은 8을 반환합니다. 8을 2진수로 나타내면 1000(4비트)이므로 bit_length()는 4를 반환합니다."
+  },
+  {
+    q: "a = 100, b = -5일 때, 아래 세 표현식의 결과가 모두 같은 것은?",
+    code: `A: a + b
+B: a.__add__(b)
+C: int.__add__(a, b)`,
+    opts: [
+      "A만 95",
+      "A와 B만 같음",
+      "A, B, C 모두 95로 같음",
+      "C는 오류 발생"
+    ],
+    ans: 2,
+    explain: "연산자 +는 내부적으로 __add__ 매직 메서드를 호출합니다. a + b, a.__add__(b), int.__add__(a, b) 세 가지는 모두 동일하게 95를 반환합니다."
+  },
+  {
+    q: "메서드와 함수를 구분하는 핵심 기준은?",
+    code: null,
+    opts: [
+      "함수는 반환값이 있고, 메서드는 없다",
+      "메서드의 parameter에는 self가 있고, 함수에는 없다",
+      "메서드는 Built-in namespace에 있고, 함수는 Global에 있다",
+      "함수는 클래스 안에 정의된다"
+    ],
+    ans: 1,
+    explain: "메서드는 parameter에 self가 있어 호출 시 인스턴스가 자신의 id를 자동으로 전달합니다. 함수는 self가 없어 독립적으로 존재합니다. help(int.__add__)와 help(map)으로 확인할 수 있습니다."
+  },
+  {
+    q: "아래 코드에서 명령의 실행 방식 기준으로 올바른 분류는?",
+    code: `a = 100
+b = -5
+print(abs(b))       # (가)
+print(a + b)        # (나)
+print(a.bit_length())  # (다)`,
+    opts: [
+      "(가) 연산자, (나) 함수, (다) 메서드",
+      "(가) 메서드, (나) 연산자, (다) 함수",
+      "(가) 함수, (나) 연산자, (다) 메서드",
+      "(가) 함수, (나) 메서드, (다) 연산자"
+    ],
+    ans: 2,
+    explain: "abs(b)는 내장 함수를 사용한 실행, a + b는 연산자를 사용한 실행, a.bit_length()는 객체의 메서드를 사용한 실행입니다."
+  },
+  {
+    q: "중첩 명령 print(int(input('입력:'))) 의 실행 순서는?",
+    code: null,
+    opts: [
+      "print → int → input 순서",
+      "int → input → print 순서",
+      "input → int → print 순서",
+      "동시에 실행됨"
+    ],
+    ans: 2,
+    explain: "중첩 명령은 안쪽에서 바깥쪽 순서로 실행됩니다. ① input() 먼저 실행해 문자열 반환 → ② int()로 정수 변환 → ③ print()로 출력."
+  },
+  {
+    q: "아래 코드의 실행 결과는?",
+    code: `a = 'Good Morning'
+b = a.upper().lower().split()
+print(b)`,
+    opts: [
+      "['GOOD', 'MORNING']",
+      "['Good', 'Morning']",
+      "['good', 'morning']",
+      "'good morning'"
+    ],
+    ans: 2,
+    explain: "연쇄 명령은 왼쪽에서 오른쪽으로 실행됩니다. ① upper() → 'GOOD MORNING' ② lower() → 'good morning' ③ split() → ['good', 'morning']"
+  },
+  {
+    q: "아래 코드에서 오류가 발생하는 이유는?",
+    code: `lst = [3, 1, 2]
+result = lst.append(4).append(5)`,
+    opts: [
+      "append는 정수만 받을 수 있기 때문",
+      "리스트에는 append를 두 번 쓸 수 없기 때문",
+      "append()는 None을 반환하므로 None.append(5) 호출 시 AttributeError",
+      "변수명 result가 예약어이기 때문"
+    ],
+    ans: 2,
+    explain: "list.append()는 inplace로 동작하며 None을 반환합니다. lst.append(4)가 None을 반환하므로, None.append(5)를 호출하면 AttributeError: 'NoneType' object has no attribute 'append'가 발생합니다."
+  },
+  {
+    q: "연쇄 명령이 가능한 조건은?",
+    code: null,
+    opts: [
+      "메서드가 같은 클래스의 인스턴스를 반환할 때만 가능",
+      "메서드의 반환값이 None이 아닌 객체일 때 가능",
+      "문자열 메서드에만 사용 가능",
+      "항상 가능하다"
+    ],
+    ans: 1,
+    explain: "연쇄 명령은 메서드의 반환값이 None이 아닌 객체여야 가능합니다. 반환된 객체에 다음 메서드를 호출하는 방식이기 때문입니다. 반드시 같은 타입일 필요는 없습니다."
+  },
+  {
+    q: "다음 코드에서 중첩 명령과 연쇄 명령을 올바르게 구분한 것은?",
+    code: `A: print(len(str(12345)))
+B: 'hello world'.upper().split()`,
+    opts: [
+      "A: 연쇄, B: 중첩",
+      "A: 중첩, B: 연쇄",
+      "A, B 모두 중첩",
+      "A, B 모두 연쇄"
+    ],
+    ans: 1,
+    explain: "A는 함수 안에 함수를 넣는 중첩 명령(안→바깥 실행), B는 메서드 반환값에 바로 다음 메서드를 호출하는 연쇄 명령(왼→오른쪽 실행)입니다."
+  },
+  {
+    q: "아래 코드의 최종 출력값은?",
+    code: `print(len(str(12345)))`,
+    opts: ["12345", "5", "4", "TypeError"],
+    ans: 1,
+    explain: "str(12345) → '12345' (문자열), len('12345') → 5, print(5) → 5 출력. 중첩 명령으로 안쪽부터 실행합니다."
+  },
+  {
+    q: "(8).bit_length()의 결과는?",
+    code: null,
+    opts: ["3", "4", "8", "1"],
+    ans: 1,
+    explain: "8을 2진수로 나타내면 1000으로 4비트가 필요합니다. bit_length()는 그 비트 수인 4를 반환합니다."
+  },
+  {
+    q: "아래 코드에서 a의 최종값은?",
+    code: `a = [1, 2, 3]
+a = a.append(4)
+print(a)`,
+    opts: ["[1, 2, 3, 4]", "[1, 2, 3]", "None", "4"],
+    ans: 2,
+    explain: "append()는 inplace로 리스트를 수정하고 None을 반환합니다. a = a.append(4)는 a에 None을 할당하므로 print(a)는 None을 출력합니다."
+  },
+  {
+    q: "다음 중 '이름을 부여하여 객체를 생성'하는 방식에 해당하는 코드는?",
+    code: null,
+    opts: [
+      "(3 + 4).bit_length()",
+      "func(5, 3).bit_length()",
+      "a = 3 + 4",
+      "print(int(input('입력:')))"
+    ],
+    ans: 2,
+    explain: "a = 3 + 4는 3 + 4의 결과(7)를 변수 a에 할당하여 이름을 부여하는 방식입니다. 이후 a를 통해 이 객체를 재사용할 수 있습니다."
+  },
+  {
+    q: "help(int.__add__)를 실행했을 때 확인할 수 있는 내용으로 옳은 것은?",
+    code: null,
+    opts: [
+      "__add__는 parameter에 self가 없음을 확인할 수 있다",
+      "__add__(self, value, /) 처럼 self가 parameter에 있음을 확인할 수 있다",
+      "int.__add__는 함수이므로 self가 없다",
+      "help()는 메서드에 사용할 수 없다"
+    ],
+    ans: 1,
+    explain: "help(int.__add__)를 실행하면 '__add__(self, value, /) unbound builtins.int method'가 출력됩니다. self가 parameter에 있어 메서드임을 알 수 있습니다."
+  },
+  {
+    q: "아래 코드의 실행 결과는?",
+    code: `result = 'Python Programming'.lower().split()
+print(result[0])`,
+    opts: ["'Python'", "'python'", "'Python Programming'", "IndexError"],
+    ans: 1,
+    explain: "'Python Programming'.lower() → 'python programming', .split() → ['python', 'programming'], result[0] → 'python'. 연쇄 명령으로 처리됩니다."
+  },
+  {
+    q: "제어 구조 기준에서 break, continue, return을 분류하면?",
+    code: null,
+    opts: [
+      "조건문",
+      "반복문",
+      "흐름 제어",
+      "연산자"
+    ],
+    ans: 2,
+    explain: "break, continue, return은 '흐름 제어'에 해당합니다. break는 반복문을 종료, continue는 다음 반복으로 건너뜀, return은 함수를 종료하고 값을 반환합니다."
+  },
+  {
+    q: "다음 중 객체 생성의 세 가지 방법을 모두 올바르게 포함한 것은?",
+    code: null,
+    opts: [
+      "변수 할당 / 클래스 상속 / 함수 정의",
+      "( )를 사용한 생성 / 이름 부여 / 함수의 argument·return으로 사용",
+      "연산자 / 함수 / 메서드",
+      "중첩 / 연쇄 / 조건문"
+    ],
+    ans: 1,
+    explain: "객체를 생성하는 세 가지 방법은 ①괄호 ( )를 이용한 즉시 생성, ②이름(변수)을 부여하여 생성, ③함수의 argument나 return값으로 사용하는 방법입니다."
+  }
+];
+
+let userAnswers = Array(quizzes.length).fill(null);
+let score = 0;
+let answered = 0;
+
+function buildQuiz() {
+  const list = document.getElementById('quiz-list');
+  list.innerHTML = '';
+  quizzes.forEach((q, qi) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-card';
+    let codeHtml = q.code ? `<div class="quiz-code">${escCode(q.code)}</div>` : '';
+    let optsHtml = q.opts.map((o, oi) =>
+      `<button class="opt-btn" id="opt-${qi}-${oi}" onclick="selectOpt(${qi},${oi})">
+        <span class="opt-letter">${'ABCD'[oi]}</span><span>${escHtml(o)}</span>
+      </button>`
+    ).join('');
+    div.innerHTML = `
+      <div class="quiz-num">Q${qi+1} / ${quizzes.length}</div>
+      <div class="quiz-q">${escHtml(q.q)}</div>
+      ${codeHtml}
+      <div class="options" id="opts-${qi}">${optsHtml}</div>
+      <div class="feedback-box" id="fb-${qi}"></div>`;
+    list.appendChild(div);
+  });
+}
+
+function selectOpt(qi, oi) {
+  if (userAnswers[qi] !== null) return;
+  userAnswers[qi] = oi;
+  answered++;
+  const correct = quizzes[qi].ans;
+  const fb = document.getElementById(`fb-${qi}`);
+  for (let i = 0; i < quizzes[qi].opts.length; i++) {
+    const btn = document.getElementById(`opt-${qi}-${i}`);
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    if (i === oi && oi !== correct) btn.classList.add('wrong');
+  }
+  if (oi === correct) {
+    score++;
+    fb.className = 'feedback-box show feedback-correct';
+    fb.innerHTML = `✅ 정답입니다! ${escHtml(quizzes[qi].explain)}`;
+  } else {
+    fb.className = 'feedback-box show feedback-wrong';
+    fb.innerHTML = `❌ 오답입니다. <strong>정답: ${'ABCD'[correct]}</strong><br>${escHtml(quizzes[qi].explain)}`;
+    addWrongNote(qi, oi);
+  }
+  document.getElementById('score-badge').textContent = `${score} / ${quizzes.length}`;
+  if (answered === quizzes.length) setTimeout(showResult, 600);
+}
+
+function showResult() {
+  const el = document.getElementById('quiz-result');
+  el.classList.add('show');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const pct = Math.round((score / quizzes.length) * 100);
+  const color = pct >= 80 ? 'var(--accent2)' : pct >= 60 ? 'var(--warn)' : 'var(--accent3)';
+  document.getElementById('result-score-text').innerHTML = `<span style="color:${color}">${score}</span> / ${quizzes.length}`;
+  document.getElementById('result-msg').textContent =
+    pct === 100 ? '🏆 완벽합니다! 모든 개념을 마스터했습니다.' :
+    pct >= 80  ? '👍 잘 이해하고 있습니다! 오답을 복습해보세요.' :
+    pct >= 60  ? '📖 절반 이상 맞혔습니다. 오답노트로 복습해보세요.' :
+                 '💪 플래시카드와 코드 예제를 다시 확인해보세요.';
+}
+
+function resetQuiz() {
+  userAnswers = Array(quizzes.length).fill(null);
+  score = 0; answered = 0; wrongNotes = [];
+  document.getElementById('score-badge').textContent = `0 / ${quizzes.length}`;
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz();
+  updateNotesPanel();
+}
+
+// ===== PRACTICE =====
+const practices = [
+  {
+    title: "객체에 바로 메서드 호출",
+    tag: "객체 생성 · ( ) · 메서드",
+    q: "( )를 이용해 객체를 즉시 생성하고 메서드를 호출하세요.\n\n조건:\n① 5 + 3의 결과 객체에 바로 bit_length()를 호출해 출력\n② 'hello world'를 즉시 대문자로 변환해 출력",
+    desc: "( )로 묶인 표현식의 결과도 객체입니다. 변수에 저장하지 않고 바로 메서드를 호출할 수 있습니다.",
+    given: `# ① 정수 객체 생성 후 bit_length() 호출
+print((___ + ___).bit_length())   # 8.bit_length() = 4
+
+# ② 문자열 객체 생성 후 upper() 호출
+print(('___').upper())             # 'HELLO WORLD'`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasBit = /\(5\+3\)\.bit_length\(\)/.test(c) || /\(3\+5\)\.bit_length\(\)/.test(c);
+      const hasUpper = /\('helloworld'\)\.upper\(\)/.test(c) || /'helloworld'\.upper\(\)/.test(c);
+      if (hasBit && hasUpper) return 'correct';
+      if (hasBit || hasUpper) return 'partial';
+      return 'wrong';
+    },
+    hint: "(5 + 3).bit_length()\n('hello world').upper()",
+    answer: `print((5 + 3).bit_length())   # 4\nprint(('hello world').upper())  # 'HELLO WORLD'`
+  },
+  {
+    title: "함수 반환값에 메서드 호출",
+    tag: "return값 · 객체 · 메서드",
+    q: "함수의 반환값에 바로 메서드를 호출하세요.\n\n조건:\n① 두 수를 더하는 add() 함수를 작성\n② add(10, 6)의 반환값에 바로 .bit_length() 호출\n③ 결과를 출력",
+    desc: "함수의 return값도 객체이므로 바로 메서드를 호출할 수 있습니다. add(10, 6) = 16, 16.bit_length() = 5 (10000이 5비트).",
+    given: `def add(a, b):
+    return ___
+
+# 반환값에 바로 bit_length() 호출
+result = ___(10, 6).___()
+print(result)   # 5`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasDef = /defadd\(/.test(c) && /returna\+b/.test(c);
+      const hasCall = /add\(10,6\)\.bit_length\(\)/.test(c);
+      if (hasDef && hasCall) return 'correct';
+      if (hasDef || hasCall) return 'partial';
+      return 'wrong';
+    },
+    hint: "def add(a, b):\n    return a + b\n\nresult = add(10, 6).bit_length()",
+    answer: `def add(a, b):\n    return a + b\n\nresult = add(10, 6).bit_length()\nprint(result)   # 5  (16 = 10000 → 5비트)`
+  },
+  {
+    title: "연산자 / 함수 / 메서드 구분",
+    tag: "실행 방식 · 연산자 · 함수 · 메서드",
+    q: "a = 100, b = -5를 사용해\n세 가지 실행 방식을 각각 작성하세요.\n\n조건:\n① 연산자로 a + b 계산 후 출력\n② 함수로 b의 절댓값 출력 (abs 사용)\n③ 메서드로 a의 비트 길이 출력 (bit_length 사용)",
+    desc: "같은 결과도 연산자, 함수, 메서드 세 가지 방식으로 표현할 수 있습니다. 각각의 방식을 직접 작성해보세요.",
+    given: `a = 100
+b = -5
+
+# ① 연산자 사용
+print(___)          # 95
+
+# ② 함수 사용
+print(___(___))     # 5
+
+# ③ 메서드 사용
+print(a.___())      # 7`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasOp = /print\(a\+b\)/.test(c);
+      const hasFn = /print\(abs\(b\)\)/.test(c);
+      const hasMeth = /a\.bit_length\(\)/.test(c);
+      const cnt = [hasOp, hasFn, hasMeth].filter(Boolean).length;
+      if (cnt === 3) return 'correct';
+      if (cnt >= 2) return 'partial';
+      return 'wrong';
+    },
+    hint: "print(a + b)          # 연산자\nprint(abs(b))         # 함수\nprint(a.bit_length()) # 메서드",
+    answer: `a = 100\nb = -5\n\n# ① 연산자 사용\nprint(a + b)          # 95\n\n# ② 함수 사용\nprint(abs(b))         # 5\n\n# ③ 메서드 사용\nprint(a.bit_length()) # 7`
+  },
+  {
+    title: "중첩 명령 완성",
+    tag: "중첩 명령 · nested · 안→바깥",
+    q: "중첩 명령을 활용해 한 줄로 작성하세요.\n\n조건:\n① '12345'를 정수로 변환한 뒤 그 bit_length()를 출력\n② 한 줄의 중첩 명령으로 작성할 것\n   힌트: int('12345') = 12345, 12345.bit_length() = 14",
+    desc: "중첩 명령은 안쪽 함수가 먼저 실행됩니다. int('12345')로 정수를 만들고, 그 결과에 bit_length()를 호출해보세요.",
+    given: `# 중첩 명령으로 한 줄 작성
+# int('12345') → 12345 → bit_length() → 14
+print(___(___).___)`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      return /print\(int\('12345'\)\.bit_length\(\)\)/.test(c) ? 'correct' : 'wrong';
+    },
+    hint: "print(int('12345').bit_length())\n# int('12345') = 12345\n# 12345를 2진수로: 11000000111001 → 14비트",
+    answer: `print(int('12345').bit_length())\n# int('12345') → 12345 → bit_length() → 14`
+  },
+  {
+    title: "연쇄 명령 완성",
+    tag: "연쇄 명령 · chained · 왼→오른쪽",
+    q: "연쇄 명령을 활용해 작성하세요.\n\n조건:\n① 'Python is Fun'을 소문자로 변환\n② 공백으로 분리하여 리스트로 만들기\n③ 한 줄의 연쇄 명령으로 작성\n④ 결과를 출력",
+    desc: "연쇄 명령은 메서드의 반환값에 바로 다음 메서드를 호출합니다. lower()는 str을, split()은 list를 반환합니다.",
+    given: `text = 'Python is Fun'
+result = text.___().___()
+print(result)   # ['python', 'is', 'fun']`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      return /text\.lower\(\)\.split\(\)/.test(c) || /'PythonisFun'\.lower\(\)\.split\(\)/.test(c) ? 'correct' : 'wrong';
+    },
+    hint: "text.lower().split()\n# lower() → 'python is fun'\n# split() → ['python', 'is', 'fun']",
+    answer: `text = 'Python is Fun'\nresult = text.lower().split()\nprint(result)   # ['python', 'is', 'fun']`
+  },
+  {
+    title: "inplace 동작 이해",
+    tag: "None 반환 · inplace · append",
+    q: "아래 코드의 문제를 찾고 올바르게 수정하세요.\n\n문제 코드: a = [1, 2, 3].append(4)\nprint(a)  # None이 출력됨\n\n조건:\n① a가 [1, 2, 3, 4]가 되도록 올바르게 작성\n② append()의 inplace 특성을 활용할 것",
+    desc: "append()는 inplace로 리스트를 수정하고 None을 반환합니다. a = [].append()처럼 반환값을 받으면 a는 None이 됩니다.",
+    given: `# 잘못된 코드
+# a = [1, 2, 3].append(4)  → a is None
+
+# 올바른 코드 작성
+a = ___
+a.___(___)
+print(a)   # [1, 2, 3, 4]`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasList = /a=\[1,2,3\]/.test(c);
+      const hasAppend = /a\.append\(4\)/.test(c);
+      if (hasList && hasAppend) return 'correct';
+      if (hasList || hasAppend) return 'partial';
+      return 'wrong';
+    },
+    hint: "a = [1, 2, 3]      # 먼저 리스트 생성\na.append(4)        # inplace 수정\nprint(a)           # [1, 2, 3, 4]",
+    answer: `a = [1, 2, 3]\na.append(4)\nprint(a)   # [1, 2, 3, 4]\n\n# append()는 None 반환 → a = [].append(4) 하면 a는 None!`
+  },
+  {
+    title: "종합: 세 가지 방식 모두 활용",
+    tag: "종합 실습",
+    q: "아래 조건을 모두 만족하는 코드를 작성하세요.\n\n조건:\n① numbers = [3, 1, 4, 1, 5, 9, 2, 6] 리스트 생성\n② 함수(max)로 최댓값을 구해 변수 m에 저장\n③ m에 연산자(>)로 5보다 큰지 비교해 출력\n④ 중첩 명령으로 최솟값의 bit_length() 출력\n   (min()과 bit_length() 사용)",
+    desc: "지금까지 배운 연산자, 함수, 메서드, 중첩 명령을 모두 활용해보세요.",
+    given: `numbers = [3, 1, 4, 1, 5, 9, 2, 6]
+
+# ② 함수로 최댓값 구하기
+m = ___(numbers)
+print(m)           # 9
+
+# ③ 연산자로 비교
+print(m ___ 5)     # True
+
+# ④ 중첩 명령: min()의 결과에 bit_length() 호출
+print(___(numbers).___())  # min=1, 1.bit_length()=1`,
+    check: (code) => {
+      const c = code.replace(/\s/g,'');
+      const hasMax = /m=max\(numbers\)/.test(c);
+      const hasCmp = /m>5/.test(c);
+      const hasNested = /min\(numbers\)\.bit_length\(\)/.test(c);
+      const cnt = [hasMax, hasCmp, hasNested].filter(Boolean).length;
+      if (cnt === 3) return 'correct';
+      if (cnt >= 2) return 'partial';
+      return 'wrong';
+    },
+    hint: "m = max(numbers)\nprint(m > 5)\nprint(min(numbers).bit_length())",
+    answer: `numbers = [3, 1, 4, 1, 5, 9, 2, 6]\n\nm = max(numbers)              # ② 함수 사용\nprint(m)                      # 9\n\nprint(m > 5)                  # ③ 연산자 사용 → True\n\nprint(min(numbers).bit_length())  # ④ 중첩 명령 → 1`
+  }
+];
+
+let practiceResults = {};
+let practiceCompleted = 0;
+
+function buildPractice() {
+  const list = document.getElementById('practice-list');
+  list.innerHTML = '';
+  practices.forEach((p, pi) => {
+    const div = document.createElement('div');
+    div.className = 'practice-card';
+    div.innerHTML = `
+      <div class="practice-header">
+        <span class="practice-num">실습 ${pi+1} / ${practices.length} &nbsp;·&nbsp; ${p.title}</span>
+        <span class="practice-tag">${p.tag}</span>
+      </div>
+      <div class="practice-body">
+        <div class="practice-q">${escHtml(p.q)}</div>
+        <div class="practice-desc">${escHtml(p.desc)}</div>
+        <div class="editor-label">▶ 주어진 코드 (참고용)</div>
+        <div class="practice-given">${escCode(p.given)}</div>
+        <div class="editor-label" style="margin-top:14px">✏️ 답안 코드 작성</div>
+        <textarea class="code-editor" id="editor-${pi}" rows="5" placeholder="여기에 코드를 작성하세요..."></textarea>
+        <div class="hint-box" id="hint-${pi}">${escCode(p.hint)}</div>
+        <div class="practice-actions">
+          <button class="btn-check" onclick="checkPractice(${pi})">✔ 확인</button>
+          <button class="btn-hint" onclick="toggleHint(${pi})">💡 힌트</button>
+          <button class="btn-reset-p" onclick="resetPractice(${pi})">↺ 초기화</button>
+        </div>
+        <div class="practice-feedback" id="pfb-${pi}">
+          <div class="pf-result" id="pfr-${pi}"></div>
+          <div class="pf-explain" id="pfe-${pi}"></div>
+        </div>
+      </div>`;
+    list.appendChild(div);
+    document.getElementById(`editor-${pi}`).addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const s = this.selectionStart;
+        this.value = this.value.substring(0, s) + '    ' + this.value.substring(this.selectionEnd);
+        this.selectionStart = this.selectionEnd = s + 4;
+      }
+    });
+  });
+}
+
+function checkPractice(pi) {
+  const code = document.getElementById(`editor-${pi}`).value.trim();
+  if (!code) { alert('코드를 입력해주세요!'); return; }
+  const p = practices[pi];
+  const result = p.check(code);
+  const fb = document.getElementById(`pfb-${pi}`);
+  const pfr = document.getElementById(`pfr-${pi}`);
+  const pfe = document.getElementById(`pfe-${pi}`);
+  fb.className = 'practice-feedback show';
+  const wasOk = practiceResults[pi] === 'correct';
+  if (result === 'correct') {
+    pfr.className = 'pf-result pf-correct';
+    pfr.innerHTML = '✅ 정답입니다! 핵심 개념을 잘 이해했습니다.';
+    if (!wasOk) { practiceCompleted++; practiceResults[pi] = 'correct'; updatePracticeScore(); }
+  } else if (result === 'partial') {
+    pfr.className = 'pf-result pf-partial';
+    pfr.innerHTML = '🔶 부분 정답입니다. 조금 더 완성해보세요!';
+    practiceResults[pi] = 'partial';
+  } else {
+    pfr.className = 'pf-result pf-wrong';
+    pfr.innerHTML = '❌ 아직 정확하지 않습니다. 힌트를 참고해보세요.';
+    practiceResults[pi] = 'wrong';
+  }
+  pfe.innerHTML = `<div style="margin-bottom:6px;color:var(--text-sub);font-size:0.8rem">▶ 모범 답안</div><div class="pf-answer-code">${escCode(p.answer)}</div>`;
+}
+
+function toggleHint(pi) { document.getElementById(`hint-${pi}`).classList.toggle('show'); }
+function resetPractice(pi) {
+  document.getElementById(`editor-${pi}`).value = '';
+  document.getElementById(`pfb-${pi}`).className = 'practice-feedback';
+  document.getElementById(`hint-${pi}`).classList.remove('show');
+  if (practiceResults[pi] === 'correct') { practiceCompleted = Math.max(0, practiceCompleted - 1); updatePracticeScore(); }
+  delete practiceResults[pi];
+}
+function updatePracticeScore() {
+  document.getElementById('ps-score').textContent = `${practiceCompleted} / ${practices.length} 완료`;
+}
+
+// ===== WRONG NOTES =====
+let wrongNotes = [];
+function addWrongNote(qi, myAns) { wrongNotes.push({ qi, myAns }); updateNotesPanel(); }
+function updateNotesPanel() {
+  const list = document.getElementById('notes-list');
+  const bar  = document.getElementById('download-bar');
+  document.getElementById('wrong-count').textContent = wrongNotes.length;
+  if (wrongNotes.length === 0) {
+    bar.style.display = 'none';
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><div>오답이 없습니다! 퀴즈를 풀면 틀린 문제가 여기에 기록됩니다.</div></div>`;
+    return;
+  }
+  bar.style.display = 'flex';
+  list.innerHTML = wrongNotes.map((wn, i) => {
+    const q = quizzes[wn.qi];
+    return `<div class="wrong-note-card">
+      <div class="wn-qnum">오답 #${i+1} · Q${wn.qi+1}</div>
+      <div class="wn-q">${escHtml(q.q)}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답변</div>${'ABCD'[wn.myAns]}. ${escHtml(q.opts[wn.myAns])}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${'ABCD'[q.ans]}. ${escHtml(q.opts[q.ans])}</div>
+      </div>
+      <div class="wn-explain">💡 ${escHtml(q.explain)}</div>
+    </div>`;
+  }).join('');
+}
+
+function downloadNotes() {
+  if (wrongNotes.length === 0) { alert('오답이 없습니다!'); return; }
+  const dateStr = new Date().toLocaleDateString('ko-KR');
+  let text = `================================================================\n`;
+  text += `  Python 객체 생성 & 명령 실행 오답노트\n`;
+  text += `  작성일: ${dateStr}  |  오답 수: ${wrongNotes.length} / ${quizzes.length}\n`;
+  text += `================================================================\n\n`;
+  wrongNotes.forEach((wn, i) => {
+    const q = quizzes[wn.qi];
+    text += `[오답 ${i+1}] Q${wn.qi+1}\n문제: ${q.q}\n`;
+    if (q.code) text += `\n코드:\n${q.code}\n`;
+    text += `\n선택지:\n`;
+    q.opts.forEach((o, oi) => {
+      const mark = oi === wn.myAns ? '  ← 내 답변 ❌' : oi === q.ans ? '  ← 정답 ✅' : '';
+      text += `  ${'ABCD'[oi]}. ${o}${mark}\n`;
+    });
+    text += `\n해설: ${q.explain}\n\n${'─'.repeat(60)}\n\n`;
+  });
+  text += `================================================================\n  학습 팁\n================================================================\n`;
+  text += `1. 객체 생성: ()사용 / 이름 부여 / 함수 인자·반환값\n`;
+  text += `2. 실행 방식: 연산자(+,- 등) / 함수(abs,len) / 메서드(.bit_length)\n`;
+  text += `3. 연산자는 내부적으로 매직 메서드(__add__ 등)를 호출\n`;
+  text += `4. 메서드: self 있음 / 함수: self 없음\n`;
+  text += `5. 중첩 명령: 안쪽→바깥쪽 실행 f(g(h(x)))\n`;
+  text += `6. 연쇄 명령: 왼→오른쪽 실행 x.h().g().f()\n`;
+  text += `7. 연쇄 명령 불가: 반환값이 None인 메서드 (append 등 inplace)\n`;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `파이썬_객체명령_오답노트_${dateStr.replace(/\./g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ===== TABS =====
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx = ['flashcard','code','quiz','practice','notes'].indexOf(id);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+
+// ===== INIT =====
+buildQuiz();
+buildPractice();
+updateNotesPanel();
+renderCard();
+</script>
+</body>
+</html>

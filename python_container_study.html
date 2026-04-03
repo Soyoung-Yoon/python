@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 컨테이너 객체 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --border:#30363d;
+    --accent:#58a6ff; --accent2:#3fb950; --accent3:#f78166; --accent4:#d2a8ff;
+    --warn:#e3b341; --text:#e6edf3; --text-sub:#8b949e; --code-bg:#010409; --radius:12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+  header{background:linear-gradient(135deg,#0d1117 0%,#101a10 100%);border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+  .logo{font-family:'JetBrains Mono',monospace;font-size:1.3rem;color:var(--accent2);font-weight:700;letter-spacing:-1px;}
+  .logo span{color:var(--accent);}
+  header h1{font-size:1rem;font-weight:400;color:var(--text-sub);}
+  header h1 strong{color:var(--text);font-weight:600;}
+
+  nav{display:flex;gap:4px;padding:16px 40px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+  .tab-btn{font-family:'Noto Sans KR',sans-serif;padding:8px 20px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--text-sub);cursor:pointer;font-size:0.875rem;font-weight:400;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+  .tab-btn:hover{background:var(--surface2);color:var(--text);}
+  .tab-btn.active{background:var(--accent2);color:#fff;border-color:var(--accent2);font-weight:600;}
+
+  .section{display:none;padding:40px;max-width:900px;margin:0 auto;}
+  .section.active{display:block;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .section-title{font-size:1.5rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+  .section-subtitle{color:var(--text-sub);font-size:.9rem;margin-bottom:32px;font-weight:300;}
+
+  /* FLASHCARD */
+  .flashcard-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .fc-progress{font-family:'JetBrains Mono',monospace;color:var(--accent2);font-size:1rem;font-weight:600;}
+  .fc-progress-bar{width:100%;height:4px;background:var(--border);border-radius:4px;margin-bottom:24px;overflow:hidden;}
+  .fc-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));border-radius:4px;transition:width .4s ease;}
+  .flashcard-wrap{perspective:1200px;height:340px;cursor:pointer;margin-bottom:24px;}
+  .flashcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+  .flashcard.flipped{transform:rotateY(180deg);}
+  .fc-front,.fc-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--radius);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+  .fc-front{background:linear-gradient(135deg,var(--surface) 0%,#0f1f0f 100%);}
+  .fc-back{background:linear-gradient(135deg,#0f1f0f 0%,#1a2a1a 100%);border-color:var(--accent2);transform:rotateY(180deg);}
+  .fc-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+  .fc-front .fc-label{color:var(--accent2);}
+  .fc-back .fc-label{color:var(--accent);}
+  .fc-q{font-size:1.1rem;font-weight:600;line-height:1.65;color:var(--text);}
+  .fc-a{font-size:.9rem;font-weight:400;line-height:1.85;color:var(--text);}
+  .fc-hint{margin-top:20px;font-size:.8rem;color:var(--text-sub);}
+  .nav-btns{display:flex;gap:12px;justify-content:center;}
+  .btn{font-family:'Noto Sans KR',sans-serif;padding:10px 24px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-ghost{background:transparent;color:var(--text-sub);}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--accent2);}
+  .btn-primary{background:var(--accent2);color:#fff;border-color:var(--accent2);}
+  .btn-primary:hover{background:#56d364;}
+  .btn-danger{background:var(--accent3);color:#fff;border-color:var(--accent3);}
+
+  /* CODE */
+  .code-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;transition:border-color .2s;}
+  .code-card:hover{border-color:var(--accent2);}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+  .code-title{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--accent2);font-weight:600;}
+  .code-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;}
+  .tag-list  {background:#1f2a1f;color:var(--accent2);border:1px solid var(--accent2);}
+  .tag-str   {background:#1c2a4a;color:var(--accent); border:1px solid var(--accent);}
+  .tag-set   {background:#2a2a0a;color:var(--warn);   border:1px solid var(--warn);}
+  .tag-dict  {background:#2a1c40;color:var(--accent4);border:1px solid var(--accent4);}
+  .tag-slice {background:#2a1c1c;color:var(--accent3);border:1px solid var(--accent3);}
+  .code-explain{padding:16px 20px;border-bottom:1px solid var(--border);font-size:.9rem;line-height:1.8;color:var(--text-sub);}
+  .code-explain strong{color:var(--text);}
+  .code-explain code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent4);background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+  pre{background:var(--code-bg);padding:20px;overflow-x:auto;margin:0;}
+  code{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7;}
+  .kw{color:#ff7b72;}.fn{color:#d2a8ff;}.st{color:#a5d6ff;}
+  .cm{color:#8b949e;font-style:italic;}.nm{color:#79c0ff;}
+  .op{color:#f0883e;}.num{color:#f0883e;}
+  .output-box{background:#010409;border-top:1px solid var(--border);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent2);line-height:1.7;}
+  .output-label{color:var(--text-sub);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+
+  /* 개념 요약 */
+  .concept-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;}
+  .concept-box h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+  .cg5{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;}
+  .ci{padding:14px;border-radius:8px;font-size:.83rem;line-height:1.75;}
+  .ci-list  {background:#0f1f0f;border:1px solid var(--accent2);}
+  .ci-tuple {background:#0e1c1a;border:1px solid #39d353;}
+  .ci-str   {background:#0e1c30;border:1px solid var(--accent);}
+  .ci-set   {background:#1f1f0a;border:1px solid var(--warn);}
+  .ci-dict  {background:#1a1030;border:1px solid var(--accent4);}
+  .ci-label{font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+  .ci-list  .ci-label{color:var(--accent2);}
+  .ci-tuple .ci-label{color:#39d353;}
+  .ci-str   .ci-label{color:var(--accent);}
+  .ci-set   .ci-label{color:var(--warn);}
+  .ci-dict  .ci-label{color:var(--accent4);}
+
+  /* 비교 테이블 */
+  .tbl{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:8px;}
+  .tbl th{background:var(--surface2);padding:9px 12px;text-align:left;font-weight:600;border:1px solid var(--border);color:var(--text-sub);font-size:.75rem;letter-spacing:.5px;}
+  .tbl td{padding:9px 12px;border:1px solid var(--border);vertical-align:top;line-height:1.6;}
+  .tbl tr:nth-child(even) td{background:var(--surface2);}
+  .tbl code{font-family:'JetBrains Mono',monospace;font-size:.79rem;color:var(--accent4);}
+
+  /* QUIZ */
+  .quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .quiz-score-badge{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:var(--accent2);font-weight:600;background:#0f1f0f;border:1px solid var(--accent2);padding:4px 12px;border-radius:20px;}
+  .quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px;}
+  .quiz-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent2);letter-spacing:1px;margin-bottom:12px;font-weight:600;}
+  .quiz-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:20px;color:var(--text);}
+  .quiz-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:20px;white-space:pre;overflow-x:auto;line-height:1.6;}
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt-btn{font-family:'Noto Sans KR',sans-serif;width:100%;padding:12px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.9rem;text-align:left;transition:all .2s;display:flex;align-items:flex-start;gap:12px;}
+  .opt-btn:hover:not(:disabled){border-color:var(--accent2);background:#0f1f0f;}
+  .opt-btn:disabled{cursor:default;}
+  .opt-letter{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .opt-btn.correct{border-color:var(--accent2);background:#0f1f0f;color:var(--accent2);}
+  .opt-btn.correct .opt-letter{background:var(--accent2);color:#fff;}
+  .opt-btn.wrong{border-color:var(--accent3);background:#2a1c1c;color:var(--accent3);}
+  .opt-btn.wrong .opt-letter{background:var(--accent3);color:#fff;}
+  .feedback-box{margin-top:14px;padding:12px 16px;border-radius:8px;font-size:.875rem;line-height:1.65;display:none;}
+  .feedback-box.show{display:block;}
+  .feedback-correct{background:#0f2a0f;border:1px solid var(--accent2);color:var(--accent2);}
+  .feedback-wrong{background:#2a0f0f;border:1px solid var(--accent3);color:#e6edf3;}
+  .feedback-wrong strong{color:var(--accent3);}
+  .quiz-result{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px;text-align:center;}
+  .quiz-result.show{display:block;animation:fadeIn .4s ease;}
+  .result-score{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;margin:16px 0;}
+  .result-msg{font-size:1rem;color:var(--text-sub);margin-bottom:24px;}
+  .result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+  /* PRACTICE */
+  .practice-score-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
+  .ps-label{font-size:.875rem;color:var(--text-sub);}
+  .ps-score{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--accent4);background:#2a1c40;border:1px solid var(--accent4);padding:4px 14px;border-radius:20px;}
+  .practice-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px;}
+  .practice-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+  .practice-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent4);font-weight:700;letter-spacing:1px;}
+  .practice-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;background:#2a1c40;color:var(--accent4);border:1px solid var(--accent4);}
+  .practice-body{padding:20px;}
+  .practice-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:14px;}
+  .practice-desc{font-size:.875rem;color:var(--text-sub);line-height:1.75;margin-bottom:16px;padding:12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent4);}
+  .practice-given{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:14px;white-space:pre;overflow-x:auto;line-height:1.7;}
+  .editor-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent4);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
+  .code-editor{width:100%;background:#010409;border:1px solid var(--accent4);border-radius:8px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent4);resize:vertical;min-height:90px;outline:none;line-height:1.7;transition:border-color .2s,box-shadow .2s;box-sizing:border-box;}
+  .code-editor:focus{border-color:var(--accent2);box-shadow:0 0 0 2px rgba(63,185,80,.15);color:var(--text);}
+  .practice-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .btn-check{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--accent4);background:#2a1c40;color:var(--accent4);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-check:hover{background:var(--accent4);color:#000;}
+  .btn-hint{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-sub);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-hint:hover{border-color:var(--warn);color:var(--warn);}
+  .btn-reset-p{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-sub);cursor:pointer;font-size:.875rem;transition:all .2s;}
+  .btn-reset-p:hover{border-color:var(--accent3);color:var(--accent3);}
+  .practice-feedback{margin-top:14px;border-radius:8px;overflow:hidden;display:none;}
+  .practice-feedback.show{display:block;}
+  .pf-result{padding:12px 16px;font-size:.875rem;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .pf-correct{background:#0f2a0f;color:var(--accent2);border:1px solid var(--accent2);border-bottom:none;}
+  .pf-wrong  {background:#2a0f0f;color:var(--accent3);border:1px solid var(--accent3);border-bottom:none;}
+  .pf-partial{background:#2a2a0f;color:var(--warn);   border:1px solid var(--warn);   border-bottom:none;}
+  .pf-explain{padding:14px 16px;font-size:.85rem;line-height:1.75;color:var(--text-sub);background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;}
+  .pf-answer-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--accent2);margin-top:10px;white-space:pre;overflow-x:auto;line-height:1.6;}
+  .hint-box{margin-top:10px;padding:12px 14px;background:#2a200a;border:1px solid var(--warn);border-radius:8px;font-size:.84rem;color:var(--warn);display:none;line-height:1.7;white-space:pre-line;font-family:'JetBrains Mono',monospace;}
+  .hint-box.show{display:block;}
+
+  /* WRONG NOTES */
+  .wrong-note-card{background:var(--surface);border:1px solid #2a1c1c;border-left:4px solid var(--accent3);border-radius:var(--radius);padding:20px;margin-bottom:16px;animation:fadeIn .3s ease;}
+  .wn-qnum{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent3);font-weight:600;margin-bottom:8px;}
+  .wn-q{font-size:.95rem;font-weight:600;margin-bottom:12px;line-height:1.6;}
+  .wn-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.85rem;}
+  .wn-my {padding:10px;border-radius:6px;background:#2a1c1c;border:1px solid var(--accent3);}
+  .wn-ans{padding:10px;border-radius:6px;background:#0f1f0f;border:1px solid var(--accent2);}
+  .wn-label{font-size:.7rem;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+  .wn-my  .wn-label{color:var(--accent3);}
+  .wn-ans .wn-label{color:var(--accent2);}
+  .wn-explain{margin-top:12px;font-size:.85rem;color:var(--text-sub);line-height:1.65;padding:10px;background:var(--surface2);border-radius:6px;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-sub);}
+  .empty-icon{font-size:3rem;margin-bottom:12px;}
+  .download-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;flex-wrap:wrap;gap:12px;}
+  .download-info{font-size:.9rem;}
+  .download-info strong{color:var(--accent3);}
+
+  @media(max-width:600px){
+    nav,.section{padding:12px 16px;}
+    header{padding:14px 16px;}
+    .wn-row{grid-template-columns:1fr;}
+    .flashcard-wrap{height:310px;}
+    .cg5{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">py<span>.container</span></div>
+  <h1>Python <strong>컨테이너 객체</strong> 학습</h1>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')"><span>🃏</span> 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')"><span>💻</span> 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')"><span>📝</span> 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('practice')"><span>⌨️</span> 실습 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')"><span>📋</span> 오답노트</button>
+</nav>
+
+<!-- ===== FLASHCARDS ===== -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 개념을 충분히 학습한 후 퀴즈로 넘어가세요.</div>
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 16</span>
+    <span style="font-size:.8rem;color:var(--text-sub)">💡 클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:6.25%"></div></div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">👆 클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ===== CODE EXAMPLES ===== -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">list, tuple, str, set, dict 다섯 가지 컨테이너를 코드로 확인하세요.</div>
+
+  <!-- 전체 비교 -->
+  <div class="concept-box">
+    <h3>🗺️ 5가지 컨테이너 한눈에 비교</h3>
+    <div class="cg5">
+      <div class="ci ci-list">
+        <div class="ci-label">list [ ]</div>
+        <div style="color:var(--text-sub)">가변 · Sequence<br>순서 있음 · 중복 허용<br>모든 타입 item 가능</div>
+      </div>
+      <div class="ci ci-tuple">
+        <div class="ci-label">tuple ( )</div>
+        <div style="color:var(--text-sub)">불변 · Sequence<br>순서 있음 · 중복 허용<br>읽기 전용(메모리 효율↑)</div>
+      </div>
+      <div class="ci ci-str">
+        <div class="ci-label">str " "</div>
+        <div style="color:var(--text-sub)">불변 · Sequence<br>문자만 item<br>풍부한 메서드 제공</div>
+      </div>
+      <div class="ci ci-set">
+        <div class="ci-label">set { }</div>
+        <div style="color:var(--text-sub)">가변 · 순서 없음<br>중복 없음<br>hashable item만 가능</div>
+      </div>
+      <div class="ci ci-dict">
+        <div class="ci-label">dict {k:v}</div>
+        <div style="color:var(--text-sub)">가변 · key-value<br>key는 hashable<br>value는 제약 없음</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 예제 1: list vs tuple -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: list vs tuple — 가변 vs 불변, 메모리 크기</span>
+      <span class="code-tag tag-list">list · tuple · getsizeof · dir</span>
+    </div>
+    <div class="code-explain">
+      <strong>list</strong>는 가변(mutable), <strong>tuple</strong>은 불변(immutable)입니다.<br>
+      불변인 tuple이 list보다 메모리를 적게 사용합니다.<br>
+      <code>dir()</code>로 확인하면 tuple에는 <code>count</code>, <code>index</code> 두 개뿐이지만,<br>
+      list에는 <code>append</code>, <code>sort</code>, <code>pop</code> 등 수정 관련 메서드가 추가로 있습니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)   <span class="cm"># tuple</span>
+<span class="nm">b</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]   <span class="cm"># list</span>
+<span class="kw">import</span> <span class="nm">sys</span>
+<span class="fn">print</span>(<span class="nm">sys</span>.<span class="fn">getsizeof</span>(<span class="nm">a</span>), <span class="nm">sys</span>.<span class="fn">getsizeof</span>(<span class="nm">b</span>))   <span class="cm"># 64  88</span>
+
+<span class="cm"># __로 시작하지 않는 메서드만 확인</span>
+<span class="nm">dira</span> <span class="op">=</span> [<span class="nm">x</span> <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="fn">dir</span>(<span class="nm">a</span>) <span class="kw">if not</span> <span class="nm">x</span>.<span class="fn">startswith</span>(<span class="st">'__'</span>)]
+<span class="nm">dirb</span> <span class="op">=</span> [<span class="nm">x</span> <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="fn">dir</span>(<span class="nm">b</span>) <span class="kw">if not</span> <span class="nm">x</span>.<span class="fn">startswith</span>(<span class="st">'__'</span>)]
+<span class="fn">print</span>(<span class="st">'tuple'</span>, <span class="nm">dira</span>)
+<span class="fn">print</span>(<span class="st">'list'</span>,  <span class="nm">dirb</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      64 88<br>
+      tuple ['count', 'index']<br>
+      list ['append', 'clear', 'copy', 'count', 'extend', 'index', 'insert', 'pop', 'remove', 'reverse', 'sort']
+    </div>
+  </div>
+
+  <!-- 예제 2: index & subscription -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: index — 양수 인덱스 & 음수 인덱스</span>
+      <span class="code-tag tag-slice">index · subscription · IndexError</span>
+    </div>
+    <div class="code-explain">
+      <strong>양수 인덱스</strong>: 0부터 시작, 왼쪽 → 오른쪽.<br>
+      <strong>음수 인덱스</strong>: -1부터 시작(마지막 item), 오른쪽 → 왼쪽.<br>
+      <strong>subscription</strong>: 하나의 index만 사용하는 연산 — <code>a[1]</code><br>
+      범위를 벗어난 index 사용 시 <strong>IndexError</strong> 발생.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> [<span class="st">'Morning'</span>, <span class="st">'Afternoon'</span>, <span class="st">'Evening'</span>]
+<span class="cm">#    인덱스:   0            1             2</span>
+<span class="cm">#    음수:    -3           -2            -1</span>
+<span class="fn">print</span>(<span class="nm">a</span>[<span class="num">0</span>], <span class="nm">a</span>[<span class="op">-</span><span class="num">1</span>])   <span class="cm"># Morning  Evening</span>
+
+<span class="nm">num</span> <span class="op">=</span> <span class="st">'260403-3000000'</span>
+<span class="cm">#      0123456 7890123</span>
+<span class="fn">print</span>(<span class="nm">num</span>[<span class="num">7</span>], <span class="nm">num</span>[<span class="op">-</span><span class="num">7</span>])   <span class="cm"># 3  3  (동일한 위치)</span>
+
+<span class="cm"># print(num[20])  → IndexError: string index out of range</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      Morning Evening<br>3 3
+    </div>
+  </div>
+
+  <!-- 예제 3: slicing -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: slicing — start:stop:step</span>
+      <span class="code-tag tag-slice">slice · __getitem__ · __setitem__</span>
+    </div>
+    <div class="code-explain">
+      <strong>슬라이싱</strong>: <code>a[start:stop:step]</code> 형식. 범위를 벗어나도 오류 없이 빈 값 반환.<br>
+      기본값: <code>start=0</code>, <code>stop=len(객체)</code>, <code>step=1</code><br>
+      내부적으로 <strong>__getitem__</strong>(읽기)과 <strong>__setitem__</strong>(쓰기)을 호출합니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="num">40</span>, <span class="num">50</span>]
+
+<span class="cm"># __getitem__ (읽기)</span>
+<span class="fn">print</span>(<span class="nm">a</span>[:])      <span class="cm"># [10,20,30,40,50]  전체 복사</span>
+<span class="fn">print</span>(<span class="nm">a</span>[:<span class="num">3</span>])    <span class="cm"># [10,20,30]        앞에서 3개</span>
+<span class="fn">print</span>(<span class="nm">a</span>[<span class="op">-</span><span class="num">2</span>:])   <span class="cm"># [40,50]           뒤에서 2개</span>
+<span class="fn">print</span>(<span class="nm">a</span>[::<span class="op">-</span><span class="num">1</span>])  <span class="cm"># [50,40,30,20,10]  역순</span>
+<span class="fn">print</span>(<span class="nm">a</span>[:<span class="op">-</span><span class="num">1</span>])   <span class="cm"># [10,20,30,40]     마지막 제외</span>
+
+<span class="cm"># __setitem__ (쓰기, list만 가능 - 가변객체)</span>
+<span class="nm">a</span>[<span class="num">3</span>] <span class="op">=</span> <span class="st">'new'</span>
+<span class="fn">print</span>(<span class="nm">a</span>)        <span class="cm"># [10, 20, 30, 'new', 50]</span>
+
+<span class="nm">a</span>[<span class="num">2</span>:<span class="num">3</span>] <span class="op">=</span> [<span class="st">'x'</span>, <span class="st">'y'</span>, <span class="st">'z'</span>]    <span class="cm"># 슬라이스에 여러 값 할당</span>
+<span class="fn">print</span>(<span class="nm">a</span>)        <span class="cm"># [10, 20, 'x', 'y', 'z', 'new', 50]</span>
+
+<span class="nm">a</span>[<span class="num">0</span>] <span class="op">=</span> [<span class="st">'a'</span>, <span class="st">'b'</span>]           <span class="cm"># item으로 리스트 자체를 넣을 수도 있음</span>
+<span class="fn">print</span>(<span class="nm">a</span>)        <span class="cm"># [['a','b'], 20, 'x', 'y', 'z', 'new', 50]</span>
+
+<span class="cm"># 실용 예시: 주민번호에서 날짜 추출</span>
+<span class="nm">num</span> <span class="op">=</span> <span class="st">'260403-3000000'</span>
+<span class="nm">year</span>  <span class="op">=</span> <span class="st">'20'</span> <span class="op">+</span> <span class="nm">num</span>[<span class="num">0</span>:<span class="num">2</span>]   <span class="cm"># '2026'</span>
+<span class="nm">month</span> <span class="op">=</span> <span class="nm">num</span>[<span class="num">2</span>:<span class="num">4</span>]            <span class="cm"># '04'</span>
+<span class="nm">day</span>   <span class="op">=</span> <span class="nm">num</span>[<span class="num">4</span>:<span class="num">6</span>]            <span class="cm"># '03'</span>
+<span class="fn">print</span>(<span class="nm">year</span>, <span class="nm">month</span>, <span class="nm">day</span>)    <span class="cm"># 2026 04 03</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      [10, 20, 30, 40, 50] &nbsp;[10, 20, 30] &nbsp;[40, 50] &nbsp;[50, 40, 30, 20, 10] &nbsp;[10, 20, 30, 40]<br>
+      [10, 20, 30, 'new', 50]<br>
+      [10, 20, 'x', 'y', 'z', 'new', 50]<br>
+      [['a', 'b'], 20, 'x', 'y', 'z', 'new', 50]<br>
+      2026 04 03
+    </div>
+  </div>
+
+  <!-- 예제 4: + * 연산 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: + 연결 연산 · * 복사 연산</span>
+      <span class="code-tag tag-list">+ 연결 · * 복사 · 다형성</span>
+    </div>
+    <div class="code-explain">
+      <strong>+ (연결)</strong>: 같은 타입 두 객체를 연결해 동일 타입의 새 객체 생성.<br>
+      <strong>* (복사)</strong>: <code>객체 * 정수</code> 형식으로 item을 정수만큼 반복 복사.<br>
+      같은 연산자라도 타입에 따라 다르게 동작하는 것이 <strong>다형성(Polymorphism)</strong>입니다.
+    </div>
+    <pre><code><span class="cm"># + 연결 연산</span>
+<span class="kw">def</span> <span class="fn">add</span>(<span class="nm">a</span>, <span class="nm">b</span>): <span class="kw">return</span> <span class="nm">a</span> <span class="op">+</span> <span class="nm">b</span>
+
+<span class="fn">print</span>(<span class="fn">add</span>(<span class="num">10</span>, <span class="num">20</span>))          <span class="cm"># 30         int 덧셈</span>
+<span class="fn">print</span>(<span class="fn">add</span>(<span class="st">'Good'</span>, <span class="st">'Morning'</span>))  <span class="cm"># GoodMorning  str 연결</span>
+<span class="fn">print</span>(<span class="fn">add</span>([<span class="num">1</span>,<span class="num">2</span>], [<span class="num">3</span>,<span class="num">4</span>]))   <span class="cm"># [1, 2, 3, 4] list 연결</span>
+<span class="fn">print</span>((<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>) <span class="op">+</span> (<span class="num">4</span>,<span class="num">5</span>,<span class="num">6</span>))   <span class="cm"># (1,2,3,4,5,6) tuple 연결</span>
+
+<span class="cm"># * 복사 연산</span>
+<span class="kw">def</span> <span class="fn">mul</span>(<span class="nm">a</span>, <span class="nm">b</span>): <span class="kw">return</span> <span class="nm">a</span> <span class="op">*</span> <span class="nm">b</span>
+
+<span class="fn">print</span>(<span class="fn">mul</span>(<span class="num">10</span>, <span class="num">3</span>))           <span class="cm"># 30          int 곱셈</span>
+<span class="fn">print</span>(<span class="fn">mul</span>(<span class="st">'*'</span>, <span class="num">3</span>))          <span class="cm"># ***         str 반복</span>
+<span class="fn">print</span>(<span class="fn">mul</span>((<span class="num">3</span>,), <span class="num">3</span>))         <span class="cm"># (3, 3, 3)   tuple 반복</span>
+<span class="fn">print</span>(<span class="fn">mul</span>([<span class="num">0</span>], <span class="num">4</span>))          <span class="cm"># [0,0,0,0]   list 반복</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      30 &nbsp;GoodMorning &nbsp;[1, 2, 3, 4] &nbsp;(1, 2, 3, 4, 5, 6)<br>
+      30 &nbsp;*** &nbsp;(3, 3, 3) &nbsp;[0, 0, 0, 0]
+    </div>
+  </div>
+
+  <!-- 예제 5: str 메서드 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 5: str 주요 메서드 — split / join / replace / strip</span>
+      <span class="code-tag tag-str">str · split · join · replace · strip</span>
+    </div>
+    <div class="code-explain">
+      str은 불변 객체로, 메서드는 항상 <strong>새 문자열을 반환</strong>합니다(원본 변경 없음).<br>
+      <code>split()</code>: 공백/구분자로 쪼개기 → list 반환<br>
+      <code>join()</code>: 리스트 item을 구분자로 연결 → str 반환<br>
+      <code>strip()</code>: 양쪽 공백(또는 지정 문자) 제거
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="st">'Good     Morning!'</span>
+<span class="fn">print</span>(<span class="nm">a</span>.<span class="fn">endswith</span>(<span class="st">'ing!'</span>), <span class="nm">a</span>.<span class="fn">startswith</span>(<span class="st">'Good'</span>))  <span class="cm"># True True</span>
+<span class="fn">print</span>(<span class="nm">a</span>.<span class="fn">split</span>())           <span class="cm"># ['Good','Morning!']  연속 공백 자동 처리</span>
+<span class="fn">print</span>(<span class="nm">a</span>.<span class="fn">split</span>(<span class="st">' '</span>))        <span class="cm"># ['Good','','','','',' Morning!']  ← 나쁜 방법!</span>
+
+<span class="nm">date</span> <span class="op">=</span> <span class="st">'2026-04-03'</span>
+<span class="fn">print</span>(<span class="nm">date</span>.<span class="fn">split</span>(<span class="st">'-'</span>))          <span class="cm"># ['2026','04','03']  왼→오른쪽 전부</span>
+<span class="fn">print</span>(<span class="nm">date</span>.<span class="fn">rsplit</span>(<span class="st">'-'</span>, maxsplit<span class="op">=</span><span class="num">1</span>))  <span class="cm"># ['2026-04','03']  오른쪽에서 1번</span>
+
+<span class="cm"># replace vs join+split (동일 결과)</span>
+<span class="fn">print</span>(<span class="nm">date</span>.<span class="fn">replace</span>(<span class="st">'-'</span>, <span class="st">'/'</span>))         <span class="cm"># 2026/04/03</span>
+<span class="fn">print</span>(<span class="st">'/'</span>.<span class="fn">join</span>(<span class="nm">date</span>.<span class="fn">split</span>(<span class="st">'-'</span>)))      <span class="cm"># 2026/04/03</span>
+
+<span class="cm"># strip: 양쪽 공백 제거</span>
+<span class="nm">s</span> <span class="op">=</span> <span class="st">'      a    b    c     '</span>
+<span class="fn">print</span>(<span class="nm">s</span>.<span class="fn">split</span>())    <span class="cm"># ['a','b','c']</span>
+<span class="fn">print</span>(<span class="nm">s</span>.<span class="fn">strip</span>())    <span class="cm"># 'a    b    c'  (양쪽 공백만 제거)</span>
+
+<span class="cm"># strip에 문자 지정: 해당 문자 제거</span>
+<span class="nm">url</span> <span class="op">=</span> <span class="st">'www.rapa.com'</span>
+<span class="fn">print</span>(<span class="nm">url</span>.<span class="fn">split</span>(<span class="st">'.'</span>)[<span class="num">1</span>])    <span class="cm"># 'rapa'</span>
+<span class="fn">print</span>(<span class="nm">url</span>.<span class="fn">strip</span>(<span class="st">'wcom.'</span>))   <span class="cm"># 'rapa'</span>
+
+<span class="cm"># 공백 완전 제거</span>
+<span class="nm">name</span> <span class="op">=</span> <span class="st">'Yoon So  Young'</span>
+<span class="fn">print</span>(<span class="nm">name</span>.<span class="fn">replace</span>(<span class="st">' '</span>, <span class="st">''</span>))   <span class="cm"># YoonSoYoung</span>
+<span class="fn">print</span>(<span class="st">''</span>.<span class="fn">join</span>(<span class="nm">name</span>.<span class="fn">split</span>()))   <span class="cm"># YoonSoYoung</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      True True<br>
+      ['Good', 'Morning!']<br>
+      ['Good', '', '', '', '', 'Morning!']<br>
+      ['2026', '04', '03'] &nbsp;&nbsp;['2026-04', '03']<br>
+      2026/04/03 &nbsp;&nbsp;2026/04/03<br>
+      ['a', 'b', 'c'] &nbsp;&nbsp;'a    b    c'<br>
+      rapa &nbsp;&nbsp;rapa<br>
+      YoonSoYoung &nbsp;&nbsp;YoonSoYoung
+    </div>
+  </div>
+
+  <!-- 예제 6: set -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 6: set — 중복 제거 · hashable · hash 동치</span>
+      <span class="code-tag tag-set">set · hashable · hash · 중복</span>
+    </div>
+    <div class="code-explain">
+      <strong>set</strong>은 중복을 허용하지 않습니다. item은 반드시 <strong>hashable</strong>(불변 객체)이어야 합니다.<br>
+      <code>1 == True == 1.0</code>이고 hash 값도 같으므로, set은 이 셋을 동일 item으로 취급합니다.<br>
+      빈 set는 반드시 <code>set()</code>으로 생성해야 합니다(<code>{}</code>는 dict).
+    </div>
+    <pre><code><span class="cm"># 중복 자동 제거</span>
+<span class="nm">b</span> <span class="op">=</span> {<span class="num">1</span>, <span class="num">1</span>, <span class="num">1</span>, <span class="num">2</span>, <span class="num">2</span>, <span class="num">2</span>}
+<span class="fn">print</span>(<span class="nm">b</span>)    <span class="cm"># {1, 2}</span>
+
+<span class="cm"># 1, True, 1.0은 hash가 같아 → 동일 item 취급</span>
+<span class="nm">c</span> <span class="op">=</span> {<span class="num">1</span>, <span class="kw">True</span>, <span class="num">1.0</span>}
+<span class="fn">print</span>(<span class="fn">len</span>(<span class="nm">c</span>), <span class="nm">c</span>)   <span class="cm"># 1  {1}</span>
+
+<span class="kw">if</span> <span class="num">1</span> <span class="op">==</span> <span class="kw">True</span>:  <span class="fn">print</span>(<span class="fn">hash</span>(<span class="num">1</span>), <span class="fn">hash</span>(<span class="kw">True</span>))   <span class="cm"># 1 1</span>
+<span class="kw">if</span> <span class="num">1</span> <span class="op">==</span> <span class="num">1.0</span>:   <span class="fn">print</span>(<span class="fn">hash</span>(<span class="num">1</span>), <span class="fn">hash</span>(<span class="num">1.0</span>))    <span class="cm"># 1 1</span>
+
+<span class="cm"># 빈 set 생성: {} 아닌 set() 사용!</span>
+<span class="nm">empty_dict</span> <span class="op">=</span> {}         <span class="cm"># dict</span>
+<span class="nm">empty_set</span>  <span class="op">=</span> <span class="fn">set</span>()      <span class="cm"># set</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="nm">empty_dict</span>), <span class="fn">type</span>(<span class="nm">empty_set</span>))
+
+<span class="cm"># hashable 불가 → list는 set의 item이 될 수 없음</span>
+<span class="cm"># {[1,2], [3,4]}  → TypeError: unhashable type: 'list'</span>
+
+<span class="cm"># set 활용: 집합 연산</span>
+<span class="nm">s1</span> <span class="op">=</span> {<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>}
+<span class="nm">s2</span> <span class="op">=</span> {<span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>, <span class="num">6</span>}
+<span class="fn">print</span>(<span class="nm">s1</span> <span class="op">|</span> <span class="nm">s2</span>)   <span class="cm"># {1,2,3,4,5,6}  합집합</span>
+<span class="fn">print</span>(<span class="nm">s1</span> <span class="op">&amp;</span> <span class="nm">s2</span>)   <span class="cm"># {3,4}          교집합</span>
+<span class="fn">print</span>(<span class="nm">s1</span> <span class="op">-</span> <span class="nm">s2</span>)   <span class="cm"># {1,2}          차집합</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      {1, 2}<br>1 {1}<br>1 1 &nbsp;&nbsp; 1 1<br>
+      &lt;class 'dict'&gt; &lt;class 'set'&gt;<br>
+      {1, 2, 3, 4, 5, 6} &nbsp;&nbsp;{3, 4} &nbsp;&nbsp;{1, 2}
+    </div>
+  </div>
+
+  <!-- 예제 7: dict -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 7: dict — 생성 · 추가 · 갱신 · 삭제 · 조회</span>
+      <span class="code-tag tag-dict">dict · key · value · get · keys · items</span>
+    </div>
+    <div class="code-explain">
+      <strong>dict</strong>는 <code>key: value</code> 쌍으로 데이터를 저장합니다.<br>
+      key는 hashable(불변 객체)이어야 하며 중복 불가. value는 제약 없음.<br>
+      <code>a[key]</code>로 없는 key 접근 시 <strong>KeyError</strong>, <code>a.get(key)</code>는 <strong>None</strong>을 반환해 안전합니다.
+    </div>
+    <pre><code><span class="cm"># 두 가지 생성 방법 (동일 결과)</span>
+<span class="nm">a</span> <span class="op">=</span> {<span class="st">'A'</span>: <span class="num">65</span>, <span class="st">'B'</span>: <span class="num">66</span>}
+<span class="nm">b</span> <span class="op">=</span> <span class="fn">dict</span>(A<span class="op">=</span><span class="num">65</span>, B<span class="op">=</span><span class="num">66</span>)
+<span class="fn">print</span>(<span class="nm">a</span>, <span class="nm">b</span>)   <span class="cm"># {'A':65,'B':66}  {'A':65,'B':66}</span>
+
+<span class="nm">a</span> <span class="op">=</span> {<span class="st">'age'</span>: <span class="num">20</span>}
+<span class="nm">a</span>[<span class="st">'name'</span>] <span class="op">=</span> <span class="st">'YoonSoYoung'</span>  <span class="cm"># 추가</span>
+<span class="fn">print</span>(<span class="nm">a</span>)   <span class="cm"># {'age':20, 'name':'YoonSoYoung'}</span>
+<span class="nm">a</span>[<span class="st">'age'</span>]  <span class="op">=</span> <span class="num">30</span>               <span class="cm"># 갱신</span>
+<span class="fn">print</span>(<span class="nm">a</span>)   <span class="cm"># {'age':30, 'name':'YoonSoYoung'}</span>
+<span class="kw">del</span> <span class="nm">a</span>[<span class="st">'age'</span>]                  <span class="cm"># 삭제</span>
+<span class="fn">print</span>(<span class="nm">a</span>)   <span class="cm"># {'name':'YoonSoYoung'}</span>
+
+<span class="nm">a</span> <span class="op">=</span> {<span class="st">'age'</span>: <span class="num">30</span>, <span class="st">'name'</span>: <span class="st">'YoonSoYoung'</span>}
+<span class="fn">print</span>(<span class="nm">a</span>[<span class="st">'age'</span>])          <span class="cm"># 30</span>
+<span class="cm"># a['height']            → KeyError!</span>
+<span class="fn">print</span>(<span class="nm">a</span>.<span class="fn">get</span>(<span class="st">'height'</span>))  <span class="cm"># None  (안전한 조회)</span>
+<span class="fn">print</span>(<span class="nm">a</span>.<span class="fn">keys</span>())          <span class="cm"># dict_keys(['age','name'])</span>
+<span class="fn">print</span>(<span class="nm">a</span>.<span class="fn">values</span>())        <span class="cm"># dict_values([30,'YoonSoYoung'])</span>
+<span class="fn">print</span>(<span class="nm">a</span>.<span class="fn">items</span>())         <span class="cm"># dict_items([('age',30),('name','YoonSoYoung')])</span>
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">a</span>:
+    <span class="fn">print</span>(<span class="nm">x</span>, end<span class="op">=</span><span class="st">' '</span>)    <span class="cm"># age name  (key만 순회)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      {'A': 65, 'B': 66} {'A': 65, 'B': 66}<br>
+      {'age': 20, 'name': 'YoonSoYoung'}<br>
+      {'age': 30, 'name': 'YoonSoYoung'}<br>
+      {'name': 'YoonSoYoung'}<br>
+      30 &nbsp;&nbsp;None<br>
+      dict_keys(['age', 'name'])<br>
+      dict_values([30, 'YoonSoYoung'])<br>
+      dict_items([('age', 30), ('name', 'YoonSoYoung')])<br>
+      age name
+    </div>
+  </div>
+</div>
+
+<!-- ===== QUIZ ===== -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div class="section-title">📝 퀴즈</div>
+    <div class="quiz-score-badge" id="score-badge">0 / 20</div>
+  </div>
+  <div class="section-subtitle">총 20문제 · 선택지를 클릭하면 즉시 정답 여부를 확인할 수 있습니다.</div>
+  <div id="quiz-list"></div>
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎯</div>
+    <div class="result-score" id="result-score-text"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" onclick="showTab('notes')">📋 오답노트 보기</button>
+      <button class="btn btn-primary" onclick="resetQuiz()">🔄 다시 풀기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRACTICE ===== -->
+<div id="practice" class="section">
+  <div class="section-title">⌨️ 실습 퀴즈</div>
+  <div class="section-subtitle">빈칸을 직접 코드로 채워보세요. Tab키는 스페이스 4칸으로 입력됩니다.</div>
+  <div class="practice-score-bar">
+    <span class="ps-label">실습 진행 현황</span>
+    <span class="ps-score" id="ps-score">0 / 8 완료</span>
+  </div>
+  <div id="practice-list"></div>
+</div>
+
+<!-- ===== WRONG NOTES ===== -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">퀴즈에서 틀린 문제만 모아 정리합니다. 텍스트 파일로 다운로드할 수 있습니다.</div>
+  <div class="download-bar" id="download-bar" style="display:none">
+    <div class="download-info">틀린 문제 <strong id="wrong-count">0</strong>개가 기록되었습니다</div>
+    <button class="btn btn-danger" onclick="downloadNotes()">⬇ 오답노트 다운로드 (.txt)</button>
+  </div>
+  <div id="notes-list">
+    <div class="empty-state"><div class="empty-icon">📝</div><div>아직 퀴즈를 풀지 않았습니다.<br>퀴즈 탭에서 문제를 풀면 오답이 여기에 기록됩니다.</div></div>
+  </div>
+</div>
+
+<script>
+function escHtml(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function escCode(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ===== FLASHCARDS =====
+const cards = [
+  {q:"파이썬 5가지 컨테이너 객체를 나열하고 가변/불변 여부를 말하세요.",
+   a:"① list [ ]    → 가변(mutable)\n② tuple ( )  → 불변(immutable)\n③ str \" \"    → 불변(immutable)\n④ set { }    → 가변(mutable)\n⑤ dict {k:v} → 가변(mutable)"},
+  {q:"list와 tuple의 차이점 3가지는?",
+   a:"① 가변성: list는 수정·삽입·삭제 가능, tuple은 읽기 전용\n② 메모리: tuple이 더 작음 (64 vs 88 bytes)\n③ 메서드: list는 append·sort·pop 등 수정 메서드 있음\n   tuple은 count·index 두 개뿐"},
+  {q:"양수 인덱스와 음수 인덱스의 차이는?",
+   a:"양수 인덱스: 0부터 시작, 왼→오른쪽\na[0] = 첫 번째 item\n\n음수 인덱스: -1부터 시작, 오른→왼쪽\na[-1] = 마지막 item\na[-2] = 뒤에서 두 번째"},
+  {q:"subscription과 slicing의 차이는?",
+   a:"subscription: 인덱스 1개 사용\n예: a[1] → 하나의 item 반환\n\nslicing: start:stop:step 형식\n예: a[1:4] → 범위의 item들 반환\n\nslicing은 범위를 벗어나도 오류 없음\nsubscription은 범위 벗어나면 IndexError"},
+  {q:"슬라이싱의 기본값은?",
+   a:"start = 0 (처음부터)\nstop  = len(객체) (끝까지)\nstep  = 1 (1칸씩)\n\na[:]    = a[0:len(a):1] 전체 복사\na[::-1] 역순\na[-2:]  뒤에서 2개"},
+  {q:"__getitem__과 __setitem__의 역할은?",
+   a:"__getitem__: 읽기 연산 (subscription, slicing)\n예: a[1], a[1:3]\n\n__setitem__: 쓰기 연산 (값 변경)\n예: a[1] = 'new'\n\ntuple과 str은 불변이므로 __setitem__ 없음\n→ 쓰기 시 TypeError 발생"},
+  {q:"+ 연산자와 * 연산자의 역할은?",
+   a:"+ (연결 연산): 동일 타입 두 객체를 연결\n예: [1,2] + [3,4] → [1,2,3,4]\n예: 'Good' + 'Morning' → 'GoodMorning'\n\n* (복사 연산): 객체를 정수만큼 반복\n예: '*' * 3 → '***'\n예: (3,) * 3 → (3, 3, 3)"},
+  {q:"str.split()과 str.split(' ')의 차이는?",
+   a:"split() — 인자 없음:\n연속된 공백을 하나로 처리, 양쪽 공백도 제거\n→ 추천 방법\n\nsplit(' ') — 공백 문자 하나로 분리:\n연속 공백마다 빈 문자열 생성\n→ 권장하지 않는 방법\n\n예: 'a   b'.split()  → ['a', 'b']\n   'a   b'.split(' ') → ['a','','','b']"},
+  {q:"str.replace()와 ''.join(s.split())의 공통점과 차이점은?",
+   a:"두 방법 모두 특정 문자를 다른 문자로 교체할 수 있음.\n\nreplace('-', '/'):\n단순 문자 치환, 빠르고 직관적\n\n'/'.join(s.split('-')):\nsplit으로 분리 후 join으로 재연결\n복잡한 조건(공백 정리 등)에 유연"},
+  {q:"set에서 hashable이란 무엇인가?",
+   a:"hashable: hash 값을 가지는 객체 = 불변 객체\n\nhashable (set item으로 사용 가능):\nint, float, bool, str, tuple\n\nnot hashable (set item으로 사용 불가):\nlist, dict, set\n→ TypeError: unhashable type 발생"},
+  {q:"set에서 {1, True, 1.0}의 len()은?",
+   a:"1\n\n1 == True == 1.0 이고 hash 값도 모두 1로 같음.\nset은 값과 hash가 모두 같으면 동일 item으로 취급.\n따라서 {1, True, 1.0}은 {1} (item 1개)"},
+  {q:"빈 set을 만드는 올바른 방법은?",
+   a:"set() 으로 생성해야 함.\n\n{}는 빈 dict를 만들기 때문에\n빈 set를 {}로 만들 수 없음.\n\ntype({})   → <class 'dict'>\ntype(set()) → <class 'set'>"},
+  {q:"dict의 key로 사용할 수 있는 타입은?",
+   a:"hashable (불변) 타입만 key로 사용 가능:\nint, float, bool, str, tuple\n\n사용 불가:\nlist, dict, set (가변 객체 → unhashable)\n\nvalue는 타입 제약 없음 (list, dict 등 모두 가능)"},
+  {q:"dict에서 a['없는key']와 a.get('없는key')의 차이는?",
+   a:"a['없는key'] → KeyError 발생 (예외 처리 필요)\n\na.get('없는key') → None 반환 (안전한 조회)\na.get('없는key', 기본값) → 기본값 반환 가능\n\n안전한 조회가 필요할 때는 get()을 사용"},
+  {q:"dict를 순회(for문)하면 무엇이 나오는가?",
+   a:"기본적으로 key가 순회됨.\n\nfor x in a:       → key 순회\nfor x in a.keys(): → key 순회 (명시적)\nfor x in a.values(): → value 순회\nfor k,v in a.items(): → (key, value) 튜플 순회"},
+  {q:"dict 생성 두 가지 방법과 차이는?",
+   a:"① 중괄호 방식:\na = {'A': 65, 'B': 66}\nkey로 모든 hashable 타입 사용 가능\n\n② dict() 키워드 인자 방식:\nb = dict(A=65, B=66)\nkey는 반드시 파이썬 이름 규칙을 따라야 함\n(숫자 시작, 특수문자 불가)"},
+];
+
+let fcIndex=0;
+function renderCard(){
+  document.getElementById('fc-q').innerHTML=escHtml(cards[fcIndex].q);
+  document.getElementById('fc-a').innerHTML=escHtml(cards[fcIndex].a);
+  document.getElementById('fc-counter').textContent=`${fcIndex+1} / ${cards.length}`;
+  document.getElementById('fc-bar').style.width=`${((fcIndex+1)/cards.length)*100}%`;
+}
+function updateCard(){document.getElementById('fc').classList.remove('flipped');setTimeout(renderCard,200);}
+function flipCard(){document.getElementById('fc').classList.toggle('flipped');}
+function nextCard(){fcIndex=(fcIndex+1)%cards.length;updateCard();}
+function prevCard(){fcIndex=(fcIndex-1+cards.length)%cards.length;updateCard();}
+
+// ===== QUIZ =====
+const quizzes=[
+  {q:"list와 tuple에 대한 설명으로 옳지 않은 것은?",code:null,
+   opts:["list는 가변 객체, tuple은 불변 객체다","tuple은 list보다 메모리를 더 적게 사용한다","list와 tuple 모두 모든 타입의 item을 가질 수 있다","tuple도 append() 메서드를 사용할 수 있다"],
+   ans:3,explain:"tuple은 불변 객체이므로 수정 관련 메서드(append, sort, pop 등)가 없습니다. tuple에 있는 메서드는 count와 index 두 개뿐입니다."},
+  {q:"아래 코드의 출력 결과는?",
+   code:`a = ['Morning', 'Afternoon', 'Evening']\nprint(a[0], a[-1])`,
+   opts:["Morning Afternoon","Afternoon Evening","Morning Evening","Evening Morning"],
+   ans:2,explain:"a[0]은 첫 번째 item 'Morning', a[-1]은 마지막 item 'Evening'입니다. 음수 인덱스는 뒤에서부터 셉니다."},
+  {q:"아래 코드의 출력 결과는?",
+   code:`a = [10, 20, 30, 40, 50]\nprint(a[:3])\nprint(a[-2:])\nprint(a[::-1])`,
+   opts:["[10,20,30] / [30,40,50] / [50,40,30,20,10]","[10,20,30] / [40,50] / [50,40,30,20,10]","[20,30,40] / [40,50] / [10,20,30,40,50]","[10,20,30] / [40,50] / [10,20,30,40,50]"],
+   ans:1,explain:"a[:3]은 인덱스 0~2(앞 3개) → [10,20,30]. a[-2:]는 뒤에서 2개 → [40,50]. a[::-1]은 step=-1로 역순 → [50,40,30,20,10]."},
+  {q:"슬라이싱에서 범위를 벗어난 인덱스를 사용하면?",
+   code:`a = [1, 2, 3]\nprint(a[10:20])`,
+   opts:["IndexError 발생","None 반환","[] 빈 리스트 반환","마지막 item 반환"],
+   ans:2,explain:"슬라이싱은 범위를 벗어나도 오류 없이 빈 리스트([])를 반환합니다. 이는 subscription(a[10])과 다른 점으로, subscription은 범위 벗어나면 IndexError가 발생합니다."},
+  {q:"아래 코드에서 a[2:3] = ['x','y','z'] 실행 후 a의 값은?",
+   code:`a = [10, 20, 30, 40, 50]\na[2:3] = ['x', 'y', 'z']`,
+   opts:["[10, 20, 'x', 40, 50]","[10, 20, 'x', 'y', 'z', 40, 50]","[10, 20, 'x', 'y', 'z', 30, 40, 50]","TypeError 발생"],
+   ans:1,explain:"슬라이스 할당은 해당 범위를 새 값들로 교체합니다. a[2:3]은 30(인덱스 2) 하나를 ['x','y','z'] 세 개로 교체하므로 [10, 20, 'x', 'y', 'z', 40, 50]이 됩니다."},
+  {q:"아래 코드의 출력 결과는?",
+   code:`print([1,2] + [3,4])\nprint('*' * 3)\nprint((3,) * 3)`,
+   opts:["[1,2,3,4] / *** / (3,3,3)","[1,2,3,4] / 3 / (3,3,3)","TypeError / *** / (9,)","[1,2,3,4] / *** / (3,)"],
+   ans:0,explain:"+ 는 동일 타입 연결, * 는 반복 복사입니다. [1,2]+[3,4]=[1,2,3,4], '*'*3='***', (3,)*3=(3,3,3)."},
+  {q:"str.split()과 str.split(' ')의 차이로 옳은 것은?",
+   code:`a = 'Good     Morning!'\nprint(a.split())\nprint(a.split(' '))`,
+   opts:["두 결과가 동일하다","split()은 연속 공백을 하나로 처리, split(' ')은 각 공백마다 분리해 빈 문자열 생성","split(' ')이 더 좋은 방법이다","split()은 오류가 발생한다"],
+   ans:1,explain:"split()은 인자 없이 호출 시 연속된 공백을 하나로 처리합니다. split(' ')은 공백 하나하나로 분리하여 연속 공백 사이에 빈 문자열('')이 생깁니다. split()을 권장합니다."},
+  {q:"'2026-04-03'.rsplit('-', maxsplit=1)의 결과는?",
+   code:null,
+   opts:["['2026', '04', '03']","['2026-04', '03']","['2026', '04-03']","['03', '2026-04']"],
+   ans:1,explain:"rsplit()은 오른쪽에서부터 분리합니다. maxsplit=1이므로 한 번만 분리합니다. 오른쪽 가장 마지막 '-'에서 분리 → ['2026-04', '03']."},
+  {q:"아래 두 코드의 결과가 같은 이유는?",
+   code:`a = '2026-04-03'\nprint(a.replace('-', '/'))\nprint('/'.join(a.split('-')))`,
+   opts:["replace가 join+split의 별칭이기 때문","둘 다 '-'를 기준으로 분리한 뒤 '/'로 연결하는 동일한 로직이기 때문","항상 같은 결과를 보장하는 파이썬 규칙 때문","우연히 같을 뿐 다른 경우도 있다"],
+   ans:1,explain:"replace('-','/')는 '-'를 '/'로 치환합니다. '/'.join(a.split('-'))는 '-'로 분리 후 '/'로 재결합합니다. 이 경우 결과는 동일하지만 내부 동작은 다릅니다."},
+  {q:"아래 코드의 출력 결과는?",
+   code:`a = 'www.rapa.com'\nprint(a.strip('wcom.'))`,
+   opts:["www.rapa.com","rapa","wcom","''"],
+   ans:1,explain:"strip('wcom.')은 문자열 양쪽에서 'w', 'c', 'o', 'm', '.' 문자를 제거합니다. 'www.rapa.com'에서 양쪽의 'www.'와 '.com'이 제거되어 'rapa'가 남습니다."},
+  {q:"set에 대한 설명으로 옳지 않은 것은?",
+   code:null,
+   opts:["set은 중복을 허용하지 않는다","set의 item은 hashable해야 한다","set은 인덱스로 item에 접근할 수 있다","set은 합집합, 교집합, 차집합 연산을 지원한다"],
+   ans:2,explain:"set은 순서가 없어 인덱스로 접근할 수 없습니다. a[0]처럼 접근하면 TypeError가 발생합니다. set에 접근하려면 for문으로 순회하거나 in 연산자를 사용해야 합니다."},
+  {q:"아래 코드의 출력 결과는?",
+   code:`c = {1, True, 1.0}\nprint(len(c), c)`,
+   opts:["3  {1, True, 1.0}","2  {1, True}","1  {1}","1  {True}"],
+   ans:2,explain:"1 == True == 1.0 이고 hash(1) == hash(True) == hash(1.0) == 1이므로, set은 이 세 값을 동일 item으로 간주합니다. 따라서 len=1, 결과={1}."},
+  {q:"빈 set을 올바르게 생성하는 코드는?",
+   code:null,
+   opts:["a = {}","a = set()","a = set{}","a = {,}"],
+   ans:1,explain:"{}는 빈 dict를 생성합니다. 빈 set은 반드시 set()으로 생성해야 합니다. type({}) → dict, type(set()) → set."},
+  {q:"아래 코드에서 오류가 발생하는 이유는?",
+   code:`s = {[1,2], [3,4]}`,
+   opts:["set은 두 개의 item만 가질 수 있다","list는 hashable하지 않아 set의 item이 될 수 없다","중괄호는 dict에만 사용 가능하다","list를 tuple로 감싸면 사용 가능하다"],
+   ans:1,explain:"set의 item은 hashable(불변 객체)이어야 합니다. list는 가변 객체라 hash 값이 없어 set의 item으로 사용할 수 없습니다. → TypeError: unhashable type: 'list'. tuple로 감싸면 가능: {(1,2),(3,4)}."},
+  {q:"dict에 대한 설명으로 옳은 것은?",
+   code:null,
+   opts:["key와 value 모두 hashable해야 한다","key는 중복 가능하다","key는 hashable, value는 타입 제약이 없다","dict는 순서가 없어 for문 순회가 불가하다"],
+   ans:2,explain:"dict의 key는 hashable(불변 객체)이어야 하고 중복 불가입니다. 그러나 value는 타입 제약이 없어 list, dict 등 어떤 객체도 가능합니다. Python 3.7+에서 dict는 삽입 순서를 유지합니다."},
+  {q:"아래 코드에서 마지막 print(a)의 출력은?",
+   code:`a = {'age': 20}\na['name'] = 'Kim'\na['age'] = 30\ndel a['name']\nprint(a)`,
+   opts:["{'age': 20}","{'age': 30, 'name': 'Kim'}","{'age': 30}","{}"],
+   ans:2,explain:"① {'age':20} 생성, ② 'name' 추가 → {'age':20,'name':'Kim'}, ③ 'age' 갱신 → {'age':30,'name':'Kim'}, ④ 'name' 삭제 → {'age':30}."},
+  {q:"a = {'age':30, 'name':'Kim'} 에서 안전하게 없는 key를 조회하는 방법은?",
+   code:null,
+   opts:["a['height']","a.get('height')","a.find('height')","a['height'] or None"],
+   ans:1,explain:"a['height']는 KeyError를 발생시킵니다. a.get('height')는 해당 key가 없으면 None을 반환합니다. a.get('height', 0)처럼 기본값도 지정할 수 있습니다."},
+  {q:"dict를 for문으로 순회할 때 기본 순회 대상은?",
+   code:`a = {'age': 30, 'name': 'Kim'}\nfor x in a:\n    print(x, end=' ')`,
+   opts:["value만 출력: 30 Kim","key만 출력: age name","(key, value) 쌍 출력: ('age',30) ('name','Kim')","오류 발생"],
+   ans:1,explain:"dict를 for문으로 직접 순회하면 key만 반환됩니다. value를 순회하려면 a.values(), key-value 쌍은 a.items()를 사용합니다."},
+  {q:"아래 두 코드 중 SyntaxError가 발생하는 것은?",
+   code:`A: d = {'1key': 100}\nB: d = dict(1key=100)`,
+   opts:["A만 오류","B만 오류","A, B 모두 오류","A, B 모두 정상"],
+   ans:1,explain:"dict() 키워드 인자 방식은 파이썬 이름 규칙을 따라야 합니다. '1key'는 숫자로 시작해 이름 규칙 위반이므로 dict(1key=100)은 SyntaxError. 반면 {'1key':100}은 문자열 key이므로 정상."},
+  {q:"아래 코드의 결과로 옳은 것은?",
+   code:`s1 = {1, 2, 3, 4}\ns2 = {3, 4, 5, 6}\nprint(s1 & s2)\nprint(s1 - s2)`,
+   opts:["{3,4} / {1,2}","{1,2,3,4,5,6} / {1,2}","{3,4} / {5,6}","{1,2} / {3,4}"],
+   ans:0,explain:"& 는 교집합(공통 원소): {3,4}. - 는 차집합(s1에만 있는 원소): {1,2}. | 는 합집합: {1,2,3,4,5,6}."},
+];
+
+let userAnswers=Array(quizzes.length).fill(null),score=0,answered=0;
+
+function buildQuiz(){
+  const list=document.getElementById('quiz-list');
+  list.innerHTML='';
+  quizzes.forEach((q,qi)=>{
+    const div=document.createElement('div');
+    div.className='quiz-card';
+    let codeHtml=q.code?`<div class="quiz-code">${escCode(q.code)}</div>`:'';
+    let optsHtml=q.opts.map((o,oi)=>
+      `<button class="opt-btn" id="opt-${qi}-${oi}" onclick="selectOpt(${qi},${oi})">
+        <span class="opt-letter">${'ABCD'[oi]}</span><span>${escHtml(o)}</span>
+      </button>`).join('');
+    div.innerHTML=`<div class="quiz-num">Q${qi+1} / ${quizzes.length}</div>
+      <div class="quiz-q">${escHtml(q.q)}</div>${codeHtml}
+      <div class="options" id="opts-${qi}">${optsHtml}</div>
+      <div class="feedback-box" id="fb-${qi}"></div>`;
+    list.appendChild(div);
+  });
+}
+
+function selectOpt(qi,oi){
+  if(userAnswers[qi]!==null)return;
+  userAnswers[qi]=oi; answered++;
+  const correct=quizzes[qi].ans;
+  const fb=document.getElementById(`fb-${qi}`);
+  for(let i=0;i<quizzes[qi].opts.length;i++){
+    const btn=document.getElementById(`opt-${qi}-${i}`);
+    btn.disabled=true;
+    if(i===correct)btn.classList.add('correct');
+    if(i===oi&&oi!==correct)btn.classList.add('wrong');
+  }
+  if(oi===correct){
+    score++;
+    fb.className='feedback-box show feedback-correct';
+    fb.innerHTML=`✅ 정답입니다! ${escHtml(quizzes[qi].explain)}`;
+  }else{
+    fb.className='feedback-box show feedback-wrong';
+    fb.innerHTML=`❌ 오답입니다. <strong>정답: ${'ABCD'[correct]}</strong><br>${escHtml(quizzes[qi].explain)}`;
+    addWrongNote(qi,oi);
+  }
+  document.getElementById('score-badge').textContent=`${score} / ${quizzes.length}`;
+  if(answered===quizzes.length)setTimeout(showResult,600);
+}
+
+function showResult(){
+  const el=document.getElementById('quiz-result');
+  el.classList.add('show');
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  const pct=Math.round((score/quizzes.length)*100);
+  const color=pct>=80?'var(--accent2)':pct>=60?'var(--warn)':'var(--accent3)';
+  document.getElementById('result-score-text').innerHTML=`<span style="color:${color}">${score}</span> / ${quizzes.length}`;
+  document.getElementById('result-msg').textContent=
+    pct===100?'🏆 완벽합니다! 모든 개념을 마스터했습니다.':
+    pct>=80 ?'👍 잘 이해하고 있습니다! 오답을 복습해보세요.':
+    pct>=60 ?'📖 오답노트로 부족한 부분을 채워보세요.':
+             '💪 플래시카드와 코드 예제를 다시 확인해보세요.';
+}
+
+function resetQuiz(){
+  userAnswers=Array(quizzes.length).fill(null);
+  score=0;answered=0;wrongNotes=[];
+  document.getElementById('score-badge').textContent=`0 / ${quizzes.length}`;
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz();updateNotesPanel();
+}
+
+// ===== PRACTICE =====
+const practices=[
+  {title:"list vs tuple 비교",tag:"list · tuple · dir · getsizeof",
+   q:"아래 코드를 완성해 list와 tuple의 차이를 확인하세요.\n\n조건:\n① sys.getsizeof로 메모리 크기 비교\n② dir()로 메서드 목록 확인 (__ 제외)",
+   desc:"sys.getsizeof()는 객체의 메모리 크기(bytes)를 반환합니다. dir()의 결과에서 '__'로 시작하지 않는 것만 필터링하면 일반 메서드만 볼 수 있습니다.",
+   given:`import sys
+t = (1, 2, 3)   # tuple
+l = [1, 2, 3]   # list
+
+# 메모리 크기 비교
+print(sys.___(t), sys.___(l))   # 64 88
+
+# __ 제외 메서드 목록
+mt = [x for x in dir(t) if not x.___('__')]
+ml = [x for x in dir(l) if not x.___('__')]
+print('tuple', mt)
+print('list ', ml)`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('getsizeof')&&s.includes('startswith');
+     const b=s.includes('getsizeof')&&s.includes("startswith('__')");
+     return a?'correct':s.includes('getsizeof')?'partial':'wrong';
+   },
+   hint:"sys.getsizeof(t)\nx.startswith('__')",
+   answer:`import sys\nt = (1, 2, 3)\nl = [1, 2, 3]\nprint(sys.getsizeof(t), sys.getsizeof(l))   # 64 88\nmt = [x for x in dir(t) if not x.startswith('__')]\nml = [x for x in dir(l) if not x.startswith('__')]\nprint('tuple', mt)\nprint('list ', ml)`},
+  {title:"인덱스와 슬라이싱",tag:"index · slice · 주민번호",
+   q:"주민번호 '260403-3000000'에서\n슬라이싱으로 연도·월·일을 추출하세요.\n\n조건:\n① 연도: '20' + 앞 2자리\n② 월: 3~4번째 자리\n③ 일: 5~6번째 자리\n④ 역순 출력: a[::-1]",
+   desc:"슬라이싱은 start:stop 형식으로 a[0:2]는 인덱스 0과 1을 가져옵니다(stop 미포함). '20' + num[0:2]로 연도를 만들 수 있습니다.",
+   given:`num = '260403-3000000'
+year  = '20' + num[___:___]   # '2026'
+month = num[___:___]           # '04'
+day   = num[___:___]           # '03'
+print(year, month, day)
+
+a = [10, 20, 30, 40, 50]
+print(a[___ : ___])    # 역순: [50,40,30,20,10]`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes("num[0:2]")&&s.includes("num[2:4]")&&s.includes("num[4:6]");
+     const b=s.includes("::-1");
+     if(a&&b)return'correct';
+     if(a||b)return'partial';
+     return'wrong';
+   },
+   hint:"num[0:2] → '26'\nnum[2:4] → '04'\nnum[4:6] → '03'\na[::-1] → 역순",
+   answer:`num = '260403-3000000'\nyear  = '20' + num[0:2]   # '2026'\nmonth = num[2:4]           # '04'\nday   = num[4:6]           # '03'\nprint(year, month, day)\n\na = [10, 20, 30, 40, 50]\nprint(a[::-1])   # [50, 40, 30, 20, 10]`},
+  {title:"str 메서드 활용",tag:"split · join · replace · strip",
+   q:"아래 조건에 맞게 str 메서드를 사용하세요.\n\n① 'Python  is   Fun'을 단어 리스트로 분리\n② ['2026','04','03']을 '-'로 연결해 날짜 문자열 만들기\n③ '  hello world  '의 양쪽 공백 제거",
+   desc:"split()은 인자 없이 쓰면 연속 공백을 하나로 처리합니다. join()은 '구분자'.join(리스트) 형식입니다. strip()은 양쪽 공백을 제거합니다.",
+   given:`# ① 공백으로 분리
+s1 = 'Python  is   Fun'
+words = s1.___()
+print(words)   # ['Python', 'is', 'Fun']
+
+# ② 리스트를 '-'로 연결
+parts = ['2026', '04', '03']
+date = '___'.___( parts )
+print(date)    # 2026-04-03
+
+# ③ 양쪽 공백 제거
+s2 = '  hello world  '
+print(s2.___())   # 'hello world'`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('.split()');
+     const b=s.includes("'-'.join")&&s.includes('parts');
+     const d=s.includes('.strip()');
+     const cnt=[a,b,d].filter(Boolean).length;
+     return cnt===3?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"s1.split()\n'-'.join(parts)\ns2.strip()",
+   answer:`words = s1.split()\ndate = '-'.join(parts)\nprint(s2.strip())`},
+  {title:"set 중복 제거와 집합 연산",tag:"set · 중복 · 합집합 · 교집합",
+   q:"아래 조건에 맞게 set을 활용하세요.\n\n① 중복이 있는 리스트에서 중복을 제거해 set 생성\n② 두 set의 합집합, 교집합, 차집합 출력",
+   desc:"list → set으로 변환하면 중복이 자동 제거됩니다. 집합 연산: | (합집합), & (교집합), - (차집합).",
+   given:`# ① 중복 제거
+nums = [1, 2, 2, 3, 3, 3, 4]
+unique = ___(nums)          # set으로 변환
+print(unique)               # {1, 2, 3, 4}
+
+# ② 집합 연산
+a = {1, 2, 3, 4}
+b = {3, 4, 5, 6}
+print(a ___ b)   # 합집합: {1,2,3,4,5,6}
+print(a ___ b)   # 교집합: {3,4}
+print(a ___ b)   # 차집합: {1,2}`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('set(nums)');
+     const b=s.includes('a|b')&&s.includes('a&b')&&s.includes('a-b');
+     if(a&&b)return'correct';
+     if(a||b)return'partial';
+     return'wrong';
+   },
+   hint:"set(nums)   # 리스트 → set\na | b       # 합집합\na & b       # 교집합\na - b       # 차집합",
+   answer:`unique = set(nums)\nprint(unique)\nprint(a | b)   # {1,2,3,4,5,6}\nprint(a & b)   # {3,4}\nprint(a - b)   # {1,2}`},
+  {title:"dict 기본 조작",tag:"dict · 추가 · 갱신 · 삭제 · get",
+   q:"아래 dict 조작 코드를 완성하세요.\n\n① 'score' key에 95 추가\n② 'age'를 25로 갱신\n③ 'city' key를 안전하게 조회 (없으면 None)\n④ 'age' 항목 삭제",
+   desc:"dict[key] = value로 추가·갱신, del dict[key]로 삭제, dict.get(key)로 안전 조회합니다.",
+   given:`a = {'name': 'Kim', 'age': 20}
+
+# ① 추가
+a[___] = 95
+print(a)   # {'name':'Kim', 'age':20, 'score':95}
+
+# ② 갱신
+a[___] = 25
+print(a)   # {'name':'Kim', 'age':25, 'score':95}
+
+# ③ 안전 조회 (KeyError 없이)
+print(a.___('city'))   # None
+
+# ④ 삭제
+del a[___]
+print(a)   # {'name':'Kim', 'score':95}`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes("a['score']=95")||s.includes('a["score"]=95');
+     const b=s.includes("a['age']=25")||s.includes('a["age"]=25');
+     const d=s.includes(".get('city'")||s.includes('.get("city"');
+     const e=s.includes("dela['age']")||s.includes('dela["age"]');
+     const cnt=[a,b,d,e].filter(Boolean).length;
+     return cnt===4?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"a['score'] = 95\na['age'] = 25\na.get('city')   # None\ndel a['age']",
+   answer:`a['score'] = 95\na['age'] = 25\nprint(a.get('city'))   # None\ndel a['age']`},
+  {title:"dict 순회",tag:"dict · keys · values · items · for",
+   q:"아래 dict를 세 가지 방법으로 순회하세요.\n\n① key만 출력\n② value만 출력\n③ key와 value 쌍으로 출력 ('age: 30' 형식)",
+   desc:"for k in d 는 key 순회, d.values()는 value, d.items()는 (key, value) 튜플을 반환합니다.",
+   given:`d = {'age': 30, 'name': 'Kim', 'score': 95}
+
+# ① key만
+for k in d:
+    print(k, end=' ')    # age name score
+
+# ② value만
+for v in d.___():
+    print(v, end=' ')    # 30 Kim 95
+
+# ③ key-value 쌍
+for k, v in d.___():
+    print(f'{k}: {v}')`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('.values()');
+     const b=s.includes('.items()');
+     if(a&&b)return'correct';
+     if(a||b)return'partial';
+     return'wrong';
+   },
+   hint:"d.values()  # value 순회\nd.items()   # (key,value) 순회",
+   answer:`for k in d:\n    print(k, end=' ')\n\nfor v in d.values():\n    print(v, end=' ')\n\nfor k, v in d.items():\n    print(f'{k}: {v}')`},
+  {title:"컨테이너 선택",tag:"list · set · dict · 상황별 선택",
+   q:"상황에 맞는 컨테이너를 선택해 코드를 완성하세요.\n\n① 학생 이름 목록 (순서 유지, 중복 허용) → list\n② 방문한 페이지 URL (중복 제거) → set\n③ 학생 성적 관리 (이름으로 점수 조회) → dict",
+   desc:"list는 순서가 있고 중복을 허용, set은 중복 없음, dict는 key-value로 데이터를 관리합니다.",
+   given:`# ① 학생 이름 목록
+names = ___('Kim', 'Lee', 'Kim', 'Park')  # list
+print(names)   # ['Kim', 'Lee', 'Kim', 'Park']
+
+# ② 방문 URL 중복 제거
+urls = ___('naver.com', 'google.com', 'naver.com')   # set
+print(urls)    # {'naver.com', 'google.com'}
+
+# ③ 학생 성적
+scores = ___   # dict: Kim=90, Lee=85
+print(scores['Kim'])   # 90`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('names=[')&&(s.includes("'Kim'")||s.includes('"Kim"'));
+     const b=s.includes('urls={')&&(s.includes("'naver.com'")||s.includes('"naver.com"'));
+     const d=s.includes('scores={')&&(s.includes("'Kim':90")||s.includes('"Kim":90'));
+     const cnt=[a,b,d].filter(Boolean).length;
+     return cnt===3?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"names = ['Kim', 'Lee', 'Kim', 'Park']\nurls = {'naver.com', 'google.com', 'naver.com'}\nscores = {'Kim': 90, 'Lee': 85}",
+   answer:`names = ['Kim', 'Lee', 'Kim', 'Park']\nurls = {'naver.com', 'google.com', 'naver.com'}\nscores = {'Kim': 90, 'Lee': 85}\nprint(scores['Kim'])   # 90`},
+  {title:"종합: 컨테이너 조합",tag:"종합 실습",
+   q:"아래 조건을 모두 만족하는 코드를 작성하세요.\n\n데이터: words = ['apple','banana','apple','cherry','banana','apple']\n\n① set으로 중복 제거 후 정렬된 리스트로 변환\n② dict로 각 단어의 등장 횟수 저장\n③ 가장 많이 등장한 단어 출력",
+   desc:"set()으로 중복 제거, sorted()로 정렬, dict와 get()으로 빈도 카운트, max()와 key=로 최댓값 찾기.",
+   given:`words = ['apple','banana','apple','cherry','banana','apple']
+
+# ① 중복 제거 후 정렬
+unique_sorted = sorted(___(words))
+print(unique_sorted)   # ['apple','banana','cherry']
+
+# ② 빈도 카운트
+count = {}
+for w in words:
+    count[w] = count.___(w, 0) + 1
+print(count)   # {'apple':3,'banana':2,'cherry':1}
+
+# ③ 가장 많이 등장한 단어
+most = max(count, key=lambda k: count[___])
+print(most)    # apple`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('sorted(set(words))');
+     const b=s.includes('.get(w,0)');
+     const d=s.includes('max(count');
+     const cnt=[a,b,d].filter(Boolean).length;
+     return cnt===3?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"sorted(set(words))\ncount.get(w, 0) + 1\nmax(count, key=lambda k: count[k])",
+   answer:`words = ['apple','banana','apple','cherry','banana','apple']\n\nunique_sorted = sorted(set(words))\nprint(unique_sorted)   # ['apple','banana','cherry']\n\ncount = {}\nfor w in words:\n    count[w] = count.get(w, 0) + 1\nprint(count)   # {'apple':3,'banana':2,'cherry':1}\n\nmost = max(count, key=lambda k: count[k])\nprint(most)    # apple`},
+];
+
+let practiceResults={},practiceCompleted=0;
+
+function buildPractice(){
+  const list=document.getElementById('practice-list');
+  list.innerHTML='';
+  practices.forEach((p,pi)=>{
+    const div=document.createElement('div');
+    div.className='practice-card';
+    div.innerHTML=`
+      <div class="practice-header">
+        <span class="practice-num">실습 ${pi+1} / ${practices.length} &nbsp;·&nbsp; ${p.title}</span>
+        <span class="practice-tag">${p.tag}</span>
+      </div>
+      <div class="practice-body">
+        <div class="practice-q">${escHtml(p.q)}</div>
+        <div class="practice-desc">${escHtml(p.desc)}</div>
+        <div class="editor-label">▶ 주어진 코드 (참고용)</div>
+        <div class="practice-given">${escCode(p.given)}</div>
+        <div class="editor-label" style="margin-top:14px">✏️ 답안 코드 작성</div>
+        <textarea class="code-editor" id="editor-${pi}" rows="5" placeholder="여기에 코드를 작성하세요..."></textarea>
+        <div class="hint-box" id="hint-${pi}">${escCode(p.hint)}</div>
+        <div class="practice-actions">
+          <button class="btn-check" onclick="checkPractice(${pi})">✔ 확인</button>
+          <button class="btn-hint" onclick="toggleHint(${pi})">💡 힌트</button>
+          <button class="btn-reset-p" onclick="resetPractice(${pi})">↺ 초기화</button>
+        </div>
+        <div class="practice-feedback" id="pfb-${pi}">
+          <div class="pf-result" id="pfr-${pi}"></div>
+          <div class="pf-explain" id="pfe-${pi}"></div>
+        </div>
+      </div>`;
+    list.appendChild(div);
+    document.getElementById(`editor-${pi}`).addEventListener('keydown',function(e){
+      if(e.key==='Tab'){e.preventDefault();const s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;}
+    });
+  });
+}
+
+function checkPractice(pi){
+  const code=document.getElementById(`editor-${pi}`).value.trim();
+  if(!code){alert('코드를 입력해주세요!');return;}
+  const p=practices[pi];const result=p.check(code);
+  const fb=document.getElementById(`pfb-${pi}`);
+  const pfr=document.getElementById(`pfr-${pi}`);
+  const pfe=document.getElementById(`pfe-${pi}`);
+  fb.className='practice-feedback show';
+  const wasOk=practiceResults[pi]==='correct';
+  if(result==='correct'){
+    pfr.className='pf-result pf-correct';pfr.innerHTML='✅ 정답입니다! 핵심 개념을 잘 이해했습니다.';
+    if(!wasOk){practiceCompleted++;practiceResults[pi]='correct';updatePracticeScore();}
+  }else if(result==='partial'){
+    pfr.className='pf-result pf-partial';pfr.innerHTML='🔶 부분 정답입니다. 조금 더 완성해보세요!';
+    practiceResults[pi]='partial';
+  }else{
+    pfr.className='pf-result pf-wrong';pfr.innerHTML='❌ 아직 정확하지 않습니다. 힌트를 참고해보세요.';
+    practiceResults[pi]='wrong';
+  }
+  pfe.innerHTML=`<div style="margin-bottom:6px;color:var(--text-sub);font-size:.8rem">▶ 모범 답안</div><div class="pf-answer-code">${escCode(p.answer)}</div>`;
+}
+
+function toggleHint(pi){document.getElementById(`hint-${pi}`).classList.toggle('show');}
+function resetPractice(pi){
+  document.getElementById(`editor-${pi}`).value='';
+  document.getElementById(`pfb-${pi}`).className='practice-feedback';
+  document.getElementById(`hint-${pi}`).classList.remove('show');
+  if(practiceResults[pi]==='correct'){practiceCompleted=Math.max(0,practiceCompleted-1);updatePracticeScore();}
+  delete practiceResults[pi];
+}
+function updatePracticeScore(){document.getElementById('ps-score').textContent=`${practiceCompleted} / ${practices.length} 완료`;}
+
+// ===== WRONG NOTES =====
+let wrongNotes=[];
+function addWrongNote(qi,myAns){wrongNotes.push({qi,myAns});updateNotesPanel();}
+function updateNotesPanel(){
+  const list=document.getElementById('notes-list');
+  const bar=document.getElementById('download-bar');
+  document.getElementById('wrong-count').textContent=wrongNotes.length;
+  if(wrongNotes.length===0){
+    bar.style.display='none';
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div>오답이 없습니다! 퀴즈를 풀면 틀린 문제가 여기에 기록됩니다.</div></div>`;
+    return;
+  }
+  bar.style.display='flex';
+  list.innerHTML=wrongNotes.map((wn,i)=>{
+    const q=quizzes[wn.qi];
+    return `<div class="wrong-note-card">
+      <div class="wn-qnum">오답 #${i+1} · Q${wn.qi+1}</div>
+      <div class="wn-q">${escHtml(q.q)}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답변</div>${'ABCD'[wn.myAns]}. ${escHtml(q.opts[wn.myAns])}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${'ABCD'[q.ans]}. ${escHtml(q.opts[q.ans])}</div>
+      </div>
+      <div class="wn-explain">💡 ${escHtml(q.explain)}</div>
+    </div>`;
+  }).join('');
+}
+
+function downloadNotes(){
+  if(wrongNotes.length===0){alert('오답이 없습니다!');return;}
+  const dateStr=new Date().toLocaleDateString('ko-KR');
+  let text=`================================================================\n  Python 컨테이너 객체 오답노트\n  작성일: ${dateStr}  |  오답 수: ${wrongNotes.length} / ${quizzes.length}\n================================================================\n\n`;
+  wrongNotes.forEach((wn,i)=>{
+    const q=quizzes[wn.qi];
+    text+=`[오답 ${i+1}] Q${wn.qi+1}\n문제: ${q.q}\n`;
+    if(q.code)text+=`\n코드:\n${q.code}\n`;
+    text+=`\n선택지:\n`;
+    q.opts.forEach((o,oi)=>{
+      const mark=oi===wn.myAns?'  ← 내 답변 ❌':oi===q.ans?'  ← 정답 ✅':'';
+      text+=`  ${'ABCD'[oi]}. ${o}${mark}\n`;
+    });
+    text+=`\n해설: ${q.explain}\n\n${'─'.repeat(60)}\n\n`;
+  });
+  text+=`================================================================\n  학습 팁\n================================================================\n`;
+  text+=`1. list: 가변, tuple: 불변 (메모리 더 효율적)\n`;
+  text+=`2. 양수인덱스: 0부터, 음수인덱스: -1(마지막)부터\n`;
+  text+=`3. 슬라이싱[start:stop:step]: 범위 초과해도 오류 없음\n`;
+  text+=`4. split(): 연속 공백을 하나로 처리 (권장)\n`;
+  text+=`5. set: 중복 없음, hashable만 item 가능, {}는 dict!\n`;
+  text+=`6. 1==True==1.0, hash값도 같아 set에서 동일 취급\n`;
+  text+=`7. dict: key는 hashable, value는 제약없음\n`;
+  text+=`8. a.get(key): KeyError 없이 안전한 조회\n`;
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`파이썬_컨테이너_오답노트_${dateStr.replace(/\./g,'-')}.txt`;
+  a.click();URL.revokeObjectURL(url);
+}
+
+// ===== TABS =====
+function showTab(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx=['flashcard','code','quiz','practice','notes'].indexOf(id);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+
+buildQuiz();buildPractice();updateNotesPanel();renderCard();
+</script>
+</body>
+</html>

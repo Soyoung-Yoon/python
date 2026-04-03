@@ -208,6 +208,10 @@
   .card.orange::before { background: linear-gradient(90deg, var(--accent), var(--warn)); }
   .card.green::before  { background: linear-gradient(90deg, var(--accent2), #58d68d); }
   .card.purple::before { background: linear-gradient(90deg, var(--accent4), #79c0ff); }
+  .card.blue::before   { background: linear-gradient(90deg, #58a6ff, var(--accent4)); }
+  .card.teal::before   { background: linear-gradient(90deg, #3fb950, #58a6ff); }
+  .tag.blue   { border-color: rgba(88,166,255,.4); color: #58a6ff; }
+  .tag.teal   { border-color: rgba(63,185,80,.4);  color: #39d353; }
 
   .card-icon {
     font-size: 26px;
@@ -345,10 +349,10 @@
   <div class="progress-wrap">
     <div class="progress-info">
       <span>전체 학습 진도</span>
-      <strong>3 / 12 주제 완성</strong>
+      <strong>5 / 12 주제 완성</strong>
     </div>
     <div class="progress-bar-bg">
-      <div class="progress-bar-fill"></div>
+      <div class="progress-bar-fill" style="width:41.6%"></div>
     </div>
   </div>
 </header>
@@ -420,22 +424,33 @@
   <div class="card-grid">
 
     <!-- UNIT 04 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
-      <div class="card-icon">📋</div>
+    <a class="card blue" href="python_object_statement_study.html">
       <div class="card-num">UNIT 04</div>
-      <div class="card-title">list / tuple</div>
-      <div class="card-desc">순서 있는 시퀀스 자료형의 생성, 인덱싱, 슬라이싱, 메서드를 학습합니다.</div>
-    </div>
+      <div class="card-icon">⚡</div>
+      <div class="card-title">객체 생성 &amp; 명령 실행</div>
+      <div class="card-desc">객체를 만드는 세 가지 방법과 연산자·함수·메서드, 중첩·연쇄 명령의 차이를 학습합니다.</div>
+      <div class="card-tags">
+        <span class="tag blue">statement</span>
+        <span class="tag blue">nested</span>
+        <span class="tag blue">chained</span>
+      </div>
+      <div class="card-arrow">↗</div>
+    </a>
 
     <!-- UNIT 05 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
-      <div class="card-icon">🗂️</div>
+    <a class="card teal" href="python_container_study.html">
       <div class="card-num">UNIT 05</div>
-      <div class="card-title">set / dict 자료형</div>
-      <div class="card-desc">중복 없는 집합 set과 key-value 구조의 dict, 각 자료형의 메서드와 활용법을 함께 학습합니다.</div>
-    </div>
+      <div class="card-icon">🗂️</div>
+      <div class="card-title">컨테이너 객체</div>
+      <div class="card-desc">list, tuple, str, set, dict 다섯 가지 컨테이너의 특성, 인덱싱, 슬라이싱, 주요 메서드를 학습합니다.</div>
+      <div class="card-tags">
+        <span class="tag teal">list</span>
+        <span class="tag teal">dict</span>
+        <span class="tag teal">set</span>
+        <span class="tag teal">str</span>
+      </div>
+      <div class="card-arrow">↗</div>
+    </a>
 
     <!-- UNIT 06 -->
     <div class="card-soon">
