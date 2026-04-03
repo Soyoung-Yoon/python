@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Statement &amp; Expression 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d1117;--surface:#161b22;--surface2:#1c2128;--border:#30363d;
+    --accent:#58a6ff;--accent2:#3fb950;--accent3:#f78166;--accent4:#d2a8ff;
+    --warn:#e3b341;--text:#e6edf3;--text-sub:#8b949e;--code-bg:#010409;--radius:12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+  header{background:linear-gradient(135deg,#0d1117 0%,#0e1520 100%);border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+  .logo{font-family:'JetBrains Mono',monospace;font-size:1.3rem;color:var(--accent);font-weight:700;letter-spacing:-1px;}
+  .logo span{color:var(--accent4);}
+  header h1{font-size:1rem;font-weight:400;color:var(--text-sub);}
+  header h1 strong{color:var(--text);font-weight:600;}
+
+  nav{display:flex;gap:4px;padding:16px 40px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+  .tab-btn{font-family:'Noto Sans KR',sans-serif;padding:8px 20px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--text-sub);cursor:pointer;font-size:.875rem;font-weight:400;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+  .tab-btn:hover{background:var(--surface2);color:var(--text);}
+  .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
+
+  .section{display:none;padding:40px;max-width:900px;margin:0 auto;}
+  .section.active{display:block;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .section-title{font-size:1.5rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+  .section-subtitle{color:var(--text-sub);font-size:.9rem;margin-bottom:32px;font-weight:300;}
+
+  /* FLASHCARD */
+  .flashcard-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .fc-progress{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:1rem;font-weight:600;}
+  .fc-progress-bar{width:100%;height:4px;background:var(--border);border-radius:4px;margin-bottom:24px;overflow:hidden;}
+  .fc-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent4));border-radius:4px;transition:width .4s ease;}
+  .flashcard-wrap{perspective:1200px;height:340px;cursor:pointer;margin-bottom:24px;}
+  .flashcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+  .flashcard.flipped{transform:rotateY(180deg);}
+  .fc-front,.fc-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--radius);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+  .fc-front{background:linear-gradient(135deg,var(--surface) 0%,#0e1a2e 100%);}
+  .fc-back{background:linear-gradient(135deg,#0f1f0f 0%,#1a2a1a 100%);border-color:var(--accent2);transform:rotateY(180deg);}
+  .fc-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+  .fc-front .fc-label{color:var(--accent);}
+  .fc-back .fc-label{color:var(--accent2);}
+  .fc-q{font-size:1.1rem;font-weight:600;line-height:1.65;color:var(--text);}
+  .fc-a{font-size:.9rem;font-weight:400;line-height:1.85;color:var(--text);}
+  .fc-hint{margin-top:20px;font-size:.8rem;color:var(--text-sub);}
+  .nav-btns{display:flex;gap:12px;justify-content:center;}
+  .btn{font-family:'Noto Sans KR',sans-serif;padding:10px 24px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-ghost{background:transparent;color:var(--text-sub);}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--accent);}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn-primary:hover{background:#79b8ff;}
+  .btn-danger{background:var(--accent3);color:#fff;border-color:var(--accent3);}
+
+  /* CODE */
+  .code-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;transition:border-color .2s;}
+  .code-card:hover{border-color:var(--accent);}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+  .code-title{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--accent);font-weight:600;}
+  .code-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;}
+  .tag-op   {background:#1c2a4a;color:var(--accent); border:1px solid var(--accent);}
+  .tag-cmp  {background:#1f2a1f;color:var(--accent2);border:1px solid var(--accent2);}
+  .tag-bool {background:#2a2a0a;color:var(--warn);   border:1px solid var(--warn);}
+  .tag-stmt {background:#2a1c40;color:var(--accent4);border:1px solid var(--accent4);}
+  .tag-err  {background:#2a1c1c;color:var(--accent3);border:1px solid var(--accent3);}
+  .code-explain{padding:16px 20px;border-bottom:1px solid var(--border);font-size:.9rem;line-height:1.8;color:var(--text-sub);}
+  .code-explain strong{color:var(--text);}
+  .code-explain code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent4);background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+  pre{background:var(--code-bg);padding:20px;overflow-x:auto;margin:0;}
+  code{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7;}
+  .kw{color:#ff7b72;}.fn{color:#d2a8ff;}.st{color:#a5d6ff;}
+  .cm{color:#8b949e;font-style:italic;}.nm{color:#79c0ff;}
+  .op{color:#f0883e;}.num{color:#f0883e;}
+  .output-box{background:#010409;border-top:1px solid var(--border);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent2);line-height:1.7;}
+  .output-label{color:var(--text-sub);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+
+  /* 개념 박스 */
+  .concept-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;}
+  .concept-box h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  .ci{padding:14px 16px;border-radius:8px;font-size:.84rem;line-height:1.8;}
+  .ci-blue  {background:#0e1c30;border:1px solid var(--accent);}
+  .ci-green {background:#0f1f0f;border:1px solid var(--accent2);}
+  .ci-purple{background:#1a1030;border:1px solid var(--accent4);}
+  .ci-warn  {background:#1f1a08;border:1px solid var(--warn);}
+  .ci-red   {background:#1f0f0f;border:1px solid var(--accent3);}
+  .ci-label{font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;}
+  .ci-blue   .ci-label{color:var(--accent);}
+  .ci-green  .ci-label{color:var(--accent2);}
+  .ci-purple .ci-label{color:var(--accent4);}
+  .ci-warn   .ci-label{color:var(--warn);}
+  .ci-red    .ci-label{color:var(--accent3);}
+
+  /* 비교 테이블 */
+  .tbl{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:8px;}
+  .tbl th{background:var(--surface2);padding:9px 12px;text-align:left;font-weight:600;border:1px solid var(--border);color:var(--text-sub);font-size:.75rem;letter-spacing:.5px;}
+  .tbl td{padding:9px 12px;border:1px solid var(--border);vertical-align:top;line-height:1.65;}
+  .tbl tr:nth-child(even) td{background:var(--surface2);}
+  .tbl code{font-family:'JetBrains Mono',monospace;font-size:.79rem;color:var(--accent4);}
+
+  /* 연산자 우선순위 */
+  .priority-list{counter-reset:pri;}
+  .priority-item{display:flex;align-items:center;gap:14px;padding:9px 14px;border-radius:8px;margin-bottom:6px;font-size:.84rem;}
+  .priority-item:nth-child(odd){background:var(--surface2);}
+  .pri-num{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--text-sub);width:28px;text-align:right;flex-shrink:0;}
+  .pri-ops{font-family:'JetBrains Mono',monospace;color:var(--accent4);font-weight:600;min-width:130px;}
+  .pri-desc{color:var(--text-sub);}
+  .pri-high{color:var(--accent3);font-size:.72rem;margin-left:auto;font-weight:600;}
+
+  /* QUIZ */
+  .quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .quiz-score-badge{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:var(--accent2);font-weight:600;background:#0f1f0f;border:1px solid var(--accent2);padding:4px 12px;border-radius:20px;}
+  .quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px;}
+  .quiz-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent);letter-spacing:1px;margin-bottom:12px;font-weight:600;}
+  .quiz-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:20px;color:var(--text);}
+  .quiz-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:20px;white-space:pre;overflow-x:auto;line-height:1.6;}
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt-btn{font-family:'Noto Sans KR',sans-serif;width:100%;padding:12px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.9rem;text-align:left;transition:all .2s;display:flex;align-items:flex-start;gap:12px;}
+  .opt-btn:hover:not(:disabled){border-color:var(--accent);background:#0e1c30;}
+  .opt-btn:disabled{cursor:default;}
+  .opt-letter{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .opt-btn.correct{border-color:var(--accent2);background:#0f1f0f;color:var(--accent2);}
+  .opt-btn.correct .opt-letter{background:var(--accent2);color:#fff;}
+  .opt-btn.wrong{border-color:var(--accent3);background:#2a1c1c;color:var(--accent3);}
+  .opt-btn.wrong .opt-letter{background:var(--accent3);color:#fff;}
+  .feedback-box{margin-top:14px;padding:12px 16px;border-radius:8px;font-size:.875rem;line-height:1.65;display:none;}
+  .feedback-box.show{display:block;}
+  .feedback-correct{background:#0f2a0f;border:1px solid var(--accent2);color:var(--accent2);}
+  .feedback-wrong{background:#2a0f0f;border:1px solid var(--accent3);color:#e6edf3;}
+  .feedback-wrong strong{color:var(--accent3);}
+  .quiz-result{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px;text-align:center;}
+  .quiz-result.show{display:block;animation:fadeIn .4s ease;}
+  .result-score{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;margin:16px 0;}
+  .result-msg{font-size:1rem;color:var(--text-sub);margin-bottom:24px;}
+  .result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+  /* PRACTICE */
+  .practice-score-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
+  .ps-label{font-size:.875rem;color:var(--text-sub);}
+  .ps-score{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--accent4);background:#2a1c40;border:1px solid var(--accent4);padding:4px 14px;border-radius:20px;}
+  .practice-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px;}
+  .practice-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+  .practice-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent4);font-weight:700;letter-spacing:1px;}
+  .practice-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;background:#2a1c40;color:var(--accent4);border:1px solid var(--accent4);}
+  .practice-body{padding:20px;}
+  .practice-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:14px;}
+  .practice-desc{font-size:.875rem;color:var(--text-sub);line-height:1.75;margin-bottom:16px;padding:12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent4);}
+  .practice-given{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:14px;white-space:pre;overflow-x:auto;line-height:1.7;}
+  .editor-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent4);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
+  .code-editor{width:100%;background:#010409;border:1px solid var(--accent4);border-radius:8px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent4);resize:vertical;min-height:90px;outline:none;line-height:1.7;transition:border-color .2s,box-shadow .2s;box-sizing:border-box;}
+  .code-editor:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.15);color:var(--text);}
+  .practice-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .btn-check{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--accent4);background:#2a1c40;color:var(--accent4);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-check:hover{background:var(--accent4);color:#000;}
+  .btn-hint{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-sub);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-hint:hover{border-color:var(--warn);color:var(--warn);}
+  .btn-reset-p{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-sub);cursor:pointer;font-size:.875rem;transition:all .2s;}
+  .btn-reset-p:hover{border-color:var(--accent3);color:var(--accent3);}
+  .practice-feedback{margin-top:14px;border-radius:8px;overflow:hidden;display:none;}
+  .practice-feedback.show{display:block;}
+  .pf-result{padding:12px 16px;font-size:.875rem;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .pf-correct{background:#0f2a0f;color:var(--accent2);border:1px solid var(--accent2);border-bottom:none;}
+  .pf-wrong  {background:#2a0f0f;color:var(--accent3);border:1px solid var(--accent3);border-bottom:none;}
+  .pf-partial{background:#2a2a0f;color:var(--warn);   border:1px solid var(--warn);   border-bottom:none;}
+  .pf-explain{padding:14px 16px;font-size:.85rem;line-height:1.75;color:var(--text-sub);background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;}
+  .pf-answer-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--accent2);margin-top:10px;white-space:pre;overflow-x:auto;line-height:1.6;}
+  .hint-box{margin-top:10px;padding:12px 14px;background:#2a200a;border:1px solid var(--warn);border-radius:8px;font-size:.84rem;color:var(--warn);display:none;line-height:1.7;white-space:pre-line;font-family:'JetBrains Mono',monospace;}
+  .hint-box.show{display:block;}
+
+  /* WRONG NOTES */
+  .wrong-note-card{background:var(--surface);border:1px solid #2a1c1c;border-left:4px solid var(--accent3);border-radius:var(--radius);padding:20px;margin-bottom:16px;animation:fadeIn .3s ease;}
+  .wn-qnum{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent3);font-weight:600;margin-bottom:8px;}
+  .wn-q{font-size:.95rem;font-weight:600;margin-bottom:12px;line-height:1.6;}
+  .wn-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.85rem;}
+  .wn-my {padding:10px;border-radius:6px;background:#2a1c1c;border:1px solid var(--accent3);}
+  .wn-ans{padding:10px;border-radius:6px;background:#0f1f0f;border:1px solid var(--accent2);}
+  .wn-label{font-size:.7rem;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+  .wn-my  .wn-label{color:var(--accent3);}
+  .wn-ans .wn-label{color:var(--accent2);}
+  .wn-explain{margin-top:12px;font-size:.85rem;color:var(--text-sub);line-height:1.65;padding:10px;background:var(--surface2);border-radius:6px;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-sub);}
+  .empty-icon{font-size:3rem;margin-bottom:12px;}
+  .download-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;flex-wrap:wrap;gap:12px;}
+  .download-info{font-size:.9rem;}
+  .download-info strong{color:var(--accent3);}
+
+  @media(max-width:640px){
+    nav,.section{padding:12px 16px;}
+    header{padding:14px 16px;}
+    .wn-row,.two-col,.three-col{grid-template-columns:1fr;}
+    .flashcard-wrap{height:310px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">py<span>.expr</span></div>
+  <h1>Python <strong>Statement &amp; Expression</strong> 학습</h1>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')"><span>🃏</span> 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')"><span>💻</span> 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')"><span>📝</span> 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('practice')"><span>⌨️</span> 실습 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')"><span>📋</span> 오답노트</button>
+</nav>
+
+<!-- ===== FLASHCARDS ===== -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 개념을 충분히 학습한 후 퀴즈로 넘어가세요.</div>
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 16</span>
+    <span style="font-size:.8rem;color:var(--text-sub)">💡 클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:6.25%"></div></div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">👆 클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ===== CODE EXAMPLES ===== -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">Statement, Expression, Operations를 코드로 확인하세요.</div>
+
+  <!-- 개념 구조 전체 지도 -->
+  <div class="concept-box">
+    <h3>🗺️ Statement vs Expression 한눈에 구분</h3>
+    <div class="two-col">
+      <div class="ci ci-blue">
+        <div class="ci-label">Statement (문장)</div>
+        <div style="color:var(--text-sub)">
+          실행되는 <strong style="color:var(--text)">명령의 단위</strong><br>
+          결과값을 반환하지 않음<br><br>
+          <strong style="color:var(--accent)">Simple statement</strong><br>
+          한 줄(Logical Line)로 구성<br>
+          <code style="color:var(--accent4);font-size:.78rem">assignment, del, import,<br>return, pass, break ...</code><br><br>
+          <strong style="color:var(--accent)">Compound statement</strong><br>
+          다른 statement를 포함, 실행 제어<br>
+          <code style="color:var(--accent4);font-size:.78rem">if, for, while, def, class ...</code>
+        </div>
+      </div>
+      <div class="ci ci-green">
+        <div class="ci-label">Expression (표현식)</div>
+        <div style="color:var(--text-sub)">
+          <strong style="color:var(--text)">값(value)을 만들어내는</strong> 코드<br>
+          평가(evaluate)되어 객체 반환<br><br>
+          <strong style="color:var(--accent2)">Expression의 종류</strong><br>
+          <code style="color:var(--accent4);font-size:.78rem">Atoms &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; → 기본 구성요소<br>Primaries  → 속성·인덱스·호출<br>Operations → 각종 연산<br>Conditionals → 조건 표현식<br>Lambdas &nbsp;&nbsp; → 람다</code>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:14px;padding:12px 16px;background:var(--surface2);border-radius:8px;font-size:.85rem;color:var(--text-sub);line-height:1.75;border:1px solid var(--border);">
+      💡 <strong style="color:var(--warn)">핵심 구분:</strong>
+      Expression은 Statement 안에 포함될 수 있지만, Statement는 Expression이 아닙니다.<br>
+      <code style="color:var(--accent4)">a = 10</code> → assignment statement (값을 반환하지 않음)<br>
+      <code style="color:var(--accent4)">10</code>, <code style="color:var(--accent4)">a + b</code>, <code style="color:var(--accent4)">abs(-5)</code> → expression (값을 반환함)
+    </div>
+  </div>
+
+  <!-- 예제 1: Simple statement 종류 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: Simple Statement 종류</span>
+      <span class="code-tag tag-stmt">simple statement · assignment · del</span>
+    </div>
+    <div class="code-explain">
+      <strong>Simple statement</strong>는 한 개의 논리적 줄(Logical Line)로 구성됩니다.<br>
+      세미콜론(;)으로 여러 개를 한 줄에 나열할 수 있습니다.<br>
+      가장 자주 쓰이는 것은 <strong>assignment(할당)</strong>과 <strong>expression statement</strong>입니다.
+    </div>
+    <pre><code><span class="cm"># assignment statement (할당문) — 가장 기본적인 simple statement</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="num">3</span>
+
+<span class="cm"># 세미콜론으로 여러 simple statement를 한 줄에 나열</span>
+<span class="nm">x</span> <span class="op">=</span> <span class="num">1</span>; <span class="nm">y</span> <span class="op">=</span> <span class="num">2</span>; <span class="nm">z</span> <span class="op">=</span> <span class="num">3</span>
+
+<span class="cm"># del statement — namespace에서 이름 제거</span>
+<span class="nm">temp</span> <span class="op">=</span> <span class="st">'임시 변수'</span>
+<span class="kw">del</span> <span class="nm">temp</span>
+
+<span class="cm"># pass statement — 아무것도 하지 않음 (자리 채우기)</span>
+<span class="kw">pass</span>
+
+<span class="cm"># expression statement — 표현식 자체가 문장이 되는 경우</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="op">+</span> <span class="nm">b</span>)   <span class="cm"># print() 호출은 expression statement</span>
+<span class="nm">a</span> <span class="op">+</span> <span class="nm">b</span>          <span class="cm"># 값을 계산하지만 아무것도 하지 않음 (REPL에서는 출력됨)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ Simple Statement 분류</div>
+      <table class="tbl">
+        <tr><th>종류</th><th>예시</th><th>설명</th></tr>
+        <tr><td>assignment</td><td><code>a = 10</code></td><td>이름에 객체 연결</td></tr>
+        <tr><td>expression statement</td><td><code>print(a)</code>, <code>a + b</code></td><td>표현식을 문장으로 실행</td></tr>
+        <tr><td>del</td><td><code>del a</code></td><td>namespace에서 이름 제거</td></tr>
+        <tr><td>import</td><td><code>import sys</code></td><td>모듈 불러오기</td></tr>
+        <tr><td>return / pass / break</td><td><code>return x</code></td><td>흐름 제어</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 예제 2: 산술 연산 + 우선순위 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: 산술 연산 (Arithmetic Operations) · 연산자 우선순위</span>
+      <span class="code-tag tag-op">** · * · / · // · % · 우선순위</span>
+    </div>
+    <div class="code-explain">
+      산술 연산자 우선순위: <strong>** (거듭제곱)</strong> &gt; <strong>*, /, //, %</strong> &gt; <strong>+, -</strong><br>
+      주의: <code>-1 ** 2</code>는 <code>-(1 ** 2) = -1</code> — <strong>**가 단항 -보다 먼저 적용</strong>됩니다.<br>
+      <code>//</code>는 몫(floor division), <code>%</code>는 나머지(modulo)입니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="num">3</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="num">2</span>
+
+<span class="fn">print</span>(<span class="nm">a</span> <span class="op">**</span> <span class="nm">b</span>, <span class="nm">a</span> <span class="op">*</span> <span class="nm">b</span>, <span class="nm">a</span> <span class="op">/</span> <span class="nm">b</span>, <span class="nm">a</span> <span class="op">//</span> <span class="nm">b</span>, <span class="nm">a</span> <span class="op">%</span> <span class="nm">b</span>)
+<span class="cm"># 1000  30  3.333...  3  1</span>
+
+<span class="fn">print</span>(<span class="nm">a</span> <span class="op">**</span> <span class="nm">c</span>, <span class="nm">a</span> <span class="op">*</span> <span class="nm">c</span>, <span class="nm">a</span> <span class="op">/</span> <span class="nm">c</span>, <span class="nm">a</span> <span class="op">//</span> <span class="nm">c</span>, <span class="nm">a</span> <span class="op">%</span> <span class="nm">c</span>)
+<span class="cm"># 100   20  5.0       5  0</span>
+
+<span class="nm">c</span> <span class="op">=</span> <span class="num">3</span> <span class="op">*</span> (<span class="num">2</span> <span class="op">+</span> <span class="num">5</span>)   <span class="cm"># 괄호로 우선순위 변경 → 3 * 7 = 21</span>
+<span class="fn">print</span>(<span class="nm">c</span>)           <span class="cm"># 21</span>
+
+<span class="cm"># ⚠ 주의: ** 는 단항 - 보다 우선순위가 높음</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="op">-</span><span class="num">1</span> <span class="op">**</span> <span class="num">2</span>   <span class="cm"># -(1**2) = -1  (NOT (-1)**2 = 1)</span>
+<span class="fn">print</span>(<span class="nm">a</span>)        <span class="cm"># -1</span>
+
+<span class="nm">b</span> <span class="op">=</span> (<span class="op">-</span><span class="num">1</span>) <span class="op">**</span> <span class="num">2</span>  <span class="cm"># (-1)**2 = 1  (괄호로 명시)</span>
+<span class="fn">print</span>(<span class="nm">b</span>)        <span class="cm"># 1</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      1000 &nbsp;30 &nbsp;3.3333333333333335 &nbsp;3 &nbsp;1<br>
+      100 &nbsp;20 &nbsp;5.0 &nbsp;5 &nbsp;0<br>
+      21<br>-1<br>1
+    </div>
+  </div>
+
+  <!-- 예제 3: 산술 형 변환 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: Arithmetic Conversions (산술 형 변환)</span>
+      <span class="code-tag tag-op">int → float → complex · 자동 형변환</span>
+    </div>
+    <div class="code-explain">
+      서로 다른 타입 간 산술 연산 시 파이썬이 <strong>자동으로 타입을 변환</strong>합니다.<br>
+      변환 방향: <code>int</code> → <code>float</code> → <code>complex</code> (더 넓은 타입으로 자동 승격)
+    </div>
+    <pre><code><span class="fn">print</span>(<span class="fn">type</span>(<span class="num">1</span> <span class="op">+</span> <span class="num">3.14</span>))    <span class="cm"># int + float → float</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="num">1</span> <span class="op">+</span> <span class="num">3j</span>))      <span class="cm"># int + complex → complex</span>
+<span class="fn">print</span>(<span class="fn">type</span>(<span class="st">'%d'</span> <span class="op">%</span> <span class="num">10</span>))   <span class="cm"># 문자열 포맷 → str</span>
+
+<span class="cm"># 수동 형변환 예시</span>
+<span class="fn">print</span>(<span class="fn">int</span>(<span class="num">3.9</span>))     <span class="cm"># 3  (소수점 버림)</span>
+<span class="fn">print</span>(<span class="fn">float</span>(<span class="num">5</span>))    <span class="cm"># 5.0</span>
+<span class="fn">print</span>(<span class="fn">str</span>(<span class="num">100</span>))    <span class="cm"># '100'</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      &lt;class 'float'&gt;<br>
+      &lt;class 'complex'&gt;<br>
+      &lt;class 'str'&gt;<br>
+      3 &nbsp;&nbsp;5.0 &nbsp;&nbsp;100
+    </div>
+  </div>
+
+  <!-- 예제 4: 비교 연산 + is vs == + interning -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: 비교 연산 — == vs is · interning</span>
+      <span class="code-tag tag-cmp">== · is · in · interning · hash</span>
+    </div>
+    <div class="code-explain">
+      <strong><code>==</code></strong>: 값(value)이 같은지 비교<br>
+      <strong><code>is</code></strong>: 동일한 객체인지 비교 (id가 같은지)<br>
+      <strong>interning</strong>: 파이썬이 자주 쓰는 작은 정수(-5~256)와 짧은 문자열을 재사용하는 최적화.<br>
+      interning 범위 밖(예: 300)은 같은 값이어도 다른 객체가 생성될 수 있어 <code>is</code>가 False가 됩니다.
+    </div>
+    <pre><code><span class="cm"># interning 범위 안 (소정수: -5 ~ 256)</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>; <span class="nm">b</span> <span class="op">=</span> <span class="num">10</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="kw">is</span> <span class="nm">b</span>, <span class="nm">a</span> <span class="op">==</span> <span class="nm">b</span>)   <span class="cm"># True True  (같은 객체 재사용)</span>
+
+<span class="cm"># interning 범위 밖</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">300</span>; <span class="nm">b</span> <span class="op">=</span> <span class="num">300</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="kw">is</span> <span class="nm">b</span>, <span class="nm">a</span> <span class="op">==</span> <span class="nm">b</span>)   <span class="cm"># False True  (값은 같지만 다른 객체)</span>
+
+<span class="cm"># tuple: 같은 값이어도 다른 객체</span>
+<span class="nm">a</span> <span class="op">=</span> (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>); <span class="nm">b</span> <span class="op">=</span> (<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)
+<span class="fn">print</span>(<span class="nm">a</span> <span class="kw">is</span> <span class="nm">b</span>, <span class="nm">a</span> <span class="op">==</span> <span class="nm">b</span>)   <span class="cm"># False True</span>
+
+<span class="cm"># 짧은 문자열: interning 적용됨</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="st">"Pizza"</span>; <span class="nm">b</span> <span class="op">=</span> <span class="st">"Pizza"</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="kw">is</span> <span class="nm">b</span>, <span class="nm">a</span> <span class="op">==</span> <span class="nm">b</span>)   <span class="cm"># True True</span>
+
+<span class="cm"># is로 타입 확인</span>
+<span class="fn">print</span>(<span class="fn">int</span> <span class="kw">is</span> <span class="fn">type</span>(<span class="num">10</span>))    <span class="cm"># True</span>
+
+<span class="cm"># 연쇄 비교 (가능하지만 권장 안 함)</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>
+<span class="fn">print</span>(<span class="num">1</span> <span class="op">&lt;</span> <span class="nm">a</span> <span class="op">&lt;=</span> <span class="num">10</span>)       <span class="cm"># True</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      True &nbsp;True<br>
+      False &nbsp;True &nbsp;<span style="color:var(--warn)">← 300은 interning 범위 밖</span><br>
+      False &nbsp;True<br>
+      True &nbsp;True &nbsp;<span style="color:var(--warn)">← 문자열 interning</span><br>
+      True<br>True
+    </div>
+  </div>
+
+  <!-- 예제 5: in 연산자 + hash -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 5: in 연산자 · hash · 탐색 성능</span>
+      <span class="code-tag tag-cmp">in · not in · hash · list vs set</span>
+    </div>
+    <div class="code-explain">
+      <code>in</code> / <code>not in</code>: 컨테이너에 해당 값이 있는지 확인. 결과는 bool.<br>
+      <strong>list</strong>의 <code>in</code>은 순차 탐색(O(n)), <strong>set/dict</strong>의 <code>in</code>은 hash 탐색(O(1))으로 빠릅니다.<br>
+      hash는 불변 객체만 가질 수 있어, 가변 객체(list)는 <code>hash()</code> 호출 시 TypeError 발생합니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="fn">list</span>(<span class="fn">range</span>(<span class="num">1</span>, <span class="num">10</span>))
+<span class="fn">print</span>(<span class="num">1</span> <span class="kw">in</span> <span class="nm">a</span>, <span class="num">10</span> <span class="kw">in</span> <span class="nm">a</span>)    <span class="cm"># True False  (순차 탐색 — 느림)</span>
+
+<span class="nm">a</span> <span class="op">=</span> <span class="fn">set</span>(<span class="fn">range</span>(<span class="num">1</span>, <span class="num">10</span>))
+<span class="fn">print</span>(<span class="num">1</span> <span class="kw">in</span> <span class="nm">a</span>, <span class="num">10</span> <span class="kw">in</span> <span class="nm">a</span>)    <span class="cm"># True False  (hash 탐색 — 빠름)</span>
+
+<span class="cm"># hash(): 불변 객체만 가능</span>
+<span class="fn">print</span>(<span class="fn">hash</span>(<span class="st">"12345"</span>))       <span class="cm"># 숫자 반환 (불변 str)</span>
+<span class="fn">print</span>(<span class="fn">hash</span>([<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>]))      <span class="cm"># TypeError: unhashable type: 'list'</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      True &nbsp;False &nbsp;<span style="color:var(--warn)">← list: 순차 탐색</span><br>
+      True &nbsp;False &nbsp;<span style="color:var(--warn)">← set: hash 탐색 (더 빠름)</span><br>
+      -3024180440931229798<br>
+      <span style="color:var(--accent3)">TypeError: unhashable type: 'list'</span>
+    </div>
+  </div>
+
+  <!-- 예제 6: 논리 연산자 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 6: 논리 연산자 — and · or · not · 단락 평가</span>
+      <span class="code-tag tag-bool">and · or · not · truthy · falsy</span>
+    </div>
+    <div class="code-explain">
+      <strong>and / or</strong>: True/False가 아니라 <strong>앞 또는 뒤의 객체 자체를 반환</strong>합니다.<br>
+      <code>and</code>: 앞이 거짓이면 앞을, 앞이 참이면 뒤를 반환<br>
+      <code>or</code>: 앞이 참이면 앞을, 앞이 거짓이면 뒤를 반환<br>
+      <strong>거짓(Falsy)</strong>: <code>False, 0, 0.0, None, '', [], {}, set()</code>  /  <strong>참(Truthy)</strong>: 그 외 모든 것
+    </div>
+    <pre><code><span class="cm"># and / or 는 bool이 아닌 객체를 반환</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>; <span class="nm">b</span> <span class="op">=</span> <span class="num">5</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="kw">and</span> <span class="nm">b</span>)   <span class="cm"># 5   (a가 참 → b 반환)</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="kw">or</span>  <span class="nm">b</span>)   <span class="cm"># 10  (a가 참 → a 반환)</span>
+
+<span class="nm">a</span> <span class="op">=</span> <span class="num">0</span>; <span class="nm">b</span> <span class="op">=</span> <span class="num">5</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="kw">and</span> <span class="nm">b</span>)   <span class="cm"># 0   (a가 거짓 → a 반환)</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="kw">or</span>  <span class="nm">b</span>)   <span class="cm"># 5   (a가 거짓 → b 반환)</span>
+
+<span class="cm"># not 은 True/False 반환</span>
+<span class="fn">print</span>(<span class="kw">not</span> <span class="num">0</span>)    <span class="cm"># True</span>
+<span class="fn">print</span>(<span class="kw">not</span> <span class="num">10</span>)   <span class="cm"># False</span>
+<span class="fn">print</span>(<span class="kw">not</span> [])   <span class="cm"># True  (빈 리스트는 거짓)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      5 &nbsp;&nbsp;10<br>0 &nbsp;&nbsp;5<br>True &nbsp;&nbsp;False &nbsp;&nbsp;True
+    </div>
+  </div>
+
+  <!-- 예제 7: & | vs and or + 연산식 만들기 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 7: &amp; · | vs and · or — 연산식 만들기</span>
+      <span class="code-tag tag-bool">&amp; · | · and · or · 조건 표현식</span>
+    </div>
+    <div class="code-explain">
+      <strong><code>and</code> / <code>or</code></strong>: 파이썬 논리 연산자, bool 평가에 사용<br>
+      <strong><code>&amp;</code> / <code>|</code></strong>: 비트 연산자, <strong>pandas 인덱싱에서는 <code>and/or</code> 대신 <code>&amp;/|</code>를 사용</strong><br>
+      일상적인 조건 비교에서는 둘 다 동일한 결과를 냅니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="num">10</span>
+
+<span class="cm"># a가 짝수인가?</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>)              <span class="cm"># True</span>
+<span class="fn">print</span>(<span class="kw">not</span> (<span class="nm">a</span> <span class="op">%</span> <span class="num">2</span>))             <span class="cm"># True  (0은 falsy)</span>
+
+<span class="cm"># a가 5보다 크고(and) 짝수인가?</span>
+<span class="fn">print</span>((<span class="nm">a</span> <span class="op">&gt;</span> <span class="num">5</span>) <span class="kw">and</span> (<span class="nm">a</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>))   <span class="cm"># True</span>
+<span class="fn">print</span>((<span class="nm">a</span> <span class="op">&gt;</span> <span class="num">5</span>) <span class="op">&amp;</span>   (<span class="nm">a</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>))   <span class="cm"># True  (pandas에서 사용)</span>
+
+<span class="cm"># a가 100보다 크거나(or) 0보다 작은가?</span>
+<span class="fn">print</span>((<span class="nm">a</span> <span class="op">&gt;</span> <span class="num">100</span>) <span class="op">|</span> (<span class="nm">a</span> <span class="op">&lt;</span> <span class="num">0</span>))      <span class="cm"># False</span>
+
+<span class="cm"># a는 정수이고 b는 문자열인가?</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="num">5</span>
+<span class="fn">print</span>((<span class="fn">type</span>(<span class="nm">a</span>) <span class="kw">is</span> <span class="fn">int</span>) <span class="op">&amp;</span> (<span class="fn">type</span>(<span class="nm">b</span>) <span class="kw">is</span> <span class="fn">str</span>))  <span class="cm"># False (b는 int)</span>
+
+<span class="cm"># a가 3의 배수인가?</span>
+<span class="fn">print</span>(<span class="nm">a</span> <span class="op">%</span> <span class="num">3</span> <span class="op">==</span> <span class="num">0</span>)                <span class="cm"># False (10 % 3 = 1)</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      True &nbsp;&nbsp;True<br>True &nbsp;&nbsp;True<br>False<br>False<br>False
+    </div>
+  </div>
+
+  <!-- 연산자 우선순위 -->
+  <div class="concept-box">
+    <h3>📊 연산자 우선순위 (높음 → 낮음)</h3>
+    <div class="priority-list">
+      <div class="priority-item"><span class="pri-num">1</span><span class="pri-ops">( )</span><span class="pri-desc">괄호 — 최우선</span><span class="pri-high">최고</span></div>
+      <div class="priority-item"><span class="pri-num">2</span><span class="pri-ops">**</span><span class="pri-desc">거듭제곱 (우결합: 2**3**2 = 2**(3**2) = 512)</span></div>
+      <div class="priority-item"><span class="pri-num">3</span><span class="pri-ops">+x, -x, ~x</span><span class="pri-desc">단항 연산자 (부호, 비트 NOT)</span></div>
+      <div class="priority-item"><span class="pri-num">4</span><span class="pri-ops">*, /, //, %</span><span class="pri-desc">곱셈·나눗셈·몫·나머지</span></div>
+      <div class="priority-item"><span class="pri-num">5</span><span class="pri-ops">+, -</span><span class="pri-desc">덧셈·뺄셈</span></div>
+      <div class="priority-item"><span class="pri-num">6</span><span class="pri-ops">&lt;&lt;, &gt;&gt;</span><span class="pri-desc">비트 시프트</span></div>
+      <div class="priority-item"><span class="pri-num">7</span><span class="pri-ops">&amp;</span><span class="pri-desc">비트 AND</span></div>
+      <div class="priority-item"><span class="pri-num">8</span><span class="pri-ops">^</span><span class="pri-desc">비트 XOR</span></div>
+      <div class="priority-item"><span class="pri-num">9</span><span class="pri-ops">|</span><span class="pri-desc">비트 OR</span></div>
+      <div class="priority-item"><span class="pri-num">10</span><span class="pri-ops">==, !=, &lt;, &gt;, &lt;=, &gt;=, is, in</span><span class="pri-desc">비교 연산</span></div>
+      <div class="priority-item"><span class="pri-num">11</span><span class="pri-ops">not</span><span class="pri-desc">논리 NOT</span></div>
+      <div class="priority-item"><span class="pri-num">12</span><span class="pri-ops">and</span><span class="pri-desc">논리 AND</span></div>
+      <div class="priority-item"><span class="pri-num">13</span><span class="pri-ops">or</span><span class="pri-desc">논리 OR</span><span class="pri-high">최저</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== QUIZ ===== -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div class="section-title">📝 퀴즈</div>
+    <div class="quiz-score-badge" id="score-badge">0 / 20</div>
+  </div>
+  <div class="section-subtitle">총 20문제 · 선택지를 클릭하면 즉시 정답 여부를 확인할 수 있습니다.</div>
+  <div id="quiz-list"></div>
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎯</div>
+    <div class="result-score" id="result-score-text"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-ghost" onclick="showTab('notes')">📋 오답노트 보기</button>
+      <button class="btn btn-primary" onclick="resetQuiz()">🔄 다시 풀기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRACTICE ===== -->
+<div id="practice" class="section">
+  <div class="section-title">⌨️ 실습 퀴즈</div>
+  <div class="section-subtitle">빈칸을 직접 코드로 채워보세요. Tab키는 스페이스 4칸으로 입력됩니다.</div>
+  <div class="practice-score-bar">
+    <span class="ps-label">실습 진행 현황</span>
+    <span class="ps-score" id="ps-score">0 / 7 완료</span>
+  </div>
+  <div id="practice-list"></div>
+</div>
+
+<!-- ===== WRONG NOTES ===== -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">퀴즈에서 틀린 문제만 모아 정리합니다. 텍스트 파일로 다운로드할 수 있습니다.</div>
+  <div class="download-bar" id="download-bar" style="display:none">
+    <div class="download-info">틀린 문제 <strong id="wrong-count">0</strong>개가 기록되었습니다</div>
+    <button class="btn btn-danger" onclick="downloadNotes()">⬇ 오답노트 다운로드 (.txt)</button>
+  </div>
+  <div id="notes-list">
+    <div class="empty-state"><div class="empty-icon">📝</div><div>아직 퀴즈를 풀지 않았습니다.<br>퀴즈 탭에서 문제를 풀면 오답이 여기에 기록됩니다.</div></div>
+  </div>
+</div>
+
+<script>
+function escHtml(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function escCode(s){if(!s)return'';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ===== FLASHCARDS =====
+const cards=[
+  {q:"Statement와 Expression의 가장 큰 차이는?",
+   a:"Statement (문장):\n실행되는 명령의 단위, 값을 반환하지 않음\n예: a = 10, del a, return x\n\nExpression (표현식):\n평가(evaluate)되어 값(객체)을 반환\n예: 10, a + b, abs(-5), 'hello'\n\n핵심: Expression은 Statement 안에 포함될 수 있지만\nStatement는 Expression이 아님"},
+  {q:"Simple Statement와 Compound Statement의 차이는?",
+   a:"Simple Statement:\n한 개의 논리적 줄(Logical Line)로 구성\n세미콜론(;)으로 여러 개 나열 가능\n예: a = 10, del x, import os, pass\n\nCompound Statement:\n다른 statement를 포함하며 실행을 제어\n예: if, for, while, def, class, try, with"},
+  {q:"Simple Statement에는 어떤 종류가 있는가?",
+   a:"· assignment (할당): a = 10\n· expression statement: print(a), a + b\n· del: del a\n· import: import sys\n· global / nonlocal\n· assert / yield / raise\n· return / pass / break / continue"},
+  {q:"Python Expression의 종류 7가지는?",
+   a:"① Arithmetic conversions — 산술 형 변환\n② Atoms — 기본 구성요소 (이름·리터럴·묶음)\n③ Primaries — 속성참조·인덱싱·슬라이싱·호출\n④ Operations — 각종 연산\n⑤ Conditional expressions — 조건 표현식\n⑥ Lambdas — 람다 표현식\n⑦ Expression lists — 표현식 리스트"},
+  {q:"Operations의 종류를 나열하시오.",
+   a:"· power (**)  거듭제곱\n· unary arithmetic (+x, -x)  단항 부호\n· unary bitwise (~x)  비트 NOT\n· binary arithmetic (+,-,*,/,//,%)  산술\n· shift (<<, >>)  비트 시프트\n· binary bitwise (&, |, ^)  비트 연산\n· comparisons (==, !=, <, >, <=, >=, is, in)\n· boolean operations (and, or, not)"},
+  {q:"산술 연산자 우선순위를 높은 것부터 나열하면?",
+   a:"① ** (거듭제곱) — 가장 높음\n② *, /, //, %  (곱셈/나눗셈류)\n③ +, -  (덧셈/뺄셈)\n\n주의:\n-1 ** 2 = -(1**2) = -1\n(**가 단항 -보다 우선순위 높음)\n\n괄호 ()로 명시하면 원하는 순서 적용 가능"},
+  {q:"-1 ** 2의 결과는? 이유는?",
+   a:"-1\n\n** (거듭제곱)의 우선순위가 단항 -(부호)보다 높기 때문.\n\n파이썬은 이를 -(1 ** 2) = -(1) = -1로 계산함.\n\n(-1) ** 2 = 1로 만들려면\n반드시 괄호로 묶어야 함."},
+  {q:"10 // 3 과 10 % 3 의 결과는?",
+   a:"10 // 3 = 3  (몫, floor division)\n10 % 3  = 1  (나머지, modulo)\n\n검증: 3 × 3 + 1 = 10 ✔\n\n추가:\n10 // 2 = 5,  10 % 2 = 0  (짝수)\n10 / 3  = 3.333... (일반 나눗셈, float 반환)"},
+  {q:"Arithmetic Conversions(산술 형 변환)이란?",
+   a:"서로 다른 타입 간 연산 시 파이썬이\n더 넓은 타입으로 자동 변환하는 것.\n\nint + float → float\nint + complex → complex\n문자열 포맷 → str\n\n예:\ntype(1 + 3.14) → float\ntype(1 + 3j)   → complex"},
+  {q:"== 과 is 의 차이는?",
+   a:"== : 값(value)이 같은지 비교\n     a == b → a와 b의 내용이 동일한가\n\nis : 동일한 객체인지 비교 (id 동일 여부)\n     a is b → a와 b가 메모리상 같은 객체인가\n\n예:\na = [1,2,3]; b = [1,2,3]\na == b → True  (값이 같음)\na is b → False (다른 객체)"},
+  {q:"interning이란 무엇인가?",
+   a:"파이썬이 자주 쓰는 객체를 재사용하는 최적화.\n\n적용 범위:\n· 소정수: -5 ~ 256\n· 짧은 문자열(식별자 형태)\n\n예:\na = 10; b = 10\na is b → True  (같은 객체 재사용)\n\na = 300; b = 300\na is b → False (범위 밖, 별도 객체 생성)"},
+  {q:"in / not in 연산자의 역할과 list vs set의 차이는?",
+   a:"in: 컨테이너에 해당 값이 있으면 True\nnot in: 없으면 True\n결과는 항상 bool\n\nlist의 in → 순차 탐색 O(n) → 느림\nset의 in  → hash 탐색 O(1)  → 빠름\n\n큰 데이터에서 포함 여부 확인 시\nset으로 변환 후 사용 권장"},
+  {q:"논리 연산자 and / or 의 반환값은?",
+   a:"and / or는 bool이 아닌\n앞 또는 뒤의 객체 자체를 반환.\n\nand: 앞이 거짓 → 앞 반환\n     앞이 참  → 뒤 반환\n\nor:  앞이 참  → 앞 반환\n     앞이 거짓 → 뒤 반환\n\n예:\n10 and 5 → 5\n 0 and 5 → 0\n10 or  5 → 10\n 0 or  5 → 5"},
+  {q:"Falsy 값(거짓으로 평가되는 것)을 모두 나열하면?",
+   a:"False\n0  (정수)\n0.0  (부동소수점)\nNone\n''  (빈 문자열)\n[]  (빈 리스트)\n()  (빈 튜플)\n{}  (빈 딕셔너리)\nset()  (빈 집합)\n\n위 외의 모든 값은 Truthy(참)로 평가됨"},
+  {q:"and / or vs & / | 의 차이는?",
+   a:"and / or:\n논리 연산자, 단락 평가(short-circuit) 적용\n파이썬 일반 조건문에 사용\n\n& / |:\n비트 연산자, 양쪽 모두 평가\npandas 인덱싱에서 조건 결합 시 사용\n(pandas는 and/or를 사용할 수 없음)\n\na = 10\n(a > 5) and (a % 2 == 0)  → True\n(a > 5) &   (a % 2 == 0)  → True"},
+  {q:"Atoms(기본 구성요소)의 3가지 종류는?",
+   a:"① identifiers (이름/식별자)\n   예: x, my_var, print\n\n② literals (리터럴 — 코드에 직접 쓴 값)\n   예: 10, 3.14, 'hello', True\n\n③ enclosures (묶음)\n   예: (1, 2, 3) — tuple\n       [1, 2, 3] — list\n       {1: 'a'}  — dict"},
+];
+
+let fcIndex=0;
+function renderCard(){
+  document.getElementById('fc-q').innerHTML=escHtml(cards[fcIndex].q);
+  document.getElementById('fc-a').innerHTML=escHtml(cards[fcIndex].a);
+  document.getElementById('fc-counter').textContent=`${fcIndex+1} / ${cards.length}`;
+  document.getElementById('fc-bar').style.width=`${((fcIndex+1)/cards.length)*100}%`;
+}
+function updateCard(){document.getElementById('fc').classList.remove('flipped');setTimeout(renderCard,200);}
+function flipCard(){document.getElementById('fc').classList.toggle('flipped');}
+function nextCard(){fcIndex=(fcIndex+1)%cards.length;updateCard();}
+function prevCard(){fcIndex=(fcIndex-1+cards.length)%cards.length;updateCard();}
+
+// ===== QUIZ =====
+const quizzes=[
+  {q:"다음 중 Expression(표현식)에 해당하는 것은?",code:null,
+   opts:["a = 10","del a","a + b","import os"],
+   ans:2,explain:"a + b는 평가되어 값을 반환하는 표현식입니다. a = 10(assignment), del a(del statement), import os(import statement)는 모두 값을 반환하지 않는 Statement입니다."},
+  {q:"Simple Statement에 대한 설명으로 옳지 않은 것은?",code:null,
+   opts:["한 개의 논리적 줄(Logical Line)로 구성된다","세미콜론(;)으로 한 줄에 여러 개를 나열할 수 있다","if, for, while도 simple statement에 속한다","assignment, del, import, pass가 포함된다"],
+   ans:2,explain:"if, for, while, def, class는 다른 statement를 포함하고 실행을 제어하는 Compound Statement입니다. Simple Statement는 한 줄로 구성되며 세미콜론으로 나열 가능합니다."},
+  {q:"아래 코드의 출력 결과로 옳은 것은?",
+   code:`a = 10\nb = 3\nprint(a ** b, a // b, a % b)`,
+   opts:["30  3  1","1000  3  1","1000  3.33  1","30  3.33  0"],
+   ans:1,explain:"a ** b = 10**3 = 1000 (거듭제곱), a // b = 10//3 = 3 (몫), a % b = 10%3 = 1 (나머지)."},
+  {q:"아래 코드의 출력 결과로 옳은 것은?",
+   code:`a = -1 ** 2\nprint(a)`,
+   opts:["1","−1","0","TypeError 발생"],
+   ans:1,explain:"** 의 우선순위가 단항 - 보다 높으므로, -1 ** 2는 -(1**2) = -1로 계산됩니다. (-1)**2 = 1이 되려면 괄호가 필요합니다."},
+  {q:"아래 코드의 출력 결과로 옳은 것은?",
+   code:`print(type(1 + 3.14))\nprint(type(1 + 3j))`,
+   opts:["int / int","float / complex","float / float","int / complex"],
+   ans:1,explain:"Arithmetic conversion: int + float → float, int + complex → complex. 파이썬은 더 넓은 타입으로 자동 변환합니다."},
+  {q:"a = 10, b = 10 일 때 a is b가 True인 이유는?",code:null,
+   opts:["== 와 is는 항상 같은 결과를 반환하기 때문","10은 interning 범위(-5~256) 안의 소정수라 같은 객체를 재사용하기 때문","모든 정수는 interning이 적용되기 때문","변수명이 다르면 is는 항상 False이기 때문"],
+   ans:1,explain:"파이썬은 -5~256 범위의 소정수를 미리 만들어두고 재사용(interning)합니다. 따라서 a=10, b=10은 같은 객체를 가리키고 a is b는 True입니다."},
+  {q:"아래 코드에서 a is b의 결과로 옳은 것은?",
+   code:`a = 300\nb = 300\nprint(a is b, a == b)`,
+   opts:["True  True","False  True","False  False","True  False"],
+   ans:1,explain:"300은 interning 범위(-5~256) 밖이므로 a와 b는 값은 같지만 별도의 객체로 생성됩니다. a is b → False, a == b → True."},
+  {q:"아래 코드의 출력 결과로 옳은 것은?",
+   code:`a = 10\nb = 5\nprint(a and b)\nprint(a or  b)`,
+   opts:["True / True","10 / 5","5 / 10","True / 10"],
+   ans:2,explain:"and: a(10)가 참이므로 뒤의 b(5)를 반환 → 5. or: a(10)가 참이므로 앞의 a(10)를 반환 → 10. and/or는 bool이 아닌 객체 자체를 반환합니다."},
+  {q:"아래 코드의 출력 결과로 옳은 것은?",
+   code:`a = 0\nb = 5\nprint(a and b)\nprint(a or  b)`,
+   opts:["False / True","0 / 5","False / 5","0 / True"],
+   ans:1,explain:"and: a(0)가 거짓이므로 앞의 a(0)를 반환 → 0. or: a(0)가 거짓이므로 뒤의 b(5)를 반환 → 5."},
+  {q:"다음 중 Falsy(거짓으로 평가되는 값)가 아닌 것은?",code:null,
+   opts:["0","None","'0'","[]"],
+   ans:2,explain:"'0'은 내용이 있는 문자열이므로 Truthy(참)입니다. 0(정수), None, [](빈 리스트)는 모두 Falsy입니다. 빈 문자열('')은 Falsy이지만 '0'은 다릅니다."},
+  {q:"아래 코드의 출력 결과로 옳은 것은?",
+   code:`a = 10\nprint(not (a % 2))`,
+   opts:["False","True","0","1"],
+   ans:1,explain:"a % 2 = 10 % 2 = 0. not 0 = True (0은 Falsy). 따라서 not (a % 2)는 a가 짝수인지 확인하는 표현식입니다."},
+  {q:"list와 set에서 in 연산의 차이로 옳은 것은?",code:null,
+   opts:["list와 set 모두 hash 탐색을 사용한다","list는 hash 탐색, set은 순차 탐색을 사용한다","list는 순차 탐색 O(n), set은 hash 탐색 O(1)이다","set은 in 연산자를 지원하지 않는다"],
+   ans:2,explain:"list의 in은 처음부터 하나씩 확인하는 순차 탐색 O(n)입니다. set은 hash 값으로 바로 찾는 O(1)입니다. 대용량 데이터에서 포함 여부를 자주 확인할 때 set이 훨씬 빠릅니다."},
+  {q:"아래 코드에서 오류가 발생하는 이유는?",
+   code:`print(hash([1, 2, 3]))`,
+   opts:["hash()는 숫자에만 사용 가능하기 때문","list는 가변 객체라 hash 값을 가질 수 없기 때문","hash()는 내장함수가 아니기 때문","list는 비교 연산이 불가능하기 때문"],
+   ans:1,explain:"hash()는 불변(immutable) 객체에만 사용 가능합니다. list는 가변 객체라 내용이 언제든 바뀔 수 있어 고정된 hash 값을 배정할 수 없습니다. → TypeError: unhashable type: 'list'"},
+  {q:"아래 코드의 출력 결과로 옳은 것은?",
+   code:`a = 10\nprint(int is type(a))`,
+   opts:["False","True","TypeError 발생","<class 'int'>"],
+   ans:1,explain:"type(a)는 a의 타입인 int 클래스를 반환합니다. int is type(10)은 int 클래스 객체와 type(10)이 동일한 객체인지 비교합니다. 동일한 int 클래스를 가리키므로 True입니다."},
+  {q:"a = 10 일 때, 아래 두 표현식의 결과로 옳은 것은?",
+   code:`print((a > 5) and (a % 2 == 0))\nprint((a > 5) &   (a % 2 == 0))`,
+   opts:["True / TypeError 발생","True / True","False / False","True / False"],
+   ans:1,explain:"두 표현식 모두 True를 출력합니다. a=10은 5보다 크고(True) 짝수(True)입니다. and와 &는 일반 불리언 표현에서 같은 결과를 냅니다. 차이는 pandas 인덱싱 등에서 &/|를 사용해야 한다는 점입니다."},
+  {q:"연산자 우선순위가 높은 것부터 올바르게 나열된 것은?",code:null,
+   opts:["and > not > or > 비교","비교 > ** > 산술 > 논리","** > 산술(*,/,%) > 덧뺄셈 > 비교 > not > and > or","산술 > 비교 > ** > 논리"],
+   ans:2,explain:"파이썬 연산자 우선순위: ** > 단항(-x,+x) > *, /, //, % > +, - > 비트시프트 > 비트(&,^,|) > 비교(==,is,in 등) > not > and > or"},
+  {q:"다음 중 Atoms(기본 구성요소)에 해당하지 않는 것은?",code:null,
+   opts:["10 (literal)","x (identifier)","(1, 2, 3) (enclosure)","a + b (expression)"],
+   ans:3,explain:"Atoms는 표현식의 가장 기본 단위입니다. literals(10), identifiers(x), enclosures((1,2,3)) 세 가지입니다. a + b는 두 atom을 연산자로 결합한 Operations에 해당합니다."},
+  {q:"a = 10일 때 1 < a <= 10의 결과는?",
+   code:`a = 10\nprint(1 < a <= 10)`,
+   opts:["False","True","SyntaxError","TypeError"],
+   ans:1,explain:"파이썬은 연쇄 비교를 지원합니다. 1 < a <= 10은 (1 < a) and (a <= 10)으로 처리됩니다. 1 < 10 → True, 10 <= 10 → True, 따라서 결과는 True. 단, 권장하는 방식은 아닙니다."},
+  {q:"아래 코드에서 c = 3 * (2 + 5)의 결과로 옳은 것은?",
+   code:`c = 3 * (2 + 5)\nprint(c)`,
+   opts:["11","21","17","TypeError"],
+   ans:1,explain:"괄호 안이 먼저 계산됩니다. (2 + 5) = 7, 3 * 7 = 21. 괄호는 가장 높은 우선순위를 갖습니다."},
+  {q:"다음 중 Compound Statement에 해당하는 것은?",code:null,
+   opts:["a = 10","del x","assert x > 0","for i in range(10):"],
+   ans:3,explain:"for는 반복을 위한 Compound Statement입니다. a = 10(assignment), del x(del), assert(assert)는 모두 Simple Statement입니다. Compound Statement는 다른 statement를 내부에 포함합니다."},
+];
+
+let userAnswers=Array(quizzes.length).fill(null),score=0,answered=0;
+
+function buildQuiz(){
+  const list=document.getElementById('quiz-list');
+  list.innerHTML='';
+  quizzes.forEach((q,qi)=>{
+    const div=document.createElement('div');
+    div.className='quiz-card';
+    let codeHtml=q.code?`<div class="quiz-code">${escCode(q.code)}</div>`:'';
+    let optsHtml=q.opts.map((o,oi)=>
+      `<button class="opt-btn" id="opt-${qi}-${oi}" onclick="selectOpt(${qi},${oi})">
+        <span class="opt-letter">${'ABCD'[oi]}</span><span>${escHtml(o)}</span>
+      </button>`).join('');
+    div.innerHTML=`<div class="quiz-num">Q${qi+1} / ${quizzes.length}</div>
+      <div class="quiz-q">${escHtml(q.q)}</div>${codeHtml}
+      <div class="options" id="opts-${qi}">${optsHtml}</div>
+      <div class="feedback-box" id="fb-${qi}"></div>`;
+    list.appendChild(div);
+  });
+}
+
+function selectOpt(qi,oi){
+  if(userAnswers[qi]!==null)return;
+  userAnswers[qi]=oi;answered++;
+  const correct=quizzes[qi].ans;
+  const fb=document.getElementById(`fb-${qi}`);
+  for(let i=0;i<quizzes[qi].opts.length;i++){
+    const btn=document.getElementById(`opt-${qi}-${i}`);
+    btn.disabled=true;
+    if(i===correct)btn.classList.add('correct');
+    if(i===oi&&oi!==correct)btn.classList.add('wrong');
+  }
+  if(oi===correct){score++;fb.className='feedback-box show feedback-correct';fb.innerHTML=`✅ 정답입니다! ${escHtml(quizzes[qi].explain)}`;}
+  else{fb.className='feedback-box show feedback-wrong';fb.innerHTML=`❌ 오답입니다. <strong>정답: ${'ABCD'[correct]}</strong><br>${escHtml(quizzes[qi].explain)}`;addWrongNote(qi,oi);}
+  document.getElementById('score-badge').textContent=`${score} / ${quizzes.length}`;
+  if(answered===quizzes.length)setTimeout(showResult,600);
+}
+
+function showResult(){
+  const el=document.getElementById('quiz-result');el.classList.add('show');el.scrollIntoView({behavior:'smooth',block:'center'});
+  const pct=Math.round((score/quizzes.length)*100);
+  const color=pct>=80?'var(--accent2)':pct>=60?'var(--warn)':'var(--accent3)';
+  document.getElementById('result-score-text').innerHTML=`<span style="color:${color}">${score}</span> / ${quizzes.length}`;
+  document.getElementById('result-msg').textContent=
+    pct===100?'🏆 완벽합니다! 모든 개념을 마스터했습니다.':
+    pct>=80 ?'👍 잘 이해하고 있습니다! 오답을 복습해보세요.':
+    pct>=60 ?'📖 오답노트로 부족한 부분을 채워보세요.':
+             '💪 플래시카드와 코드 예제를 다시 확인해보세요.';
+}
+
+function resetQuiz(){
+  userAnswers=Array(quizzes.length).fill(null);score=0;answered=0;wrongNotes=[];
+  document.getElementById('score-badge').textContent=`0 / ${quizzes.length}`;
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz();updateNotesPanel();
+}
+
+// ===== PRACTICE =====
+const practices=[
+  {title:"산술 연산자와 우선순위",tag:"** · // · % · 우선순위",
+   q:"a = 10, b = 3을 사용해 아래 결과가 나오도록 빈칸을 채우세요.\n\n① a의 b 제곱 (1000)\n② a를 b로 나눈 몫 (3)\n③ a를 b로 나눈 나머지 (1)\n④ -1의 2제곱이 -1이 되는 식 (우선순위 주의)",
+   desc:"** 는 거듭제곱, // 는 몫(floor division), % 는 나머지입니다. -1 ** 2는 -(1**2)이므로 -1이 됩니다.",
+   given:`a = 10\nb = 3\n\nprint(a ___ b)    # 1000  거듭제곱\nprint(a ___ b)    # 3     몫\nprint(a ___ b)    # 1     나머지\n\nresult = ___ ** 2  # -1  (우선순위 그대로)\nprint(result)`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('a**b');const b=s.includes('a//b');const d=s.includes('a%b');
+     const e=s.includes('-1**2');
+     const cnt=[a,b,d,e].filter(Boolean).length;
+     return cnt===4?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"a ** b   # 거듭제곱\na // b   # 몫\na % b    # 나머지\n-1 ** 2  # -(1**2) = -1",
+   answer:`print(a ** b)    # 1000\nprint(a // b)    # 3\nprint(a % b)     # 1\n\nresult = -1 ** 2  # -(1**2) = -1\nprint(result)     # -1`},
+  {title:"산술 형 변환 확인",tag:"Arithmetic Conversions · type()",
+   q:"아래 연산의 결과 타입을 type()으로 출력하세요.\n\n① 1 + 3.14  → float\n② 1 + 3j    → complex\n③ '%d' % 10 → str",
+   desc:"서로 다른 타입 간 연산 시 더 넓은 타입으로 자동 변환됩니다. int + float → float, int + complex → complex.",
+   given:`print(type(___ + ___))   # float\nprint(type(___ + ___))   # complex\nprint(type(___ % ___))   # str`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('1+3.14');const b=s.includes('1+3j');
+     const d=s.includes("'%d'%10")||s.includes('"%d"%10');
+     const cnt=[a,b,d].filter(Boolean).length;
+     return cnt===3?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"type(1 + 3.14)\ntype(1 + 3j)\ntype('%d' % 10)",
+   answer:`print(type(1 + 3.14))    # <class 'float'>\nprint(type(1 + 3j))      # <class 'complex'>\nprint(type('%d' % 10))   # <class 'str'>`},
+  {title:"== 과 is 비교",tag:"== · is · interning",
+   q:"아래 각 경우에 is와 ==의 결과를 예측하고\n실제 코드를 완성하세요.\n\n① a = 10, b = 10  → is: True,  == True  (interning)\n② a = 300, b = 300 → is: False, == True  (범위 밖)\n③ a = (1,2,3), b = (1,2,3) → is: False, == True",
+   desc:"is는 동일 객체 여부(id 비교), ==는 값 비교입니다. 소정수(-5~256)는 interning으로 같은 객체가 재사용됩니다.",
+   given:`# ① 소정수 interning\na = 10; b = 10\nprint(a ___ b, a ___ b)   # True True\n\n# ② interning 범위 밖\na = 300; b = 300\nprint(a ___ b, a ___ b)   # False True\n\n# ③ tuple\na = (1,2,3); b = (1,2,3)\nprint(a ___ b, a ___ b)   # False True`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const cnt=(s.match(/is/g)||[]).length;
+     const cnt2=(s.match(/==/g)||[]).length;
+     return cnt>=3&&cnt2>=3?'correct':cnt>=1||cnt2>=1?'partial':'wrong';
+   },
+   hint:"a is b  # 동일 객체?\na == b  # 값이 같은가?",
+   answer:`a = 10; b = 10\nprint(a is b, a == b)    # True True\n\na = 300; b = 300\nprint(a is b, a == b)    # False True\n\na = (1,2,3); b = (1,2,3)\nprint(a is b, a == b)    # False True`},
+  {title:"논리 연산자 결과 예측",tag:"and · or · not · Falsy",
+   q:"아래 코드의 빈칸을 채워 결과를 확인하세요.\n\n조건:\n① a=10, b=5 → and: 5,  or: 10\n② a=0,  b=5 → and: 0,  or: 5\n③ not 0 → True, not 10 → False",
+   desc:"and/or는 bool이 아닌 객체 자체를 반환합니다. and는 앞이 참이면 뒤를, 거짓이면 앞을 반환. or는 앞이 참이면 앞을, 거짓이면 뒤를 반환.",
+   given:`a = 10; b = 5\nprint(a ___ b)   # 5\nprint(a ___ b)   # 10\n\na = 0; b = 5\nprint(a ___ b)   # 0\nprint(a ___ b)   # 5\n\nprint(___ 0)     # True\nprint(___ 10)    # False`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const hasAnd=(s.match(/\band\b/g)||[]).length>=2;
+     const hasOr=(s.match(/\bor\b/g)||[]).length>=2;
+     const hasNot=(s.match(/\bnot\b/g)||[]).length>=2;
+     const cnt=[hasAnd,hasOr,hasNot].filter(Boolean).length;
+     return cnt===3?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"a and b  # 앞이 참 → 뒤 반환\na or  b  # 앞이 참 → 앞 반환\nnot 0    # True\nnot 10   # False",
+   answer:`a = 10; b = 5\nprint(a and b)   # 5\nprint(a or  b)   # 10\n\na = 0; b = 5\nprint(a and b)   # 0\nprint(a or  b)   # 5\n\nprint(not 0)     # True\nprint(not 10)    # False`},
+  {title:"연산식 만들기",tag:"조건 표현식 · & · | · %",
+   q:"a = 10을 사용해 아래 조건을 코드로 표현하세요.\n\n① a가 짝수인가? (% 와 == 사용)\n② a가 5보다 크고 짝수인가? (& 사용)\n③ a가 100보다 크거나 0보다 작은가? (| 사용)\n④ a는 정수인가? (type과 is 사용)",
+   desc:"% 2 == 0으로 짝수 판별, &/|로 복합 조건(pandas 스타일), type(a) is int로 타입 확인.",
+   given:`a = 10\n\n# ① 짝수 판별\nprint(a ___ 2 ___ 0)           # True\n\n# ② 5보다 크고 짝수\nprint((a > 5) ___ (a % 2 == 0))  # True\n\n# ③ 100보다 크거나 0보다 작음\nprint((a > 100) ___ (a < 0))   # False\n\n# ④ 정수 타입 확인\nprint(type(a) ___ int)         # True`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('a%2==0');
+     const b=s.includes('&');const d=s.includes('|');
+     const e=s.includes('type(a)isint')||s.includes('type(a)==int');
+     const cnt=[a,b,d,e].filter(Boolean).length;
+     return cnt===4?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"a % 2 == 0        # 짝수\n(a > 5) & (a % 2 == 0)  # and 조건\n(a > 100) | (a < 0)    # or 조건\ntype(a) is int          # 타입 확인",
+   answer:`print(a % 2 == 0)                    # True\nprint((a > 5) & (a % 2 == 0))      # True\nprint((a > 100) | (a < 0))         # False\nprint(type(a) is int)               # True`},
+  {title:"in 연산자 — list vs set",tag:"in · set · hash · 성능",
+   q:"아래 코드를 완성해 in 연산자의 동작을 확인하세요.\n\n① list로 1, 10 포함 여부 확인\n② set으로 변환 후 같은 확인\n③ hash('hello')와 hash([1,2,3]) 실행 결과 차이 확인",
+   desc:"list의 in은 순차 탐색 O(n), set의 in은 hash 탐색 O(1)입니다. 가변 객체(list)는 hash를 가질 수 없습니다.",
+   given:`# ① list에서 in\na = list(range(1, 10))\nprint(___ in a, ___ in a)   # True False\n\n# ② set으로 변환\nb = set(range(1, 10))\nprint(___ in b, ___ in b)   # True False\n\n# ③ hash 비교\nprint(hash('hello'))       # 숫자 반환\n# 아래 줄은 오류 발생 — 왜?  \nprint(hash([1, 2, 3]))     # TypeError`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('1ina')&&s.includes('10ina');
+     const b=s.includes('1inb')&&s.includes('10inb');
+     const d=s.includes("hash('hello')")||s.includes('hash("hello")');
+     const cnt=[a,b,d].filter(Boolean).length;
+     return cnt===3?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"1 in a, 10 in a\n1 in b, 10 in b\nhash('hello')  # 가능\nhash([1,2,3])  # TypeError",
+   answer:`a = list(range(1, 10))\nprint(1 in a, 10 in a)   # True False\n\nb = set(range(1, 10))\nprint(1 in b, 10 in b)   # True False\n\nprint(hash('hello'))     # 숫자\n# hash([1,2,3]) → TypeError: list는 가변 객체`},
+  {title:"종합: Statement vs Expression 구분",tag:"종합 실습",
+   q:"아래 각 줄이 Statement인지 Expression인지 판별하고,\n직접 코드로 확인해보세요.\n\n조건:\n① a = 10  → ?\n② a + 5   → ?\n③ del a   → ?\n④ type(10) → ?\n⑤ for i in range(3): pass → ?",
+   desc:"값을 반환하면 Expression, 반환하지 않으면 Statement입니다. assignment, del은 Statement, 연산·호출 결과는 Expression입니다.",
+   given:`# ① assignment statement (값 반환 없음)\na = 10\n\n# ② expression (값 반환: 15)\nresult = a ___ 5\nprint(result)       # 15\n\n# ③ del statement (값 반환 없음)\ndel ___\n\n# ④ expression: type() 호출 결과는 객체\nprint(___(___))\n\n# ⑤ compound statement (내부에 pass 포함)\n___ i ___ range(3): ___`,
+   check:(c)=>{
+     const s=c.replace(/\s/g,'');
+     const a=s.includes('a+5')||s.includes('a+5');
+     const b=s.includes('dela');
+     const d=s.includes('type(10)')||s.includes('type(a)');
+     const e=s.includes('foriinrange(3)');
+     const cnt=[a,b,d,e].filter(Boolean).length;
+     return cnt===4?'correct':cnt>=2?'partial':'wrong';
+   },
+   hint:"result = a + 5\ndel a\nprint(type(10))\nfor i in range(3): pass",
+   answer:`a = 10              # Statement (assignment)\nresult = a + 5      # + 5 는 Expression\nprint(result)       # 15\n\ndel a               # Statement (del)\n\nprint(type(10))     # type(10) 은 Expression\n\nfor i in range(3): pass  # Compound Statement`},
+];
+
+let practiceResults={},practiceCompleted=0;
+
+function buildPractice(){
+  const list=document.getElementById('practice-list');
+  list.innerHTML='';
+  practices.forEach((p,pi)=>{
+    const div=document.createElement('div');
+    div.className='practice-card';
+    div.innerHTML=`
+      <div class="practice-header">
+        <span class="practice-num">실습 ${pi+1} / ${practices.length} &nbsp;·&nbsp; ${p.title}</span>
+        <span class="practice-tag">${p.tag}</span>
+      </div>
+      <div class="practice-body">
+        <div class="practice-q">${escHtml(p.q)}</div>
+        <div class="practice-desc">${escHtml(p.desc)}</div>
+        <div class="editor-label">▶ 주어진 코드 (참고용)</div>
+        <div class="practice-given">${escCode(p.given)}</div>
+        <div class="editor-label" style="margin-top:14px">✏️ 답안 코드 작성</div>
+        <textarea class="code-editor" id="editor-${pi}" rows="5" placeholder="여기에 코드를 작성하세요..."></textarea>
+        <div class="hint-box" id="hint-${pi}">${escCode(p.hint)}</div>
+        <div class="practice-actions">
+          <button class="btn-check" onclick="checkPractice(${pi})">✔ 확인</button>
+          <button class="btn-hint" onclick="toggleHint(${pi})">💡 힌트</button>
+          <button class="btn-reset-p" onclick="resetPractice(${pi})">↺ 초기화</button>
+        </div>
+        <div class="practice-feedback" id="pfb-${pi}">
+          <div class="pf-result" id="pfr-${pi}"></div>
+          <div class="pf-explain" id="pfe-${pi}"></div>
+        </div>
+      </div>`;
+    list.appendChild(div);
+    document.getElementById(`editor-${pi}`).addEventListener('keydown',function(e){
+      if(e.key==='Tab'){e.preventDefault();const s=this.selectionStart;this.value=this.value.substring(0,s)+'    '+this.value.substring(this.selectionEnd);this.selectionStart=this.selectionEnd=s+4;}
+    });
+  });
+}
+
+function checkPractice(pi){
+  const code=document.getElementById(`editor-${pi}`).value.trim();
+  if(!code){alert('코드를 입력해주세요!');return;}
+  const p=practices[pi];const result=p.check(code);
+  const fb=document.getElementById(`pfb-${pi}`);
+  const pfr=document.getElementById(`pfr-${pi}`);
+  const pfe=document.getElementById(`pfe-${pi}`);
+  fb.className='practice-feedback show';
+  const wasOk=practiceResults[pi]==='correct';
+  if(result==='correct'){
+    pfr.className='pf-result pf-correct';pfr.innerHTML='✅ 정답입니다! 핵심 개념을 잘 이해했습니다.';
+    if(!wasOk){practiceCompleted++;practiceResults[pi]='correct';updatePracticeScore();}
+  }else if(result==='partial'){
+    pfr.className='pf-result pf-partial';pfr.innerHTML='🔶 부분 정답입니다. 조금 더 완성해보세요!';
+    practiceResults[pi]='partial';
+  }else{
+    pfr.className='pf-result pf-wrong';pfr.innerHTML='❌ 아직 정확하지 않습니다. 힌트를 참고해보세요.';
+    practiceResults[pi]='wrong';
+  }
+  pfe.innerHTML=`<div style="margin-bottom:6px;color:var(--text-sub);font-size:.8rem">▶ 모범 답안</div><div class="pf-answer-code">${escCode(p.answer)}</div>`;
+}
+
+function toggleHint(pi){document.getElementById(`hint-${pi}`).classList.toggle('show');}
+function resetPractice(pi){
+  document.getElementById(`editor-${pi}`).value='';
+  document.getElementById(`pfb-${pi}`).className='practice-feedback';
+  document.getElementById(`hint-${pi}`).classList.remove('show');
+  if(practiceResults[pi]==='correct'){practiceCompleted=Math.max(0,practiceCompleted-1);updatePracticeScore();}
+  delete practiceResults[pi];
+}
+function updatePracticeScore(){document.getElementById('ps-score').textContent=`${practiceCompleted} / ${practices.length} 완료`;}
+
+// ===== WRONG NOTES =====
+let wrongNotes=[];
+function addWrongNote(qi,myAns){wrongNotes.push({qi,myAns});updateNotesPanel();}
+function updateNotesPanel(){
+  const list=document.getElementById('notes-list');
+  const bar=document.getElementById('download-bar');
+  document.getElementById('wrong-count').textContent=wrongNotes.length;
+  if(wrongNotes.length===0){
+    bar.style.display='none';
+    list.innerHTML=`<div class="empty-state"><div class="empty-icon">✅</div><div>오답이 없습니다! 퀴즈를 풀면 틀린 문제가 여기에 기록됩니다.</div></div>`;
+    return;
+  }
+  bar.style.display='flex';
+  list.innerHTML=wrongNotes.map((wn,i)=>{
+    const q=quizzes[wn.qi];
+    return `<div class="wrong-note-card">
+      <div class="wn-qnum">오답 #${i+1} · Q${wn.qi+1}</div>
+      <div class="wn-q">${escHtml(q.q)}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답변</div>${'ABCD'[wn.myAns]}. ${escHtml(q.opts[wn.myAns])}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${'ABCD'[q.ans]}. ${escHtml(q.opts[q.ans])}</div>
+      </div>
+      <div class="wn-explain">💡 ${escHtml(q.explain)}</div>
+    </div>`;
+  }).join('');
+}
+
+function downloadNotes(){
+  if(wrongNotes.length===0){alert('오답이 없습니다!');return;}
+  const dateStr=new Date().toLocaleDateString('ko-KR');
+  let text=`================================================================\n  Python Statement & Expression 오답노트\n  작성일: ${dateStr}  |  오답 수: ${wrongNotes.length} / ${quizzes.length}\n================================================================\n\n`;
+  wrongNotes.forEach((wn,i)=>{
+    const q=quizzes[wn.qi];
+    text+=`[오답 ${i+1}] Q${wn.qi+1}\n문제: ${q.q}\n`;
+    if(q.code)text+=`\n코드:\n${q.code}\n`;
+    text+=`\n선택지:\n`;
+    q.opts.forEach((o,oi)=>{
+      const mark=oi===wn.myAns?'  ← 내 답변 ❌':oi===q.ans?'  ← 정답 ✅':'';
+      text+=`  ${'ABCD'[oi]}. ${o}${mark}\n`;
+    });
+    text+=`\n해설: ${q.explain}\n\n${'─'.repeat(60)}\n\n`;
+  });
+  text+=`================================================================\n  학습 팁\n================================================================\n`;
+  text+=`1. Expression은 값을 반환, Statement는 반환하지 않음\n`;
+  text+=`2. Simple statement: 한 줄 구성, ; 나열 가능\n`;
+  text+=`3. Compound statement: 내부에 다른 statement 포함 (if, for, def...)\n`;
+  text+=`4. 연산자 우선순위: ** > 단항 > *,/,//,% > +,- > 비교 > not > and > or\n`;
+  text+=`5. -1 ** 2 = -1  (** 가 단항 - 보다 우선, 괄호로 명시 필요)\n`;
+  text+=`6. == : 값 비교  /  is : 동일 객체 비교\n`;
+  text+=`7. interning: 소정수(-5~256), 짧은 문자열 재사용\n`;
+  text+=`8. and/or : 객체 자체 반환 (bool 아님)\n`;
+  text+=`9. Falsy: False, 0, None, '', [], {}, set()\n`;
+  text+=`10. list in: O(n) 순차탐색  /  set in: O(1) hash탐색\n`;
+  const blob=new Blob([text],{type:'text/plain;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`파이썬_Statement_Expression_오답노트_${dateStr.replace(/\./g,'-')}.txt`;
+  a.click();URL.revokeObjectURL(url);
+}
+
+// ===== TABS =====
+function showTab(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const idx=['flashcard','code','quiz','practice','notes'].indexOf(id);
+  document.querySelectorAll('.tab-btn')[idx].classList.add('active');
+}
+
+buildQuiz();buildPractice();updateNotesPanel();renderCard();
+</script>
+</body>
+</html>
