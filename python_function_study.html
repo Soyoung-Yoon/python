@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 함수 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --border:#30363d;
+  --blue:#58a6ff; --green:#3fb950; --orange:#f0883e; --purple:#d2a8ff;
+  --red:#f78166; --warn:#e3b341; --text:#e6edf3; --sub:#8b949e;
+  --code-bg:#010409; --r:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+header{background:linear-gradient(135deg,#0d1117 0%,#1a0d2a 100%);border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.logo{font-family:'JetBrains Mono',monospace;font-size:1.3rem;color:var(--purple);font-weight:700;letter-spacing:-1px;}
+.logo span{color:var(--orange);}
+header h1{font-size:1rem;font-weight:400;color:var(--sub);}
+header h1 strong{color:var(--text);font-weight:600;}
+.home-btn{margin-left:auto;text-decoration:none;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--sub);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;transition:all .15s;}
+.home-btn:hover{color:var(--purple);border-color:var(--purple);}
+
+nav{display:flex;gap:4px;padding:16px 40px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab-btn{font-family:'Noto Sans KR',sans-serif;padding:8px 20px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--sub);cursor:pointer;font-size:.875rem;font-weight:400;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.tab-btn:hover{background:var(--surface2);color:var(--text);}
+.tab-btn.active{background:var(--purple);color:#0d1117;border-color:var(--purple);font-weight:600;}
+
+.section{display:none;padding:40px;max-width:900px;margin:0 auto;}
+.section.active{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:1.5rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.section-subtitle{color:var(--sub);font-size:.9rem;margin-bottom:32px;font-weight:300;}
+
+/* FLASHCARD */
+.flashcard-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.fc-progress{font-family:'JetBrains Mono',monospace;color:var(--purple);font-size:1rem;font-weight:600;}
+.fc-progress-bar{width:100%;height:4px;background:var(--border);border-radius:4px;margin-bottom:24px;overflow:hidden;}
+.fc-progress-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--orange));border-radius:4px;transition:width .4s ease;}
+.flashcard-wrap{perspective:1200px;height:330px;cursor:pointer;margin-bottom:24px;}
+.flashcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+.flashcard.flipped{transform:rotateY(180deg);}
+.fc-front,.fc-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--r);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+.fc-front{background:linear-gradient(135deg,var(--surface) 0%,#1a0d2a 100%);}
+.fc-back{background:linear-gradient(135deg,#1a0d2a 0%,#2a1a0a 100%);border-color:var(--purple);transform:rotateY(180deg);}
+.fc-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.fc-front .fc-label{color:var(--purple);}
+.fc-back .fc-label{color:var(--orange);}
+.fc-q{font-size:1.05rem;font-weight:600;line-height:1.7;color:var(--text);}
+.fc-a{font-size:.88rem;font-weight:400;line-height:1.85;color:var(--text);}
+.fc-hint{margin-top:20px;font-size:.8rem;color:var(--sub);}
+.fc-a code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--purple);background:var(--code-bg);padding:2px 6px;border-radius:4px;}
+.nav-btns{display:flex;gap:12px;justify-content:center;}
+.btn{font-family:'Noto Sans KR',sans-serif;padding:10px 24px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+.btn-ghost{background:transparent;color:var(--sub);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--purple);}
+.btn-primary{background:var(--purple);color:#0d1117;border-color:var(--purple);}
+.btn-primary:hover{filter:brightness(1.15);}
+
+/* CODE */
+.code-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:28px;transition:border-color .2s;}
+.code-card:hover{border-color:var(--purple);}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+.code-title{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--purple);font-weight:600;}
+.code-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;}
+.tag-arg   {background:#0d1a2a;color:var(--blue);  border:1px solid var(--blue);}
+.tag-param {background:#1a0d2a;color:var(--purple);border:1px solid var(--purple);}
+.tag-ret   {background:#0f1f0f;color:var(--green); border:1px solid var(--green);}
+.tag-lam   {background:#2a1a0a;color:var(--orange);border:1px solid var(--orange);}
+.tag-tip   {background:#2a2a0a;color:var(--warn);  border:1px solid var(--warn);}
+.code-explain{padding:16px 20px;border-bottom:1px solid var(--border);font-size:.9rem;line-height:1.85;color:var(--sub);}
+.code-explain strong{color:var(--text);}
+.code-explain code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--purple);background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+pre{background:var(--code-bg);padding:20px;overflow-x:auto;margin:0;line-height:1.7;}
+pre code{font-family:'JetBrains Mono',monospace;font-size:.82rem;}
+.output-box{background:#010409;border-top:1px solid var(--border);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);line-height:1.7;}
+.output-label{color:var(--sub);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.err-box{background:#010409;border-top:1px solid var(--border);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--red);line-height:1.7;}
+
+.kw{color:#ff7b72;} .fn{color:#d2a8ff;} .st{color:#a5d6ff;}
+.cm{color:#8b949e;font-style:italic;} .nm{color:#79c0ff;}
+.op{color:#f0883e;} .num{color:#f0883e;} .bi{color:#ffa657;}
+
+/* concept boxes */
+.concept-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:28px;}
+.concept-box h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+.param-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;}
+.pg{padding:12px 14px;border-radius:8px;font-size:.82rem;line-height:1.75;}
+.pg-pk  {background:#0d1a2a;border:1px solid var(--blue);}
+.pg-po  {background:#1f1a0a;border:1px solid var(--warn);}
+.pg-ko  {background:#1a0d2a;border:1px solid var(--purple);}
+.pg-vp  {background:#0f1f0f;border:1px solid var(--green);}
+.pg-vk  {background:#2a1a0a;border:1px solid var(--orange);}
+.pg-label{font-size:.7rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+.pg-pk .pg-label{color:var(--blue);}
+.pg-po .pg-label{color:var(--warn);}
+.pg-ko .pg-label{color:var(--purple);}
+.pg-vp .pg-label{color:var(--green);}
+.pg-vk .pg-label{color:var(--orange);}
+
+/* table */
+.tbl{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:8px;}
+.tbl th{background:var(--surface2);padding:9px 12px;text-align:left;font-weight:600;border:1px solid var(--border);color:var(--sub);font-size:.75rem;letter-spacing:.5px;}
+.tbl td{padding:9px 12px;border:1px solid var(--border);vertical-align:top;line-height:1.6;}
+.tbl tr:nth-child(even) td{background:var(--surface2);}
+.tbl code{font-family:'JetBrains Mono',monospace;font-size:.79rem;color:var(--purple);}
+
+/* QUIZ */
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.quiz-score-badge{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:var(--purple);font-weight:600;background:#1a0d2a;border:1px solid var(--purple);padding:4px 12px;border-radius:20px;}
+.quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;margin-bottom:20px;}
+.quiz-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--purple);letter-spacing:1px;margin-bottom:12px;font-weight:600;}
+.quiz-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:18px;color:var(--text);}
+.quiz-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:18px;white-space:pre;overflow-x:auto;line-height:1.65;}
+.options{display:flex;flex-direction:column;gap:10px;}
+.opt-btn{font-family:'Noto Sans KR',sans-serif;width:100%;padding:12px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.9rem;text-align:left;transition:all .2s;display:flex;align-items:flex-start;gap:12px;}
+.opt-btn:hover:not(:disabled){border-color:var(--purple);background:#1a0d2a;}
+.opt-btn:disabled{cursor:default;}
+.opt-letter{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.opt-btn.correct{border-color:var(--green);background:#0f1f0f;color:var(--green);}
+.opt-btn.correct .opt-letter{background:var(--green);color:#0d1117;}
+.opt-btn.wrong{border-color:var(--red);background:#2a1c1c;color:var(--red);}
+.opt-btn.wrong .opt-letter{background:var(--red);color:#fff;}
+.feedback-box{margin-top:14px;padding:12px 16px;border-radius:8px;font-size:.875rem;line-height:1.65;display:none;}
+.feedback-box.show{display:block;}
+.feedback-correct{background:#0f2a0f;border:1px solid var(--green);color:var(--green);}
+.feedback-wrong{background:#2a0f0f;border:1px solid var(--red);color:#e6edf3;}
+.feedback-wrong strong{color:var(--red);}
+.quiz-result{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:40px;text-align:center;}
+.quiz-result.show{display:block;animation:fadeIn .4s ease;}
+.result-score{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;margin:16px 0;color:var(--purple);}
+.result-msg{font-size:1rem;color:var(--sub);margin-bottom:24px;}
+.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+/* WRONG NOTES */
+.wrong-note-card{background:var(--surface);border:1px solid #2a1c1c;border-left:4px solid var(--red);border-radius:var(--r);padding:20px;margin-bottom:16px;animation:fadeIn .3s ease;}
+.wn-qnum{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--red);font-weight:600;margin-bottom:8px;}
+.wn-q{font-size:.95rem;font-weight:600;margin-bottom:12px;line-height:1.6;}
+.wn-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.85rem;}
+.wn-my {padding:10px;border-radius:6px;background:#2a1c1c;border:1px solid var(--red);}
+.wn-ans{padding:10px;border-radius:6px;background:#0f1f0f;border:1px solid var(--green);}
+.wn-label{font-size:.7rem;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+.wn-my  .wn-label{color:var(--red);}
+.wn-ans .wn-label{color:var(--green);}
+.wn-explain{margin-top:12px;font-size:.85rem;color:var(--sub);line-height:1.65;padding:10px;background:var(--surface2);border-radius:6px;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--sub);}
+.empty-icon{font-size:3rem;margin-bottom:12px;}
+.download-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;flex-wrap:wrap;gap:12px;}
+.download-info strong{color:var(--red);}
+
+@media(max-width:600px){
+  nav,.section{padding:12px 16px;}
+  header{padding:14px 16px;}
+  .wn-row{grid-template-columns:1fr;}
+  .flashcard-wrap{height:360px;}
+  .param-grid{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">py<span>.function</span></div>
+  <h1>Python <strong>함수(Function)</strong> 학습</h1>
+  <a href="index.html" class="home-btn">홈으로</a>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')">🃏 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')">💻 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')">📝 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')">📋 오답노트</button>
+</nav>
+
+<!-- ══════════════════ FLASHCARDS ══════════════════ -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. argument · parameter · return · lambda 개념을 충분히 익힌 후 퀴즈로 넘어가세요.</div>
+
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 22</span>
+    <span style="font-size:.8rem;color:var(--sub)">클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:4.5%"></div></div>
+
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════ CODE EXAMPLES ══════════════════ -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">argument · parameter · return · lambda를 단계별 예제로 확인하세요.</div>
+
+  <!-- 개요 -->
+  <div class="concept-box">
+    <h3>📐 함수의 구조</h3>
+    <table class="tbl">
+      <tr><th>용어</th><th>역할</th><th>위치</th><th>예시</th></tr>
+      <tr><td><strong>parameter</strong></td><td>값을 받는 변수(이름)</td><td>함수 정의 시</td><td><code>def func(a, b):</code></td></tr>
+      <tr><td><strong>argument</strong></td><td>함수에 전달하는 객체(값)</td><td>함수 호출 시</td><td><code>func(10, 20)</code></td></tr>
+      <tr><td><strong>return</strong></td><td>결과값을 호출한 곳으로 반환</td><td>함수 내부</td><td><code>return a + b</code></td></tr>
+      <tr><td><strong>lambda</strong></td><td>이름 없는 간단한 함수(expression)</td><td>어디서나</td><td><code>lambda x: x**2</code></td></tr>
+    </table>
+  </div>
+
+  <!-- parameter 종류 한눈에 -->
+  <div class="concept-box">
+    <h3>🗺️ parameter 5가지 종류</h3>
+    <div class="param-grid">
+      <div class="pg pg-pk">
+        <div class="pg-label">Positional or Keyword</div>
+        <div style="color:var(--sub)">p 또는 k 모두 가능<br>/ 이전, * 이전<br><code>def f(a):</code></div>
+      </div>
+      <div class="pg pg-po">
+        <div class="pg-label">Positional Only</div>
+        <div style="color:var(--sub)">p만 가능<br>, / 로 구분<br><code>def f(a, /):</code></div>
+      </div>
+      <div class="pg pg-ko">
+        <div class="pg-label">Keyword Only</div>
+        <div style="color:var(--sub)">k만 가능<br>*, 뒤에 위치<br><code>def f(*, a):</code></div>
+      </div>
+      <div class="pg pg-vp">
+        <div class="pg-label">Var Positional</div>
+        <div style="color:var(--sub)">가변 p<br>tuple로 수집<br><code>def f(*a):</code></div>
+      </div>
+      <div class="pg pg-vk">
+        <div class="pg-label">Var Keyword</div>
+        <div style="color:var(--sub)">가변 k<br>dict로 수집<br><code>def f(**a):</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 예제 1: positional vs keyword argument -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: positional argument vs keyword argument</span>
+      <span class="code-tag tag-arg">argument · positional · keyword</span>
+    </div>
+    <div class="code-explain">
+      <strong>positional argument</strong>: <code>func(10, 20, 30)</code> — 순서(위치)대로 parameter에 전달됩니다.<br>
+      <strong>keyword argument</strong>: <code>func(a=10, b=20)</code> — parameter 이름을 지정하므로 순서에 상관없습니다.<br>
+      p와 k를 혼합할 때는 <strong>positional이 앞, keyword가 뒤</strong>에 와야 합니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>):
+    <span class="fn">print</span>([<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>])
+
+<span class="fn">func</span>(<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>)          <span class="cm"># positional: 순서대로</span>
+<span class="fn">func</span>(<span class="nm">a</span><span class="op">=</span><span class="num">30</span>, <span class="nm">b</span><span class="op">=</span><span class="num">10</span>, <span class="nm">c</span><span class="op">=</span><span class="num">20</span>)   <span class="cm"># keyword: 순서 무관</span>
+<span class="fn">func</span>(<span class="nm">c</span><span class="op">=</span><span class="num">30</span>, <span class="nm">a</span><span class="op">=</span><span class="num">10</span>, <span class="nm">b</span><span class="op">=</span><span class="num">20</span>)   <span class="cm"># keyword: 다른 순서도 OK</span>
+<span class="fn">func</span>(<span class="num">10</span>, <span class="nm">c</span><span class="op">=</span><span class="num">30</span>, <span class="nm">b</span><span class="op">=</span><span class="num">20</span>)      <span class="cm"># 혼합: p 먼저, k 나중</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      [10, 20, 30]<br>[30, 10, 20]<br>[10, 20, 30]<br>[10, 20, 30]
+    </div>
+  </div>
+
+  <!-- 예제 2: default / non-default argument -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: default argument — 기본값 설정</span>
+      <span class="code-tag tag-arg">default · non-default</span>
+    </div>
+    <div class="code-explain">
+      <strong>default argument</strong>: parameter에 기본값을 지정 — 호출 시 생략 가능합니다.<br>
+      <strong>non-default argument</strong>: 기본값 없음 — 반드시 argument를 전달해야 합니다.<br>
+      정의 시 규칙: <strong>non-default 먼저, default 나중</strong>에 위치해야 합니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="nm">a</span><span class="op">=</span><span class="num">10</span>, <span class="nm">b</span><span class="op">=</span><span class="num">20</span>, <span class="nm">c</span><span class="op">=</span><span class="num">30</span>):
+    <span class="fn">print</span>([<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>])
+
+<span class="fn">func</span>()                    <span class="cm"># 모두 기본값 사용</span>
+<span class="fn">func</span>(<span class="nm">b</span><span class="op">=</span><span class="num">40</span>)               <span class="cm"># b만 변경</span>
+<span class="fn">func</span>(<span class="nm">c</span><span class="op">=</span><span class="num">100</span>, <span class="nm">b</span><span class="op">=</span><span class="num">10</span>)       <span class="cm"># b, c 변경 (순서 무관)</span>
+<span class="fn">func</span>(<span class="num">100</span>)                 <span class="cm"># a만 변경</span>
+<span class="fn">func</span>(<span class="num">100</span>, <span class="num">200</span>)            <span class="cm"># a, b 변경</span>
+<span class="fn">func</span>(<span class="nm">a</span><span class="op">=</span><span class="num">100</span>, <span class="nm">c</span><span class="op">=</span><span class="num">200</span>)      <span class="cm"># a, c 변경</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      [10, 20, 30]<br>[10, 40, 30]<br>[10, 10, 100]<br>[100, 20, 30]<br>[100, 200, 30]<br>[100, 20, 200]
+    </div>
+  </div>
+
+  <!-- 예제 3: var positional *args -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: *args — 가변 positional parameter</span>
+      <span class="code-tag tag-param">var positional · *args · tuple</span>
+    </div>
+    <div class="code-explain">
+      <strong>*parameter</strong>: 0개 이상의 positional argument를 하나의 <strong>tuple</strong>로 묶어 받습니다.<br>
+      몇 개의 인자를 전달할지 미리 알 수 없을 때 사용합니다.<br>
+      <code>*a</code> 뒤에 오는 parameter는 자동으로 <strong>keyword only</strong>가 됩니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="op">*</span><span class="nm">a</span>):
+    <span class="fn">print</span>(<span class="nm">a</span>, <span class="fn">type</span>(<span class="nm">a</span>))
+
+<span class="fn">func</span>()            <span class="cm"># 인자 없음</span>
+<span class="fn">func</span>(<span class="num">1</span>)           <span class="cm"># 1개</span>
+<span class="fn">func</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>)    <span class="cm"># 3개 → tuple로 묶임</span>
+
+<span class="cm"># *a 뒤의 b, c는 keyword only가 됨</span>
+<span class="kw">def</span> <span class="fn">func2</span>(<span class="op">*</span><span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>):
+    <span class="fn">print</span>([<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>])
+
+<span class="fn">func2</span>(<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>, <span class="nm">b</span><span class="op">=</span><span class="num">100</span>, <span class="nm">c</span><span class="op">=</span><span class="num">200</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      () &lt;class 'tuple'&gt;<br>(1,) &lt;class 'tuple'&gt;<br>(1, 2, 3) &lt;class 'tuple'&gt;<br>[(10, 20, 30), 100, 200]
+    </div>
+  </div>
+
+  <!-- 예제 4: var keyword **kwargs -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: **kwargs — 가변 keyword parameter</span>
+      <span class="code-tag tag-param">var keyword · **kwargs · dict</span>
+    </div>
+    <div class="code-explain">
+      <strong>**parameter</strong>: 0개 이상의 keyword argument를 하나의 <strong>dict</strong>로 묶어 받습니다.<br>
+      key는 식별자 규칙을 만족해야 합니다 (숫자로 시작 불가).<br>
+      <code>**kwargs</code>는 항상 parameter 목록의 <strong>맨 마지막</strong>에 위치해야 합니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="op">**</span><span class="nm">a</span>):
+    <span class="fn">print</span>(<span class="nm">a</span>, <span class="fn">type</span>(<span class="nm">a</span>))
+
+<span class="fn">func</span>()                <span class="cm"># 인자 없음</span>
+<span class="fn">func</span>(<span class="nm">A</span><span class="op">=</span><span class="num">1</span>)            <span class="cm"># 1개</span>
+<span class="fn">func</span>(<span class="nm">A</span><span class="op">=</span><span class="num">1</span>, <span class="nm">B</span><span class="op">=</span><span class="num">2</span>)      <span class="cm"># 2개 → dict로 묶임</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      {} &lt;class 'dict'&gt;<br>{'A': 1} &lt;class 'dict'&gt;<br>{'A': 1, 'B': 2} &lt;class 'dict'&gt;
+    </div>
+  </div>
+
+  <!-- 예제 5: positional only / -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 5: positional only ( / ) — keyword 사용 금지</span>
+      <span class="code-tag tag-param">positional only · /</span>
+    </div>
+    <div class="code-explain">
+      <code>,/</code> 기호 앞에 있는 parameter는 <strong>positional argument만</strong> 허용합니다.<br>
+      keyword argument(<code>a=10</code>)로 호출하면 <strong>TypeError</strong>가 발생합니다.<br>
+      파이썬 내장함수 <code>sorted()</code>의 <code>iterable</code>이 이 방식입니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="nm">a</span>, <span class="op">/</span>):
+    <span class="fn">print</span>(<span class="nm">a</span>)
+
+<span class="fn">func</span>(<span class="num">10</span>)      <span class="cm"># OK: positional</span>
+<span class="cm"># func(a=10)  → TypeError: positional-only 위반</span>
+
+<span class="cm"># 혼합: a는 positional only, b는 p or k, c는 keyword only</span>
+<span class="kw">def</span> <span class="fn">func2</span>(<span class="nm">a</span>, <span class="op">/</span>, <span class="nm">b</span>, <span class="op">*</span>, <span class="nm">c</span>):
+    <span class="fn">print</span>([<span class="nm">a</span>, <span class="nm">b</span>, <span class="nm">c</span>])
+
+<span class="fn">func2</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="nm">c</span><span class="op">=</span><span class="num">3</span>)
+<span class="fn">func2</span>(<span class="num">1</span>, <span class="nm">b</span><span class="op">=</span><span class="num">2</span>, <span class="nm">c</span><span class="op">=</span><span class="num">3</span>)   <span class="cm"># b는 keyword도 OK</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      10<br>[1, 2, 3]<br>[1, 2, 3]
+    </div>
+  </div>
+
+  <!-- 예제 6: keyword only * -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 6: keyword only ( * ) — positional 사용 금지</span>
+      <span class="code-tag tag-param">keyword only · *</span>
+    </div>
+    <div class="code-explain">
+      <code>*,</code> 기호 뒤에 있는 parameter는 <strong>keyword argument만</strong> 허용합니다.<br>
+      positional argument(<code>func(10)</code>)로 전달하면 <strong>TypeError</strong>가 발생합니다.<br>
+      <code>sorted()</code>의 <code>key</code>와 <code>reverse</code>가 keyword only의 대표 사례입니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="op">*</span>, <span class="nm">a</span>):
+    <span class="fn">print</span>(<span class="nm">a</span>)
+
+<span class="fn">func</span>(<span class="nm">a</span><span class="op">=</span><span class="num">10</span>)   <span class="cm"># OK: keyword</span>
+<span class="cm"># func(10)  → TypeError: 0 positional arguments (*, 이후는 k only)</span>
+
+<span class="cm"># 실제 예시: sorted() 내장 함수</span>
+<span class="cm"># sorted(iterable, /, *, key=None, reverse=False)</span>
+<span class="nm">nums</span> <span class="op">=</span> [<span class="num">3</span>, <span class="num">1</span>, <span class="num">4</span>, <span class="num">1</span>, <span class="num">5</span>]
+<span class="fn">print</span>(<span class="fn">sorted</span>(<span class="nm">nums</span>, <span class="nm">reverse</span><span class="op">=</span><span class="bi">True</span>))   <span class="cm"># reverse는 keyword only</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      10<br>[5, 4, 3, 1, 1]
+    </div>
+  </div>
+
+  <!-- 예제 7: return -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 7: return — 값 반환과 None</span>
+      <span class="code-tag tag-ret">return · None · bool</span>
+    </div>
+    <div class="code-explain">
+      <strong>return</strong>을 생략하거나 <code>return</code>만 쓰면 <strong>None</strong>이 반환됩니다.<br>
+      <code>None</code>은 <code>print()</code>로 출력 가능하며, 조건 검사에서 <strong>False</strong>로 취급됩니다.<br>
+      반환값을 변수에 저장하거나 다른 식에서 바로 활용할 수 있습니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">add</span>(<span class="nm">a</span>, <span class="nm">b</span>):
+    <span class="kw">return</span> <span class="nm">a</span> <span class="op">+</span> <span class="nm">b</span>       <span class="cm"># 값 반환</span>
+
+<span class="kw">def</span> <span class="fn">show</span>(<span class="nm">a</span>):
+    <span class="fn">print</span>(<span class="nm">a</span>)            <span class="cm"># return 없음 → None 반환</span>
+
+<span class="fn">print</span>(<span class="fn">add</span>(<span class="num">3</span>, <span class="num">5</span>))      <span class="cm"># 8</span>
+<span class="nm">x</span> <span class="op">=</span> <span class="fn">show</span>(<span class="num">10</span>)          <span class="cm"># None 반환</span>
+<span class="fn">print</span>(<span class="nm">x</span>)              <span class="cm"># None</span>
+
+<span class="cm"># None은 False 취급</span>
+<span class="fn">print</span>(<span class="st">"참"</span> <span class="kw">if</span> <span class="fn">show</span>(<span class="num">10</span>) <span class="kw">else</span> <span class="st">"거짓"</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      8<br>10<br>None<br>10<br>거짓
+    </div>
+  </div>
+
+  <!-- 예제 8: lambda 기본 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 8: lambda — 이름 없는 함수 (expression)</span>
+      <span class="code-tag tag-lam">lambda · anonymous function</span>
+    </div>
+    <div class="code-explain">
+      <strong>lambda</strong>는 <code>def</code> 없이 한 줄로 함수를 표현합니다.<br>
+      문법: <code>lambda 매개변수 : 표현식</code> — <strong>return 없이</strong> 표현식이 자동으로 반환됩니다.<br>
+      변수에 저장하거나 다른 함수(map, filter, sorted)에 직접 인자로 넘길 수 있습니다.
+    </div>
+    <pre><code><span class="cm"># 제곱 함수</span>
+<span class="nm">square</span> <span class="op">=</span> <span class="kw">lambda</span> <span class="nm">x</span> : <span class="nm">x</span><span class="op">**</span><span class="num">2</span>
+<span class="fn">print</span>(<span class="nm">square</span>(<span class="num">5</span>))      <span class="cm"># 25</span>
+
+<span class="cm"># 삼항 조건식 활용</span>
+<span class="nm">parity</span> <span class="op">=</span> <span class="kw">lambda</span> <span class="nm">x</span> : <span class="st">'짝수'</span> <span class="kw">if</span> <span class="nm">x</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span> <span class="kw">else</span> <span class="st">'홀수'</span>
+<span class="fn">print</span>(<span class="nm">parity</span>(<span class="num">10</span>))     <span class="cm"># 짝수</span>
+<span class="fn">print</span>(<span class="nm">parity</span>(<span class="num">5</span>))      <span class="cm"># 홀수</span>
+
+<span class="cm"># 두 수의 합</span>
+<span class="nm">add</span> <span class="op">=</span> <span class="kw">lambda</span> <span class="nm">x</span>, <span class="nm">y</span> : <span class="nm">x</span> <span class="op">+</span> <span class="nm">y</span>
+<span class="fn">print</span>(<span class="nm">add</span>(<span class="num">10</span>, <span class="num">20</span>))    <span class="cm"># 30</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      25<br>짝수<br>홀수<br>30
+    </div>
+  </div>
+
+  <!-- 예제 9: lambda + map -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 9: lambda + map / sorted — 실전 활용</span>
+      <span class="code-tag tag-lam">lambda · map · sorted · key</span>
+    </div>
+    <div class="code-explain">
+      <code>map(lambda ..., iterable)</code>: 각 요소에 lambda를 적용합니다.<br>
+      <code>sorted(iterable, key=lambda ...)</code>: 정렬 기준을 lambda로 지정합니다.<br>
+      lambda는 별도 함수를 정의하지 않고 <strong>한 번만 쓰는 간단한 함수</strong>에 가장 적합합니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>]
+<span class="nm">b</span> <span class="op">=</span> [<span class="num">2</span>, <span class="num">4</span>, <span class="num">6</span>, <span class="num">8</span>, <span class="num">10</span>]
+
+<span class="cm"># map + lambda: 같은 위치 요소끼리 더하기</span>
+<span class="nm">c</span> <span class="op">=</span> <span class="fn">list</span>(<span class="fn">map</span>(<span class="kw">lambda</span> <span class="nm">x</span>, <span class="nm">y</span>: <span class="nm">x</span> <span class="op">+</span> <span class="nm">y</span>, <span class="nm">a</span>, <span class="nm">b</span>))
+<span class="fn">print</span>(<span class="nm">c</span>)
+
+<span class="cm"># sorted + key: 절댓값 기준 정렬</span>
+<span class="nm">nums</span> <span class="op">=</span> [<span class="op">-</span><span class="num">3</span>, <span class="num">1</span>, <span class="op">-</span><span class="num">7</span>, <span class="num">2</span>, <span class="op">-</span><span class="num">1</span>]
+<span class="fn">print</span>(<span class="fn">sorted</span>(<span class="nm">nums</span>, <span class="nm">key</span><span class="op">=</span><span class="kw">lambda</span> <span class="nm">x</span>: <span class="fn">abs</span>(<span class="nm">x</span>)))
+
+<span class="cm"># sorted + key: 문자열 길이 기준 정렬</span>
+<span class="nm">words</span> <span class="op">=</span> [<span class="st">'banana'</span>, <span class="st">'apple'</span>, <span class="st">'fig'</span>, <span class="st">'cherry'</span>]
+<span class="fn">print</span>(<span class="fn">sorted</span>(<span class="nm">words</span>, <span class="nm">key</span><span class="op">=</span><span class="kw">lambda</span> <span class="nm">x</span>: <span class="fn">len</span>(<span class="nm">x</span>)))</code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      [3, 6, 9, 12, 15]<br>
+      [1, -1, 2, -3, -7]<br>
+      ['fig', 'apple', 'banana', 'cherry']
+    </div>
+  </div>
+
+  <!-- 파라미터 순서 규칙 -->
+  <div class="concept-box">
+    <h3>📋 parameter 배치 규칙 (순서)</h3>
+    <table class="tbl">
+      <tr><th>순서</th><th>종류</th><th>기호</th><th>예시</th></tr>
+      <tr><td>①</td><td>positional only</td><td>parameter, /</td><td><code>def f(a, /)</code></td></tr>
+      <tr><td>②</td><td>positional or keyword</td><td>(기호 없음)</td><td><code>def f(b)</code></td></tr>
+      <tr><td>③</td><td>var positional</td><td>*parameter</td><td><code>def f(*c)</code></td></tr>
+      <tr><td>④</td><td>keyword only</td><td>*, parameter</td><td><code>def f(*, d)</code></td></tr>
+      <tr><td>⑤</td><td>var keyword</td><td>**parameter</td><td><code>def f(**e)</code></td></tr>
+    </table>
+    <div style="margin-top:12px;font-size:.85rem;color:var(--sub)">
+      ※ / 는 * 보다 앞에 위치해야 합니다. <code>def f(*, a, /)</code> → SyntaxError<br>
+      ※ **kwargs 뒤에는 다른 parameter를 사용할 수 없습니다.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ QUIZ ══════════════════ -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div>
+      <div class="section-title" style="margin-bottom:4px">📝 퀴즈</div>
+      <div class="section-subtitle" style="margin-bottom:0">총 20문항 · 선택지를 클릭하면 바로 채점됩니다.</div>
+    </div>
+    <div class="quiz-score-badge" id="score-badge">0 / 20</div>
+  </div>
+
+  <div id="quiz-list"></div>
+
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎉</div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-primary" onclick="resetQuiz()">다시 풀기</button>
+      <button class="btn btn-ghost" onclick="showTab('notes')">오답노트 보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ WRONG NOTES ══════════════════ -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">틀린 문제를 모아 복습하세요.</div>
+  <div id="notes-content"></div>
+</div>
+
+<script>
+/* ══════════ FLASHCARD DATA ══════════ */
+const CARDS = [
+  /* ── 기본 개념 ── */
+  {
+    q: 'parameter와 argument의 차이는 무엇인가요?',
+    a: 'parameter: 함수 정의 시 사용하는 변수(이름)\nargument: 함수 호출 시 전달하는 실제 값(객체)\n\n예:\ndef func(a, b):  ← a, b가 parameter\nfunc(10, 20)     ← 10, 20이 argument'
+  },
+  {
+    q: 'return을 생략하거나 return만 쓰면 반환값은 무엇인가요?',
+    a: 'None이 반환됩니다.\n\nNone은 print()로 출력할 수 있으며,\n조건 검사에서 False로 취급됩니다.'
+  },
+  {
+    q: 'positional argument란 무엇인가요?',
+    a: '함수 호출 시 순서(위치)에 따라 parameter에 전달되는 argument입니다.\n\n예: func(10, 20, 30)\n→ 첫 번째=10, 두 번째=20, 세 번째=30'
+  },
+  {
+    q: 'keyword argument란 무엇인가요?',
+    a: '함수 호출 시 parameter 이름을 지정하여 전달하는 argument입니다.\n순서에 관계없이 사용할 수 있습니다.\n\n예: func(c=30, a=10, b=20)'
+  },
+  {
+    q: 'positional과 keyword argument를 혼합할 때 규칙은?',
+    a: 'positional이 반드시 앞, keyword가 뒤에 와야 합니다.\n\nOK: func(10, c=30, b=20)\nError: func(a=10, 20)  ← p가 k 뒤에 오면 SyntaxError'
+  },
+  /* ── default / non-default ── */
+  {
+    q: 'default argument란 무엇인가요?',
+    a: 'parameter에 기본값을 미리 지정한 argument입니다.\n호출 시 해당 argument를 생략하면 기본값이 사용됩니다.\n\n예: def func(a=10, b=20): ...\nfunc()  →  a=10, b=20 사용'
+  },
+  {
+    q: 'non-default parameter를 정의할 때 위치 규칙은?',
+    a: 'non-default(기본값 없음)가 default(기본값 있음)보다 앞에 위치해야 합니다.\n\nOK: def func(a, b=20):\nError: def func(a=10, b)  ← SyntaxError'
+  },
+  /* ── parameter 종류 ── */
+  {
+    q: 'positional only parameter란? 어떻게 정의하나요?',
+    a: 'keyword argument 사용이 금지된 parameter입니다.\n, / 기호로 구분합니다.\n\n예: def func(a, /):\nfunc(10)      OK\nfunc(a=10)    TypeError!'
+  },
+  {
+    q: 'keyword only parameter란? 어떻게 정의하나요?',
+    a: 'positional argument 사용이 금지된 parameter입니다.\n*, 기호 뒤에 위치합니다.\n\n예: def func(*, a):\nfunc(a=10)    OK\nfunc(10)      TypeError!'
+  },
+  {
+    q: 'var positional parameter(*args)란 무엇인가요?',
+    a: '0개 이상의 positional argument를 하나의 tuple로 묶어 받는 parameter입니다.\nparameter 이름 앞에 *를 붙입니다.\n\n예: def func(*a):\nfunc(1, 2, 3)  →  a = (1, 2, 3)'
+  },
+  {
+    q: 'var keyword parameter(**kwargs)란 무엇인가요?',
+    a: '0개 이상의 keyword argument를 하나의 dict로 묶어 받는 parameter입니다.\nparameter 이름 앞에 **를 붙입니다.\n\n예: def func(**a):\nfunc(x=1, y=2)  →  a = {\'x\': 1, \'y\': 2}'
+  },
+  {
+    q: '*args 뒤에 오는 일반 parameter는 어떤 종류가 되나요?',
+    a: '자동으로 keyword only parameter가 됩니다.\n\n예: def func(*a, b, c):\n→ b, c는 반드시 keyword argument로 전달해야 함\nfunc(1, 2, b=10, c=20)'
+  },
+  {
+    q: '**kwargs는 parameter 목록에서 어디에 위치해야 하나요?',
+    a: '항상 parameter 목록의 맨 마지막에 위치해야 합니다.\n**kwargs 뒤에는 다른 parameter를 올 수 없습니다.\n\nOK: def func(a, *b, **c):\nError: def func(**a, b)  ← SyntaxError'
+  },
+  {
+    q: 'parameter 배치 순서 규칙은?',
+    a: '① positional only (/ 앞)\n② positional or keyword\n③ var positional (*args)\n④ keyword only (* 뒤)\n⑤ var keyword (**kwargs)\n\n/ 는 반드시 * 보다 앞에 위치해야 합니다.'
+  },
+  /* ── lambda ── */
+  {
+    q: 'lambda 함수의 문법은?',
+    a: 'lambda 매개변수 : 표현식\n\n예: lambda x: x**2\n\nreturn 키워드 없이 표현식이 자동 반환됩니다.\n여러 줄 코드(statements)는 사용할 수 없습니다.'
+  },
+  {
+    q: 'lambda와 def 함수의 차이점은?',
+    a: 'lambda: 이름 없는 함수, 표현식(expression)만 가능, 한 줄\n\ndef: 이름 있는 함수, 여러 문장(statements) 가능, 여러 줄\n\n간단한 1회용 함수에는 lambda가 편리합니다.'
+  },
+  {
+    q: 'lambda를 sorted()의 key 인자로 쓰는 이유는?',
+    a: '정렬 기준을 함수로 지정할 수 있기 때문입니다.\n\n예: sorted(words, key=lambda x: len(x))\n→ 문자열 길이를 기준으로 오름차순 정렬\n\nkey는 keyword only parameter입니다.'
+  },
+  {
+    q: 'map(lambda x, y: x+y, a, b)는 무엇을 하나요?',
+    a: '두 리스트 a, b의 같은 위치 요소를 더한 결과를 lazy하게 반환합니다.\n\n예:\na = [1,2,3], b = [2,4,6]\nlist(map(lambda x,y: x+y, a, b))\n→ [3, 6, 9]'
+  },
+  /* ── 실전 ── */
+  {
+    q: 'sorted()의 parameter 구조는 어떻게 되나요?',
+    a: 'sorted(iterable, /, *, key=None, reverse=False)\n\n- iterable: positional only\n- key, reverse: keyword only\n\n즉, key와 reverse는 반드시 이름을 지정해서 전달해야 합니다.'
+  },
+  {
+    q: 'sum()의 parameter 구조는 어떻게 되나요?',
+    a: 'sum(iterable, /, start=0)\n\n- iterable: positional only\n- start: positional or keyword (기본값 0)\n\n예: sum([1,2,3], 10)  →  16\n    sum([1,2,3], start=10)  →  16'
+  },
+  {
+    q: '함수에서 return 값이 여러 개일 때 어떻게 반환되나요?',
+    a: 'tuple로 묶여 반환됩니다.\n\n예:\ndef func():\n    return 1, 2, 3\nx = func()  →  x = (1, 2, 3)\na, b, c = func()  →  언패킹도 가능'
+  },
+  {
+    q: 'def func(a, /, b, *, c)에서 각 parameter의 종류는?',
+    a: 'a: positional only  (/ 앞)\nb: positional or keyword (/ 와 * 사이)\nc: keyword only  (* 뒤)\n\n올바른 호출:\nfunc(1, 2, c=3)\nfunc(1, b=2, c=3)'
+  }
+];
+
+/* ══════════ FLASHCARD LOGIC ══════════ */
+let fcIdx = 0;
+function renderCard() {
+  const c = CARDS[fcIdx];
+  document.getElementById('fc-q').textContent = c.q;
+  document.getElementById('fc-a').innerHTML = c.a.replace(/\n/g, '<br>');
+  document.getElementById('fc').classList.remove('flipped');
+  document.getElementById('fc-counter').textContent = `${fcIdx+1} / ${CARDS.length}`;
+  document.getElementById('fc-bar').style.width = `${(fcIdx+1)/CARDS.length*100}%`;
+}
+function flipCard()  { document.getElementById('fc').classList.toggle('flipped'); }
+function nextCard()  { fcIdx = (fcIdx+1) % CARDS.length; renderCard(); }
+function prevCard()  { fcIdx = (fcIdx-1+CARDS.length) % CARDS.length; renderCard(); }
+renderCard();
+
+/* ══════════ QUIZ DATA ══════════ */
+const QUIZ = [
+  /* ── argument ── */
+  {
+    q: '다음 코드의 출력 결과는?\n\ndef func(a, b, c):\n    print([a, b, c])\n\nfunc(c=30, a=10, b=20)',
+    opts: ['[30, 20, 10]', '[10, 20, 30]', '[10, 30, 20]', 'TypeError 발생'],
+    ans: 1,
+    exp: 'keyword argument는 이름을 지정하여 전달하므로 순서에 관계없이 c=30, a=10, b=20이 각각 올바른 parameter에 전달됩니다. → [10, 20, 30]'
+  },
+  {
+    q: '다음 함수 호출 중 SyntaxError 또는 TypeError가 발생하는 것은?\n\ndef func(a, b, c):\n    print([a, b, c])',
+    opts: ['func(10, 20, 30)', 'func(a=10, b=20, c=30)', 'func(10, c=30, b=20)', 'func(a=10, 20, c=30)'],
+    ans: 3,
+    exp: 'positional argument는 keyword argument보다 앞에 와야 합니다. func(a=10, 20, c=30)에서 20이 keyword(a=10) 뒤에 위치하므로 SyntaxError가 발생합니다.'
+  },
+  {
+    q: 'default argument가 있는 함수에서 다음 코드의 출력 결과는?\n\ndef func(a=10, b=20, c=30):\n    print([a, b, c])\n\nfunc(c=100, b=10)',
+    opts: ['[10, 10, 100]', '[100, 10, 30]', '[10, 100, 10]', 'TypeError 발생'],
+    ans: 0,
+    exp: 'a는 argument가 전달되지 않아 기본값 10이 사용됩니다. b=10, c=100으로 전달되므로 결과는 [10, 10, 100]입니다.'
+  },
+  {
+    q: '다음 함수 정의 중 SyntaxError가 발생하는 것은?',
+    opts: [
+      'def func(a, b=20, c=30):',
+      'def func(a=10, b=20, c=30):',
+      'def func(a=10, b, c=30):',
+      'def func(a, b, c):'
+    ],
+    ans: 2,
+    exp: 'non-default parameter(b)는 default parameter(a=10) 뒤에 올 수 없습니다. non-default가 앞, default가 뒤에 위치해야 합니다.'
+  },
+  /* ── parameter 종류 ── */
+  {
+    q: '다음 코드의 출력 결과는?\n\ndef func(*a):\n    print(a, type(a))\n\nfunc(1, 2, 3)',
+    opts: [
+      '[1, 2, 3] <class \'list\'>',
+      '(1, 2, 3) <class \'tuple\'>',
+      '{1, 2, 3} <class \'set\'>',
+      '1 2 3 <class \'int\'>'
+    ],
+    ans: 1,
+    exp: '*a는 var positional parameter로, 전달된 positional argument를 tuple로 묶어 받습니다. → (1, 2, 3) <class \'tuple\'>'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\ndef func(**a):\n    print(a)\n\nfunc(x=1, y=2, z=3)',
+    opts: ["{'x': 1, 'y': 2, 'z': 3}", "(('x',1),('y',2),('z',3))", "[1, 2, 3]", "TypeError 발생"],
+    ans: 0,
+    exp: '**a는 var keyword parameter로, keyword argument를 dict로 묶어 받습니다. → {\'x\': 1, \'y\': 2, \'z\': 3}'
+  },
+  {
+    q: 'positional only parameter를 정의하는 기호는 무엇인가요?',
+    opts: ['* (asterisk)', '/ (slash)', '** (double asterisk)', ': (colon)'],
+    ans: 1,
+    exp: ', / 기호를 사용합니다. / 앞에 위치한 parameter는 positional argument만 허용하며, keyword argument로 전달하면 TypeError가 발생합니다.'
+  },
+  {
+    q: '다음 코드에서 오류가 발생하는 줄은?\n\ndef func(a, /):\n    print(a)\n\nfunc(10)      # 줄 A\nfunc(a=10)    # 줄 B',
+    opts: ['줄 A (positional 불가)', '줄 B (keyword 불가)', '두 줄 모두 오류', '오류 없음'],
+    ans: 1,
+    exp: 'a는 positional only parameter입니다. func(10)은 정상이지만 func(a=10)은 keyword argument를 사용했으므로 TypeError가 발생합니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\ndef func(*a, b, c):\n    print([a, b, c])\n\nfunc(10, 20, 30, b=100, c=200)',
+    opts: ['[10, 20, 30, 100, 200]', '[(10, 20, 30), 100, 200]', '[[10,20,30], 100, 200]', 'TypeError 발생'],
+    ans: 1,
+    exp: '*a는 positional argument (10, 20, 30)을 tuple로 수집합니다. b, c는 *a 뒤에 있으므로 keyword only가 되어 b=100, c=200으로 전달됩니다. → [(10, 20, 30), 100, 200]'
+  },
+  {
+    q: 'def func(a, /, b, *, c)에서 올바른 호출은?',
+    opts: ['func(a=1, b=2, c=3)', 'func(1, 2, c=3)', 'func(1, 2, 3)', 'func(1, b=2, 3)'],
+    ans: 1,
+    exp: 'a는 positional only이므로 반드시 위치로 전달. b는 p or k이므로 둘 다 가능. c는 keyword only이므로 반드시 c=3으로 전달. → func(1, 2, c=3)이 올바릅니다.'
+  },
+  /* ── return ── */
+  {
+    q: '다음 코드의 출력 결과는?\n\ndef func(a):\n    print(a)\n\nx = func(10)\nprint(x)',
+    opts: ['10\n10', '10\nNone', 'None\n10', 'None\nNone'],
+    ans: 1,
+    exp: 'func(10)은 10을 출력하고 return이 없으므로 None을 반환합니다. x = None이 되어 print(x)는 None을 출력합니다.'
+  },
+  {
+    q: 'return 값이 없는 함수를 조건식에 사용하면 어떻게 평가되나요?\n\ndef show(x): print(x)\nprint("참" if show(5) else "거짓")',
+    opts: ['참', '거짓', '5', '오류 발생'],
+    ans: 1,
+    exp: 'show(5)는 5를 출력하고 None을 반환합니다. None은 bool 변환 시 False이므로 조건식은 "거짓"을 출력합니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\ndef func():\n    return 1, 2, 3\n\na, b, c = func()\nprint(b)',
+    opts: ['1', '2', '3', '(1, 2, 3)'],
+    ans: 1,
+    exp: 'return 1, 2, 3은 tuple (1, 2, 3)을 반환합니다. a, b, c = func()으로 언패킹하면 b = 2가 됩니다.'
+  },
+  /* ── lambda ── */
+  {
+    q: 'lambda x: x**2 를 호출할 때 올바른 방법은?',
+    opts: [
+      'lambda(5)',
+      'f = lambda x: x**2; f(5)',
+      '(lambda x: x**2)(5)',
+      'B와 C 모두 가능'
+    ],
+    ans: 3,
+    exp: 'lambda는 변수에 저장한 후 호출하거나(f = lambda x: x**2; f(5)), 즉시 호출할 수도 있습니다((lambda x: x**2)(5)). 두 방법 모두 25를 반환합니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\nfunc = lambda x: \'짝수\' if x % 2 == 0 else \'홀수\'\nprint(func(7))',
+    opts: ['짝수', '홀수', '0', 'None'],
+    ans: 1,
+    exp: '7 % 2 = 1이므로 조건 x % 2 == 0이 거짓(False)입니다. 따라서 \'홀수\'를 반환합니다.'
+  },
+  {
+    q: 'lambda와 def 함수의 차이로 옳은 것은?',
+    opts: [
+      'lambda는 return을 사용하고, def는 사용하지 않는다',
+      'lambda는 한 줄 표현식만 가능하고, def는 여러 문장을 사용할 수 있다',
+      'lambda는 parameter를 받을 수 없다',
+      'lambda는 sorted()에서만 사용할 수 있다'
+    ],
+    ans: 1,
+    exp: 'lambda는 단일 표현식(expression)만 가능하며, return 없이 그 값이 자동 반환됩니다. def는 여러 줄의 statements를 가질 수 있습니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\na = [1, 2, 3]\nb = [2, 4, 6]\nc = list(map(lambda x, y: x + y, a, b))\nprint(c)',
+    opts: ['[1, 2, 3, 2, 4, 6]', '[2, 8, 18]', '[3, 6, 9]', '[1, 4, 9]'],
+    ans: 2,
+    exp: 'map(lambda x, y: x+y, a, b)는 a와 b의 같은 위치 요소를 더합니다. 1+2=3, 2+4=6, 3+6=9 → [3, 6, 9]'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\nnums = [-3, 1, -7, 2, -1]\nprint(sorted(nums, key=lambda x: abs(x)))',
+    opts: ['[-7, -3, -1, 1, 2]', '[1, -1, 2, -3, -7]', '[-1, 1, 2, -3, -7]', '[-7, -3, 2, 1, -1]'],
+    ans: 1,
+    exp: 'key=lambda x: abs(x)로 절댓값 기준 정렬합니다. 절댓값: 3,1,7,2,1 → 오름차순: 1,-1,2,-3,-7'
+  },
+  /* ── 종합 ── */
+  {
+    q: 'sorted()의 key와 reverse parameter는 어떤 종류인가요?\n\nsorted(iterable, /, *, key=None, reverse=False)',
+    opts: ['positional only', 'positional or keyword', 'keyword only', 'var keyword'],
+    ans: 2,
+    exp: '* 뒤에 위치한 key와 reverse는 keyword only parameter입니다. 따라서 sorted(nums, True)처럼 positional로 전달하면 TypeError가 발생합니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\ndef func(a, b=5, *c, d, **e):\n    print(a, b, c, d, e)\n\nfunc(1, 2, 3, 4, d=10, x=99)',
+    opts: [
+      '1 2 (3, 4) 10 {\'x\': 99}',
+      '1 5 (2, 3, 4) 10 {\'x\': 99}',
+      '1 2 (3, 4) 10 99',
+      'TypeError 발생'
+    ],
+    ans: 0,
+    exp: 'a=1(positional), b=2(positional), c=(3,4)(나머지 positional → tuple), d=10(keyword only), e={\'x\':99}(나머지 keyword → dict). → 1 2 (3, 4) 10 {\'x\': 99}'
+  }
+];
+
+/* ══════════ QUIZ LOGIC ══════════ */
+let answered = new Array(QUIZ.length).fill(false);
+let userAns  = new Array(QUIZ.length).fill(-1);
+let score    = 0;
+let wrongQ   = [];
+
+function buildQuiz() {
+  const list = document.getElementById('quiz-list');
+  list.innerHTML = '';
+  QUIZ.forEach((q, qi) => {
+    const hasCode = q.q.includes('\n');
+    const qtext   = q.q.replace(/\n([\s\S]*)/, '');
+    const codetext = hasCode ? (q.q.match(/\n([\s\S]*)/) || ['',''])[1] : '';
+
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.id = `qcard-${qi}`;
+    card.innerHTML = `
+      <div class="quiz-num">Q${String(qi+1).padStart(2,'0')}</div>
+      <div class="quiz-q">${qtext}</div>
+      ${codetext ? `<div class="quiz-code">${escHtml(codetext)}</div>` : ''}
+      <div class="options" id="opts-${qi}">
+        ${q.opts.map((o,oi) => `
+          <button class="opt-btn" id="opt-${qi}-${oi}" onclick="pick(${qi},${oi})">
+            <span class="opt-letter">${String.fromCharCode(65+oi)}</span>
+            <span>${o}</span>
+          </button>`).join('')}
+      </div>
+      <div class="feedback-box" id="fb-${qi}"></div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function pick(qi, oi) {
+  if (answered[qi]) return;
+  answered[qi] = true;
+  userAns[qi] = oi;
+  const q = QUIZ[qi];
+  const correct = oi === q.ans;
+  if (correct) score++;
+  else wrongQ.push(qi);
+
+  document.getElementById(`opt-${qi}-${oi}`).classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) document.getElementById(`opt-${qi}-${q.ans}`).classList.add('correct');
+  document.querySelectorAll(`#opts-${qi} .opt-btn`).forEach(b => b.disabled = true);
+
+  const fb = document.getElementById(`fb-${qi}`);
+  fb.classList.add('show', correct ? 'feedback-correct' : 'feedback-wrong');
+  fb.innerHTML = correct
+    ? `정답입니다! ${q.exp}`
+    : `<strong>오답.</strong> 정답은 <strong>${String.fromCharCode(65+q.ans)}</strong>입니다. ${q.exp}`;
+
+  document.getElementById('score-badge').textContent = `${score} / ${QUIZ.length}`;
+
+  if (answered.every(Boolean)) {
+    setTimeout(showResult, 600);
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz-result').classList.add('show');
+  document.getElementById('result-score').textContent = `${score} / ${QUIZ.length}`;
+  const pct = Math.round(score / QUIZ.length * 100);
+  document.getElementById('result-msg').textContent =
+    pct === 100 ? '완벽합니다! 함수를 완전히 이해했어요. 🏆' :
+    pct >= 80  ? '잘했어요! 틀린 문제를 오답노트로 복습해 보세요. 🌟' :
+    pct >= 60  ? '괜찮아요. 코드 예제를 다시 확인해 보세요. 📚' :
+                 '조금 더 공부해봐요. 플래시카드부터 다시 시작해 보세요. 💪';
+  renderNotes();
+}
+
+function resetQuiz() {
+  answered.fill(false); userAns.fill(-1); score = 0; wrongQ = [];
+  document.getElementById('score-badge').textContent = '0 / 20';
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz();
+  window.scrollTo(0,0);
+}
+
+/* ══════════ WRONG NOTES ══════════ */
+function renderNotes() {
+  const el = document.getElementById('notes-content');
+  if (!wrongQ.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div>오답이 없습니다! 모두 정답이에요.</div>';
+    return;
+  }
+  let html = `<div class="download-bar">
+    <div class="download-info">오답 <strong>${wrongQ.length}문항</strong></div>
+    <button class="btn btn-ghost" onclick="downloadNotes()">TXT 다운로드</button>
+  </div>`;
+  wrongQ.forEach(qi => {
+    const q = QUIZ[qi];
+    html += `<div class="wrong-note-card">
+      <div class="wn-qnum">Q${String(qi+1).padStart(2,'0')}</div>
+      <div class="wn-q">${q.q.replace(/\n/g,'<br>')}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답</div>${userAns[qi]>=0 ? String.fromCharCode(65+userAns[qi])+'. '+q.opts[userAns[qi]] : '미답'}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}</div>
+      </div>
+      <div class="wn-explain">${q.exp}</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function downloadNotes() {
+  let txt = '=== 오답노트 – Python 함수 ===\n\n';
+  wrongQ.forEach(qi => {
+    const q = QUIZ[qi];
+    txt += `[Q${qi+1}] ${q.q}\n`;
+    q.opts.forEach((o,i) => txt += `  ${i===q.ans?'✔':' '} ${String.fromCharCode(65+i)}. ${o}\n`);
+    txt += `내 답: ${userAns[qi]>=0 ? String.fromCharCode(65+userAns[qi])+'. '+q.opts[userAns[qi]] : '미답'}\n`;
+    txt += `정답: ${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}\n해설: ${q.exp}\n\n`;
+  });
+  const blob = new Blob(['\uFEFF'+txt], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = '오답노트_함수.txt'; a.click();
+}
+
+/* ══════════ TAB ══════════ */
+function showTab(t) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(t).classList.add('active');
+  document.querySelectorAll('.tab-btn')[['flashcard','code','quiz','notes'].indexOf(t)].classList.add('active');
+  if (t === 'notes') renderNotes();
+}
+
+buildQuiz();
+</script>
+</body>
+</html>

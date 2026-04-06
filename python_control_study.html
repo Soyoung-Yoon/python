@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python 제어문 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --border:#30363d;
+  --blue:#58a6ff; --green:#3fb950; --orange:#f0883e; --purple:#d2a8ff;
+  --red:#f78166; --warn:#e3b341; --text:#e6edf3; --sub:#8b949e;
+  --code-bg:#010409; --r:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── HEADER ── */
+header{background:linear-gradient(135deg,#0d1117 0%,#0d1a2a 100%);border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.logo{font-family:'JetBrains Mono',monospace;font-size:1.3rem;color:var(--blue);font-weight:700;letter-spacing:-1px;}
+.logo span{color:var(--green);}
+header h1{font-size:1rem;font-weight:400;color:var(--sub);}
+header h1 strong{color:var(--text);font-weight:600;}
+.home-btn{margin-left:auto;text-decoration:none;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--sub);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;transition:all .15s;}
+.home-btn:hover{color:var(--blue);border-color:var(--blue);}
+
+/* ── NAV ── */
+nav{display:flex;gap:4px;padding:16px 40px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab-btn{font-family:'Noto Sans KR',sans-serif;padding:8px 20px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--sub);cursor:pointer;font-size:.875rem;font-weight:400;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.tab-btn:hover{background:var(--surface2);color:var(--text);}
+.tab-btn.active{background:var(--blue);color:#0d1117;border-color:var(--blue);font-weight:600;}
+
+/* ── SECTION ── */
+.section{display:none;padding:40px;max-width:900px;margin:0 auto;}
+.section.active{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:1.5rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.section-subtitle{color:var(--sub);font-size:.9rem;margin-bottom:32px;font-weight:300;}
+
+/* ── FLASHCARD ── */
+.flashcard-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.fc-progress{font-family:'JetBrains Mono',monospace;color:var(--blue);font-size:1rem;font-weight:600;}
+.fc-progress-bar{width:100%;height:4px;background:var(--border);border-radius:4px;margin-bottom:24px;overflow:hidden;}
+.fc-progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));border-radius:4px;transition:width .4s ease;}
+.flashcard-wrap{perspective:1200px;height:320px;cursor:pointer;margin-bottom:24px;}
+.flashcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+.flashcard.flipped{transform:rotateY(180deg);}
+.fc-front,.fc-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--r);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+.fc-front{background:linear-gradient(135deg,var(--surface) 0%,#0d1a2a 100%);}
+.fc-back{background:linear-gradient(135deg,#0d1a2a 0%,#0f1f0f 100%);border-color:var(--blue);transform:rotateY(180deg);}
+.fc-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.fc-front .fc-label{color:var(--blue);}
+.fc-back .fc-label{color:var(--green);}
+.fc-q{font-size:1.05rem;font-weight:600;line-height:1.7;color:var(--text);}
+.fc-a{font-size:.9rem;font-weight:400;line-height:1.85;color:var(--text);}
+.fc-hint{margin-top:20px;font-size:.8rem;color:var(--sub);}
+.fc-a code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--purple);background:var(--code-bg);padding:2px 6px;border-radius:4px;}
+.nav-btns{display:flex;gap:12px;justify-content:center;}
+.btn{font-family:'Noto Sans KR',sans-serif;padding:10px 24px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+.btn-ghost{background:transparent;color:var(--sub);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--blue);}
+.btn-primary{background:var(--blue);color:#0d1117;border-color:var(--blue);}
+.btn-primary:hover{filter:brightness(1.1);}
+.btn-danger{background:var(--red);color:#fff;border-color:var(--red);}
+
+/* ── CODE SECTION ── */
+.code-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:28px;transition:border-color .2s;}
+.code-card:hover{border-color:var(--blue);}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+.code-title{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--blue);font-weight:600;}
+.code-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;}
+.tag-if   {background:#0d1a2a;color:var(--blue);  border:1px solid var(--blue);}
+.tag-for  {background:#0f1f0f;color:var(--green); border:1px solid var(--green);}
+.tag-while{background:#2a1c40;color:var(--purple);border:1px solid var(--purple);}
+.tag-tip  {background:#2a2a0a;color:var(--warn);  border:1px solid var(--warn);}
+.code-explain{padding:16px 20px;border-bottom:1px solid var(--border);font-size:.9rem;line-height:1.85;color:var(--sub);}
+.code-explain strong{color:var(--text);}
+.code-explain code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--purple);background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+pre{background:var(--code-bg);padding:20px;overflow-x:auto;margin:0;line-height:1.7;}
+pre code{font-family:'JetBrains Mono',monospace;font-size:.82rem;}
+.output-box{background:#010409;border-top:1px solid var(--border);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);line-height:1.7;}
+.output-label{color:var(--sub);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+
+/* syntax colors */
+.kw{color:#ff7b72;} .fn{color:#d2a8ff;} .st{color:#a5d6ff;}
+.cm{color:#8b949e;font-style:italic;} .nm{color:#79c0ff;}
+.op{color:#f0883e;} .num{color:#f0883e;} .bi{color:#ffa657;}
+
+/* concept summary */
+.concept-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:28px;}
+.concept-box h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+.flow-compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+.ci{padding:14px;border-radius:8px;font-size:.83rem;line-height:1.8;}
+.ci-if   {background:#0d1a2a;border:1px solid var(--blue);}
+.ci-for  {background:#0f1f0f;border:1px solid var(--green);}
+.ci-while{background:#1a1030;border:1px solid var(--purple);}
+.ci-label{font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.ci-if    .ci-label{color:var(--blue);}
+.ci-for   .ci-label{color:var(--green);}
+.ci-while .ci-label{color:var(--purple);}
+
+/* ── QUIZ ── */
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.quiz-score-badge{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:var(--blue);font-weight:600;background:#0d1a2a;border:1px solid var(--blue);padding:4px 12px;border-radius:20px;}
+.quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;margin-bottom:20px;}
+.quiz-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--blue);letter-spacing:1px;margin-bottom:12px;font-weight:600;}
+.quiz-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:18px;color:var(--text);}
+.quiz-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:18px;white-space:pre;overflow-x:auto;line-height:1.65;}
+.options{display:flex;flex-direction:column;gap:10px;}
+.opt-btn{font-family:'Noto Sans KR',sans-serif;width:100%;padding:12px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.9rem;text-align:left;transition:all .2s;display:flex;align-items:flex-start;gap:12px;}
+.opt-btn:hover:not(:disabled){border-color:var(--blue);background:#0d1a2a;}
+.opt-btn:disabled{cursor:default;}
+.opt-letter{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.opt-btn.correct{border-color:var(--green);background:#0f1f0f;color:var(--green);}
+.opt-btn.correct .opt-letter{background:var(--green);color:#0d1117;}
+.opt-btn.wrong{border-color:var(--red);background:#2a1c1c;color:var(--red);}
+.opt-btn.wrong .opt-letter{background:var(--red);color:#fff;}
+.feedback-box{margin-top:14px;padding:12px 16px;border-radius:8px;font-size:.875rem;line-height:1.65;display:none;}
+.feedback-box.show{display:block;}
+.feedback-correct{background:#0f2a0f;border:1px solid var(--green);color:var(--green);}
+.feedback-wrong{background:#2a0f0f;border:1px solid var(--red);color:#e6edf3;}
+.feedback-wrong strong{color:var(--red);}
+.quiz-result{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:40px;text-align:center;}
+.quiz-result.show{display:block;animation:fadeIn .4s ease;}
+.result-score{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;margin:16px 0;color:var(--blue);}
+.result-msg{font-size:1rem;color:var(--sub);margin-bottom:24px;}
+.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+/* ── WRONG NOTES ── */
+.wrong-note-card{background:var(--surface);border:1px solid #2a1c1c;border-left:4px solid var(--red);border-radius:var(--r);padding:20px;margin-bottom:16px;animation:fadeIn .3s ease;}
+.wn-qnum{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--red);font-weight:600;margin-bottom:8px;}
+.wn-q{font-size:.95rem;font-weight:600;margin-bottom:12px;line-height:1.6;}
+.wn-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.85rem;}
+.wn-my {padding:10px;border-radius:6px;background:#2a1c1c;border:1px solid var(--red);}
+.wn-ans{padding:10px;border-radius:6px;background:#0f1f0f;border:1px solid var(--green);}
+.wn-label{font-size:.7rem;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+.wn-my  .wn-label{color:var(--red);}
+.wn-ans .wn-label{color:var(--green);}
+.wn-explain{margin-top:12px;font-size:.85rem;color:var(--sub);line-height:1.65;padding:10px;background:var(--surface2);border-radius:6px;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--sub);}
+.empty-icon{font-size:3rem;margin-bottom:12px;}
+.download-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;flex-wrap:wrap;gap:12px;}
+.download-info{font-size:.9rem;}
+.download-info strong{color:var(--red);}
+
+@media(max-width:600px){
+  nav,.section{padding:12px 16px;}
+  header{padding:14px 16px;}
+  .wn-row{grid-template-columns:1fr;}
+  .flashcard-wrap{height:300px;}
+  .flow-compare{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">py<span>.control</span></div>
+  <h1>Python <strong>제어문</strong> 학습</h1>
+  <a href="index.html" class="home-btn">홈으로</a>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')">플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')">코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')">퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')">오답노트</button>
+</nav>
+
+<!-- ══════════════════ FLASHCARDS ══════════════════ -->
+<div id="flashcard" class="section active">
+  <div class="section-title">플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 핵심 개념을 충분히 익힌 후 퀴즈로 넘어가세요.</div>
+
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 18</span>
+    <span style="font-size:.8rem;color:var(--sub)">클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:8.33%"></div></div>
+
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════ CODE EXAMPLES ══════════════════ -->
+<div id="code" class="section">
+  <div class="section-title">코드로 이해하기</div>
+  <div class="section-subtitle">if / for / while 세 가지 제어문을 단계별 예제로 확인하세요.</div>
+
+  <!-- 한눈에 비교 -->
+  <div class="concept-box">
+    <h3>세 가지 제어문 비교</h3>
+    <div class="flow-compare">
+      <div class="ci ci-if">
+        <div class="ci-label">if 조건문</div>
+        <div style="color:var(--sub)">조건의 참/거짓에 따라<br>실행 흐름을 분기합니다.<br><br>if / elif / else</div>
+      </div>
+      <div class="ci ci-for">
+        <div class="ci-label">for 반복문</div>
+        <div style="color:var(--sub)">목록·범위를 순서대로<br>순회하며 반복합니다.<br><br>for 변수 in 반복가능객체</div>
+      </div>
+      <div class="ci ci-while">
+        <div class="ci-label">while 반복문</div>
+        <div style="color:var(--sub)">조건이 참인 동안<br>계속 반복합니다.<br><br>while 조건:</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── if 기본 ─── -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">if / elif / else — 주민번호 성별 판별</span>
+      <span class="code-tag tag-if">if</span>
+    </div>
+    <div class="code-explain">
+      <strong>if</strong>는 조건이 참일 때만 코드를 실행합니다.
+      <strong>elif</strong>(else if)는 앞 조건이 거짓일 때 추가 조건을 검사하고,
+      <strong>else</strong>는 모든 조건이 거짓일 때 실행됩니다.<br>
+      <code>in '13'</code>은 문자가 <code>'13'</code> 문자열에 포함되어 있는지를 확인합니다.
+    </div>
+    <pre><code><span class="nm">num</span> <span class="op">=</span> <span class="st">'260403-3000000'</span>
+<span class="nm">gender</span> <span class="op">=</span> <span class="nm">num</span>[<span class="op">-</span><span class="num">7</span>]      <span class="cm"># 뒷자리 첫 번째 문자 = 성별 코드</span>
+
+<span class="kw">if</span> <span class="nm">gender</span> <span class="kw">in</span> <span class="st">'13'</span>:       <span class="cm"># '1' 또는 '3'이면</span>
+    <span class="fn">print</span>(<span class="st">'남자'</span>)
+<span class="kw">elif</span> <span class="nm">gender</span> <span class="kw">in</span> <span class="st">'24'</span>:    <span class="cm"># '2' 또는 '4'이면</span>
+    <span class="fn">print</span>(<span class="st">'여자'</span>)</code></pre>
+    <div class="output-box"><div class="output-label">output</div>남자</div>
+  </div>
+
+  <!-- ─── 삼항 연산자 ─── -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">삼항 연산자 — 조건부 표현식</span>
+      <span class="code-tag tag-tip">Tip</span>
+    </div>
+    <div class="code-explain">
+      Python의 <strong>조건부 표현식</strong>(삼항 연산자)은
+      <code>참값 if 조건 else 거짓값</code> 형태로 한 줄에 조건 분기를 작성합니다.<br>
+      간단한 if/else를 한 줄로 줄일 수 있어 코드가 간결해집니다.
+    </div>
+    <pre><code><span class="nm">gender</span> <span class="op">=</span> <span class="num">1</span>
+
+<span class="cm"># 일반 if/else</span>
+<span class="kw">if</span> <span class="nm">gender</span> <span class="op">%</span> <span class="num">2</span>:
+    <span class="nm">result</span> <span class="op">=</span> <span class="st">'남자'</span>
+<span class="kw">else</span>:
+    <span class="nm">result</span> <span class="op">=</span> <span class="st">'여자'</span>
+
+<span class="cm"># 삼항 연산자로 한 줄에</span>
+<span class="nm">result</span> <span class="op">=</span> <span class="st">'남자'</span> <span class="kw">if</span> <span class="nm">gender</span> <span class="op">%</span> <span class="num">2</span> <span class="kw">else</span> <span class="st">'여자'</span>
+<span class="fn">print</span>(<span class="nm">result</span>)</code></pre>
+    <div class="output-box"><div class="output-label">output</div>남자</div>
+  </div>
+
+  <!-- ─── for 기본 ─── -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">for + range() — 홀수 합 구하기</span>
+      <span class="code-tag tag-for">for</span>
+    </div>
+    <div class="code-explain">
+      <code>range(시작, 끝, 간격)</code>은 숫자 범위를 생성합니다. <strong>끝 값은 포함하지 않습니다.</strong><br>
+      <code>range(1, 101, 2)</code>는 1, 3, 5, …, 99 — 1부터 100 미만의 홀수를 바로 만들어 줍니다.
+    </div>
+    <pre><code><span class="cm"># 방법 1: range + if로 홀수 필터</span>
+<span class="nm">tot</span> <span class="op">=</span> <span class="num">0</span>
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">101</span>):
+    <span class="kw">if</span> <span class="nm">x</span> <span class="op">%</span> <span class="num">2</span>:          <span class="cm"># 홀수이면 True</span>
+        <span class="nm">tot</span> <span class="op">+=</span> <span class="nm">x</span>
+<span class="fn">print</span>(<span class="nm">tot</span>)
+
+<span class="cm"># 방법 2: range 간격을 2로 설정 (더 간결)</span>
+<span class="nm">tot</span> <span class="op">=</span> <span class="fn">sum</span>(<span class="fn">range</span>(<span class="num">1</span>, <span class="num">101</span>, <span class="num">2</span>))
+<span class="fn">print</span>(<span class="nm">tot</span>)</code></pre>
+    <div class="output-box"><div class="output-label">output</div>2500<br>2500</div>
+  </div>
+
+  <!-- ─── for + list ─── -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">for + 리스트 — 합격·불합격 판별</span>
+      <span class="code-tag tag-for">for</span>
+    </div>
+    <div class="code-explain">
+      <code>for 변수 in 리스트</code>는 리스트의 항목을 하나씩 꺼내서 사용합니다.<br>
+      리스트를 <strong>읽기만</strong> 할 때는 이 방식이 가장 깔끔합니다.
+      <code>f-string</code>을 사용하면 변수를 문자열 안에 쉽게 삽입할 수 있습니다.
+    </div>
+    <pre><code><span class="nm">score</span> <span class="op">=</span> [<span class="num">50</span>, <span class="num">58</span>, <span class="num">67</span>, <span class="num">72</span>, <span class="num">85</span>, <span class="num">90</span>, <span class="num">99</span>, <span class="num">100</span>]
+
+<span class="kw">for</span> <span class="nm">s</span> <span class="kw">in</span> <span class="nm">score</span>:
+    <span class="fn">print</span>(<span class="nm">s</span>, <span class="st">'-'</span>, <span class="st">'합격'</span> <span class="kw">if</span> <span class="nm">s</span> <span class="op">&gt;=</span> <span class="num">60</span> <span class="kw">else</span> <span class="st">'불합격'</span>)</code></pre>
+    <div class="output-box"><div class="output-label">output</div>50 - 불합격<br>58 - 불합격<br>67 - 합격<br>72 - 합격<br>85 - 합격<br>90 - 합격<br>99 - 합격<br>100 - 합격</div>
+  </div>
+
+  <!-- ─── for + else + break ─── -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">for + else + break — 암호 입력 (3회 제한)</span>
+      <span class="code-tag tag-for">for</span>
+    </div>
+    <div class="code-explain">
+      <code>break</code>는 반복문을 즉시 탈출합니다.<br>
+      <code>for</code>의 <strong>else</strong>는 반복이 <code>break</code> 없이 끝났을 때만 실행됩니다.
+      "암호를 3번 모두 틀린 경우"처럼 <em>정상 종료 시 후처리</em>에 유용합니다.
+    </div>
+    <pre><code><span class="nm">PW</span> <span class="op">=</span> <span class="st">'bluesky'</span>
+
+<span class="kw">for</span> <span class="nm">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">3</span>):
+    <span class="kw">if</span> <span class="fn">input</span>(<span class="st">'암호를 입력하세요: '</span>) <span class="op">==</span> <span class="nm">PW</span>:
+        <span class="fn">print</span>(<span class="st">'환영합니다'</span>)
+        <span class="kw">break</span>              <span class="cm"># 맞으면 즉시 탈출</span>
+    <span class="fn">print</span>(<span class="st">'다시 입력하세요'</span>)
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">'관리자에게 연락하세요'</span>)  <span class="cm"># break 없이 끝날 때만 실행</span></code></pre>
+    <div class="output-box"><div class="output-label">3회 모두 틀린 경우</div>다시 입력하세요<br>다시 입력하세요<br>다시 입력하세요<br>관리자에게 연락하세요</div>
+  </div>
+
+  <!-- ─── while + walrus ─── -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">while + := (대입 연산자) — 조건과 저장 동시에</span>
+      <span class="code-tag tag-while">while</span>
+    </div>
+    <div class="code-explain">
+      <code>:=</code> (walrus 연산자, Python 3.8+)는 <strong>값을 변수에 저장하면서 동시에 반환</strong>합니다.<br>
+      <code>while (a := input(...)) != PW</code>는 입력값을 <code>a</code>에 저장하고, 동시에 비밀번호와 비교합니다.<br>
+      <code>while</code>의 <strong>else</strong>도 <code>break</code> 없이 조건이 거짓이 된 경우 실행됩니다.
+    </div>
+    <pre><code><span class="nm">PW</span> <span class="op">=</span> <span class="st">"bluesky"</span>
+<span class="nm">count</span> <span class="op">=</span> <span class="num">0</span>
+
+<span class="kw">while</span> (<span class="nm">a</span> <span class="op">:=</span> <span class="fn">input</span>(<span class="st">"입력: "</span>)) <span class="op">!=</span> <span class="nm">PW</span>:
+    <span class="kw">if</span> <span class="nm">count</span> <span class="op">==</span> <span class="num">2</span>:
+        <span class="fn">print</span>(<span class="st">"관리자에게 연락하세요"</span>)
+        <span class="kw">break</span>
+    <span class="fn">print</span>(<span class="st">"다시 입력하세요"</span>)
+    <span class="nm">count</span> <span class="op">+=</span> <span class="num">1</span>
+<span class="kw">else</span>:
+    <span class="fn">print</span>(<span class="st">"환영합니다"</span>)   <span class="cm"># 올바른 암호를 입력했을 때</span></code></pre>
+    <div class="output-box"><div class="output-label">올바른 암호 입력 시</div>환영합니다</div>
+  </div>
+</div>
+
+<!-- ══════════════════ QUIZ ══════════════════ -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div>
+      <div class="section-title" style="margin-bottom:4px">퀴즈</div>
+      <div class="section-subtitle" style="margin-bottom:0">총 20문항 · 선택지를 클릭하면 바로 채점됩니다.</div>
+    </div>
+    <div class="quiz-score-badge" id="score-badge">0 / 20</div>
+  </div>
+
+  <div id="quiz-list"></div>
+
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎉</div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-primary" onclick="resetQuiz()">다시 풀기</button>
+      <button class="btn btn-ghost" onclick="showTab('notes')">오답노트 보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ WRONG NOTES ══════════════════ -->
+<div id="notes" class="section">
+  <div class="section-title">오답노트</div>
+  <div class="section-subtitle">틀린 문제를 모아 복습하세요.</div>
+  <div id="notes-content"></div>
+</div>
+
+<script>
+/* ══════════ FLASHCARD DATA ══════════ */
+const CARDS = [
+  {
+    q: 'if 문에서 코드 블록을 구분하는 방법은?',
+    a: '들여쓰기(indentation)로 구분합니다.\n{ } 대신 들여쓰기가 Python의 핵심 문법입니다.'
+  },
+  {
+    q: 'elif는 무엇의 줄임말이며, 언제 실행되나요?',
+    a: 'else if의 줄임말입니다.\n앞의 if(또는 elif) 조건이 거짓일 때 추가 조건을 검사합니다.'
+  },
+  {
+    q: '삼항 연산자(조건부 표현식)의 구문 형태는?',
+    a: '참값 if 조건 else 거짓값\n\n예: result = \'남자\' if gender % 2 else \'여자\''
+  },
+  {
+    q: 'range(1, 10, 2)는 어떤 숫자를 생성하나요?',
+    a: '1, 3, 5, 7, 9\n\nrange(시작, 끝, 간격) — 끝 값(10)은 포함하지 않습니다.'
+  },
+  {
+    q: 'for 문에서 리스트를 순회할 때 권장되는 방식은?',
+    a: 'for 변수 in 리스트:\n\n인덱스(range + len)는 수정이 필요할 때만 사용합니다.\n읽기 전용이라면 for 변수 in 리스트가 더 간결합니다.'
+  },
+  {
+    q: 'x % 2가 True(참)인 경우는 언제인가요?',
+    a: 'x가 홀수일 때입니다.\n\nx % 2는 x를 2로 나눈 나머지입니다.\n홀수이면 나머지가 1 → True, 짝수이면 0 → False'
+  },
+  {
+    q: 'break는 무엇을 하나요?',
+    a: '현재 반복문을 즉시 탈출합니다.\n가장 가까운 for 또는 while 반복문 하나만 빠져나옵니다.'
+  },
+  {
+    q: 'continue는 무엇을 하나요?',
+    a: '현재 반복 차례를 건너뜁니다.\n이후 코드를 실행하지 않고 다음 반복으로 이동합니다.'
+  },
+  {
+    q: 'for / while 의 else는 언제 실행되나요?',
+    a: 'break 없이 반복이 정상 종료될 때만 실행됩니다.\nbreak로 탈출하면 else는 건너뜁니다.'
+  },
+  {
+    q: '대입 연산자 :=  (walrus operator)의 기능은?',
+    a: '표현식 안에서 변수에 값을 저장하면서 동시에 반환합니다.\n\n예: while (a := input("입력: ")) != PW:\n입력값을 a에 저장하고, 동시에 PW와 비교합니다.'
+  },
+  {
+    q: 'while 무한루프는 어떻게 만들고, 어떻게 탈출하나요?',
+    a: 'while True: 로 만들고, break로 탈출합니다.\n\n조건을 True로 고정하면 절대 거짓이 되지 않으므로 반복이 멈추지 않습니다.'
+  },
+  {
+    q: 'gender in \'13\' 이라는 표현의 의미는?',
+    a: '변수 gender의 값이 문자열 \'13\'에 포함되어 있는지 확인합니다.\ngender가 \'1\' 또는 \'3\'이면 True를 반환합니다.'
+  },
+  {
+    q: 'enumerate()를 for 문에서 사용하면 무엇이 달라지나요?',
+    a: '(인덱스, 값) 형태의 tuple을 함께 반환합니다.\n\n예:\nfor i, v in enumerate([\'a\', \'b\', \'c\']):\n    print(i, v)\n→ 0 a / 1 b / 2 c\n\n리스트를 순회하면서 번호도 필요할 때 사용합니다.'
+  },
+  {
+    q: 'for 문으로 문자열을 순회하면 어떻게 되나요?',
+    a: '문자열의 각 문자(character)가 하나씩 변수에 담깁니다.\n\n예:\nfor ch in \'abc\':\n    print(ch)\n→ a / b / c\n\n문자열도 이터러블(iterable)이므로 순회 가능합니다.'
+  },
+  {
+    q: 'for i in range(len(a)) 방식은 언제 사용하나요?',
+    a: '리스트 항목을 수정하거나 인덱스가 필요할 때 사용합니다.\n\n읽기만 할 때: for x in a  (권장)\n수정·인덱스 필요할 때: for i in range(len(a))\n\n예: a[i] = a[i] * 2  처럼 인덱스로 직접 수정할 때'
+  },
+  {
+    q: '중첩 for 문에서 안쪽 break는 어느 반복문을 탈출하나요?',
+    a: '가장 가까운(안쪽) for 문 하나만 탈출합니다.\n바깥쪽 for 문은 계속 실행됩니다.\n\n예:\nfor i in range(3):\n    for j in range(3):\n        if j == 1: break  # 안쪽만 탈출\n    print(i)  # 0, 1, 2 모두 출력됨'
+  },
+  {
+    q: 'range(5, 0, -1)은 어떤 숫자를 생성하나요?',
+    a: '5, 4, 3, 2, 1\n\nrange(시작, 끝, 간격)에서 간격이 음수이면 역방향으로 생성됩니다.\n끝 값(0)은 포함되지 않습니다.\n\nrange(10, 0, -2) → 10, 8, 6, 4, 2'
+  }
+];
+
+/* ══════════ FLASHCARD LOGIC ══════════ */
+let fcIdx = 0;
+function renderCard() {
+  const c = CARDS[fcIdx];
+  document.getElementById('fc-q').textContent = c.q;
+  document.getElementById('fc-a').innerHTML = c.a.replace(/\n/g, '<br>');
+  document.getElementById('fc').classList.remove('flipped');
+  document.getElementById('fc-counter').textContent = `${fcIdx+1} / ${CARDS.length}`;
+  document.getElementById('fc-bar').style.width = `${(fcIdx+1)/CARDS.length*100}%`;
+}
+function flipCard()  { document.getElementById('fc').classList.toggle('flipped'); }
+function nextCard()  { fcIdx = (fcIdx+1) % CARDS.length; renderCard(); }
+function prevCard()  { fcIdx = (fcIdx-1+CARDS.length) % CARDS.length; renderCard(); }
+renderCard();
+
+/* ══════════ QUIZ DATA ══════════ */
+const QUIZ = [
+  {
+    q: 'Python에서 if 문의 코드 블록을 구분하는 방법은?',
+    opts: ['중괄호 { } 사용', '들여쓰기(Indentation) 사용', '세미콜론 ; 사용', 'BEGIN / END 사용'],
+    ans: 1,
+    exp: 'Python은 중괄호 대신 들여쓰기로 코드 블록을 구분합니다. 들여쓰기가 맞지 않으면 IndentationError가 발생합니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\nx = 7\nprint(\'홀수\' if x % 2 else \'짝수\')',
+    opts: ['짝수', '홀수', '0', '오류 발생'],
+    ans: 1,
+    exp: 'x = 7이므로 7 % 2 = 1(참)입니다. 삼항 연산자에서 조건이 참이므로 \'홀수\'를 출력합니다.'
+  },
+  {
+    q: 'range(1, 5)로 생성되는 숫자의 개수는?',
+    opts: ['5개 (1, 2, 3, 4, 5)', '4개 (1, 2, 3, 4)', '3개 (1, 2, 3)', '6개 (0, 1, 2, 3, 4, 5)'],
+    ans: 1,
+    exp: 'range(시작, 끝)에서 끝 값은 포함하지 않습니다. range(1, 5)는 1, 2, 3, 4로 4개입니다.'
+  },
+  {
+    q: 'for 문에서 break를 실행하면 어떻게 되나요?',
+    opts: ['현재 반복을 건너뛰고 다음 반복으로 이동', '반복문을 즉시 탈출하고 else도 실행', '반복문을 즉시 탈출하고 else는 건너뜀', '반복 횟수를 1 줄임'],
+    ans: 2,
+    exp: 'break는 반복문을 즉시 탈출합니다. break로 탈출하면 for/while의 else 블록은 실행되지 않습니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\nfor x in range(3):\n    print(x, end=\' \')',
+    opts: ['1 2 3', '0 1 2 3', '0 1 2', '1 2'],
+    ans: 2,
+    exp: 'range(3)은 0, 1, 2를 생성합니다. end=\' \'는 줄바꿈 대신 공백으로 구분하므로 출력은 "0 1 2 "입니다.'
+  },
+  {
+    q: '다음 코드에서 \'the end\'가 출력되는 경우는?\n\nfor x in range(5):\n    if x > 2: break\n    print(x, end=\' \')\nelse:\n    print(\'the end\')',
+    opts: ['항상 출력됨', 'x가 2 이하인 경우에만 출력됨', 'break로 탈출하므로 출력되지 않음', 'range(5)가 빈 경우에만 출력됨'],
+    ans: 2,
+    exp: 'x = 3일 때 break가 실행되어 반복문을 탈출합니다. break로 탈출하면 else 블록은 실행되지 않으므로 \'the end\'는 출력되지 않습니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\nscore = 85\nif score >= 90:\n    grade = \'A\'\nelif score >= 80:\n    grade = \'B\'\nelif score >= 70:\n    grade = \'C\'\nelse:\n    grade = \'D\'\nprint(grade)',
+    opts: ['A', 'B', 'C', 'D'],
+    ans: 1,
+    exp: 'score = 85는 90 미만이므로 첫 번째 if를 통과합니다. 그 다음 elif score >= 80 조건에서 85 >= 80이 참(True)이므로 grade = \'B\'가 실행됩니다.'
+  },
+  {
+    q: 'continue는 무엇을 하나요?',
+    opts: ['반복문 전체를 종료한다', '현재 반복을 건너뛰고 다음 반복으로 이동한다', 'else 블록을 실행한다', '반복 횟수를 초기화한다'],
+    ans: 1,
+    exp: 'continue는 현재 반복 차례의 나머지 코드를 건너뛰고 다음 반복을 시작합니다. 반복문 자체를 종료하지는 않습니다.'
+  },
+  {
+    q: 'while 문의 else 블록은 언제 실행되나요?',
+    opts: ['while 조건이 처음부터 거짓인 경우', '항상 실행된다', 'break 없이 조건이 거짓이 되어 종료될 때', 'continue를 만났을 때'],
+    ans: 2,
+    exp: 'while의 else는 break로 탈출하지 않고 조건이 자연스럽게 거짓이 되어 반복이 끝났을 때 실행됩니다. for의 else도 같은 규칙입니다.'
+  },
+  {
+    q: ':= (walrus 연산자)의 역할로 옳은 것은?',
+    opts: ['두 값이 같은지 비교한다', '값을 변수에 저장하면서 동시에 그 값을 반환한다', '변수의 값을 삭제한다', '정수를 실수로 변환한다'],
+    ans: 1,
+    exp: ':=는 대입 연산자(walrus operator)로, 표현식 내에서 값을 변수에 저장하고 동시에 그 값을 반환합니다. while (a := input()) != PW 처럼 조건 검사와 저장을 한 번에 처리할 수 있습니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\nfor x in range(1, 6):\n    if x % 2 == 0:\n        continue\n    print(x, end=\' \')',
+    opts: ['1 2 3 4 5', '2 4', '1 3 5', '1 3 5 (마지막에 공백 없음)'],
+    ans: 2,
+    exp: 'continue는 짝수(x % 2 == 0)일 때 print를 건너뜁니다. 홀수인 1, 3, 5만 출력됩니다. end=\' \'로 공백으로 구분하므로 "1 3 5 "가 출력됩니다.'
+  },
+  {
+    q: 'range(5, 0, -1)이 생성하는 숫자를 모두 고른 것은?',
+    opts: ['0, 1, 2, 3, 4', '1, 2, 3, 4, 5', '5, 4, 3, 2, 1', '5, 4, 3, 2, 1, 0'],
+    ans: 2,
+    exp: 'range(시작, 끝, 간격)에서 간격이 -1이면 역방향입니다. 시작은 5, 끝(0)은 포함하지 않으므로 5, 4, 3, 2, 1이 생성됩니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\nfor i, v in enumerate([\'a\', \'b\', \'c\']):\n    print(i, v)',
+    opts: ['a b c', '0 a\n1 b\n2 c', '1 a\n2 b\n3 c', '[0,\'a\'] [1,\'b\'] [2,\'c\']'],
+    ans: 1,
+    exp: 'enumerate()는 (인덱스, 값) 형태의 tuple을 반환합니다. 인덱스는 기본값 0부터 시작하므로 0 a, 1 b, 2 c가 출력됩니다.'
+  },
+  {
+    q: '다음 중첩 for 문에서 print가 총 몇 번 실행되나요?\n\nfor i in range(3):\n    for j in range(4):\n        print(\'*\', end=\'\')',
+    opts: ['3번', '4번', '7번', '12번'],
+    ans: 3,
+    exp: '바깥 for는 3번, 안쪽 for는 4번 반복됩니다. print는 3 × 4 = 12번 실행됩니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\nfor ch in \'hello\':\n    if ch == \'l\':\n        break\n    print(ch, end=\'\')',
+    opts: ['hello', 'hel', 'he', 'h'],
+    ans: 2,
+    exp: "'h', 'e'를 출력한 뒤 'l'을 만나면 break로 반복문을 즉시 탈출합니다. 'l'은 출력되지 않으므로 'he'가 출력됩니다."
+  },
+  {
+    q: '다음 코드에서 else 블록이 실행되나요?\n\nfor x in range(3):\n    print(x)\nelse:\n    print(\'done\')',
+    opts: ['실행되지 않는다', 'break가 없으면 실행된다 → \'done\' 출력', 'range(3)이 빈 경우에만 실행된다', '항상 실행되지 않는다'],
+    ans: 1,
+    exp: 'for-else에서 break 없이 반복이 정상 종료되면 else 블록이 실행됩니다. 이 코드에는 break가 없으므로 0, 1, 2 출력 후 \'done\'이 출력됩니다.'
+  },
+  {
+    q: 'print(sum(range(1, 6)))의 출력 결과는?',
+    opts: ['5', '10', '15', '21'],
+    ans: 2,
+    exp: 'range(1, 6)은 1, 2, 3, 4, 5를 생성합니다. sum()으로 더하면 1+2+3+4+5 = 15입니다.'
+  },
+  {
+    q: 'break와 continue의 차이점으로 옳은 것은?',
+    opts: [
+      'break는 현재 반복을 건너뛰고, continue는 반복문 전체를 탈출한다',
+      'break는 반복문 전체를 탈출하고, continue는 현재 반복만 건너뛴다',
+      'break와 continue 모두 반복문을 즉시 종료한다',
+      'break는 while에서만, continue는 for에서만 쓸 수 있다'
+    ],
+    ans: 1,
+    exp: 'break는 반복문 전체를 즉시 탈출(종료)합니다. continue는 현재 반복 차례의 나머지를 건너뛰고 다음 반복으로 이동합니다. 둘 다 for/while 모두에서 사용할 수 있습니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\ni = 0\nwhile i < 5:\n    i += 1\n    if i == 3:\n        continue\n    print(i, end=\' \')',
+    opts: ['1 2 3 4 5', '1 2 4 5', '0 1 2 4', '1 2 3 4'],
+    ans: 1,
+    exp: 'i가 3이 되면 continue로 print를 건너뜁니다. i는 이미 3으로 증가한 상태이므로 무한 루프는 발생하지 않습니다. 출력은 1 2 4 5입니다.'
+  },
+  {
+    q: '다음 코드의 출력 결과는?\n\na = [10, 20, 30]\nfor i in range(len(a)):\n    a[i] = a[i] * 2\nprint(a)',
+    opts: ['[10, 20, 30]', '[20, 40, 60]', '[20, 40, 60, 10, 20, 30]', '오류 발생'],
+    ans: 1,
+    exp: 'range(len(a))는 0, 1, 2를 생성합니다. 각 인덱스로 a[0]=20, a[1]=40, a[2]=60으로 수정됩니다. 리스트를 직접 수정할 때는 인덱스 방식이 필요합니다.'
+  }
+];
+
+/* ══════════ QUIZ LOGIC ══════════ */
+let answered = new Array(QUIZ.length).fill(false);
+let userAns  = new Array(QUIZ.length).fill(-1);
+let score    = 0;
+let wrongQ   = [];
+
+function buildQuiz() {
+  const list = document.getElementById('quiz-list');
+  list.innerHTML = '';
+  QUIZ.forEach((q, qi) => {
+    const pre = q.q.includes('\n');
+    const qtext = q.q.replace(/\n([\s\S]*)/g, '');
+    const codetext = pre ? q.q.match(/\n([\s\S]*)/)?.[1] || '' : '';
+
+    const card = document.createElement('div');
+    card.className = 'quiz-card';
+    card.id = `qcard-${qi}`;
+    card.innerHTML = `
+      <div class="quiz-num">Q${String(qi+1).padStart(2,'0')}</div>
+      <div class="quiz-q">${qtext}</div>
+      ${codetext ? `<div class="quiz-code">${codetext}</div>` : ''}
+      <div class="options" id="opts-${qi}">
+        ${q.opts.map((o,oi) => `
+          <button class="opt-btn" id="opt-${qi}-${oi}" onclick="pick(${qi},${oi})">
+            <span class="opt-letter">${String.fromCharCode(65+oi)}</span>
+            <span>${o}</span>
+          </button>`).join('')}
+      </div>
+      <div class="feedback-box" id="fb-${qi}"></div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function pick(qi, oi) {
+  if (answered[qi]) return;
+  answered[qi] = true;
+  userAns[qi] = oi;
+  const q = QUIZ[qi];
+  const correct = oi === q.ans;
+  if (correct) score++;
+  else wrongQ.push(qi);
+
+  document.getElementById(`opt-${qi}-${oi}`).classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) document.getElementById(`opt-${qi}-${q.ans}`).classList.add('correct');
+  document.querySelectorAll(`#opts-${qi} .opt-btn`).forEach(b => b.disabled = true);
+
+  const fb = document.getElementById(`fb-${qi}`);
+  fb.classList.add('show', correct ? 'feedback-correct' : 'feedback-wrong');
+  fb.innerHTML = correct
+    ? `정답입니다! ${q.exp}`
+    : `<strong>오답.</strong> 정답은 <strong>${String.fromCharCode(65+q.ans)}</strong>입니다. ${q.exp}`;
+
+  document.getElementById('score-badge').textContent = `${score} / ${QUIZ.length}`;
+
+  if (answered.every(Boolean)) {
+    setTimeout(showResult, 600);
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz-result').classList.add('show');
+  document.getElementById('result-score').textContent = `${score} / ${QUIZ.length}`;
+  const pct = Math.round(score/QUIZ.length*100);
+  document.getElementById('result-msg').textContent =
+    pct === 100 ? '완벽합니다! 제어문을 완전히 이해했어요.' :
+    pct >= 80 ? '잘했어요! 틀린 문제를 오답노트로 복습해 보세요.' :
+    pct >= 60 ? '괜찮아요. 코드 예제를 다시 확인해 보세요.' :
+    '조금 더 공부해봐요. 플래시카드부터 다시 시작해 보세요.';
+  renderNotes();
+}
+
+function resetQuiz() {
+  answered.fill(false); userAns.fill(-1); score = 0; wrongQ = [];
+  document.getElementById('score-badge').textContent = '0 / 20';
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz();
+  window.scrollTo(0,0);
+}
+
+/* ══════════ WRONG NOTES ══════════ */
+function renderNotes() {
+  const el = document.getElementById('notes-content');
+  if (!wrongQ.length) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🎉</div>오답이 없습니다! 모두 정답이에요.</div>';
+    return;
+  }
+  let html = `<div class="download-bar">
+    <div class="download-info">오답 <strong>${wrongQ.length}문항</strong></div>
+    <button class="btn btn-ghost" onclick="downloadNotes()">TXT 다운로드</button>
+  </div>`;
+  wrongQ.forEach(qi => {
+    const q = QUIZ[qi];
+    html += `<div class="wrong-note-card">
+      <div class="wn-qnum">Q${String(qi+1).padStart(2,'0')}</div>
+      <div class="wn-q">${q.q.replace(/\n/g,'<br>')}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답</div>${userAns[qi]>=0?String.fromCharCode(65+userAns[qi])+'. '+q.opts[userAns[qi]]:'미답'}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}</div>
+      </div>
+      <div class="wn-explain">${q.exp}</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function downloadNotes() {
+  let txt = '=== 오답노트 – Python 제어문 ===\n\n';
+  wrongQ.forEach(qi => {
+    const q = QUIZ[qi];
+    txt += `[Q${qi+1}] ${q.q}\n`;
+    q.opts.forEach((o,i) => txt += `  ${i===q.ans?'✔':' '} ${String.fromCharCode(65+i)}. ${o}\n`);
+    txt += `내 답: ${userAns[qi]>=0?String.fromCharCode(65+userAns[qi])+'. '+q.opts[userAns[qi]]:'미답'}\n`;
+    txt += `정답: ${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}\n해설: ${q.exp}\n\n`;
+  });
+  const blob = new Blob(['\uFEFF'+txt], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = '오답노트_제어문.txt'; a.click();
+}
+
+/* ══════════ TAB ══════════ */
+function showTab(t) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(t).classList.add('active');
+  document.querySelectorAll('.tab-btn')[['flashcard','code','quiz','notes'].indexOf(t)].classList.add('active');
+  if (t === 'notes') renderNotes();
+}
+
+buildQuiz();
+</script>
+</body>
+</html>

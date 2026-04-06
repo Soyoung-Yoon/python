@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python Comprehension 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --border:#30363d;
+    --accent:#58a6ff; --accent2:#3fb950; --accent3:#f78166; --accent4:#d2a8ff;
+    --warn:#e3b341; --text:#e6edf3; --text-sub:#8b949e; --code-bg:#010409; --radius:12px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+  header{background:linear-gradient(135deg,#0d1117 0%,#0d1a2a 100%);border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+  .logo{font-family:'JetBrains Mono',monospace;font-size:1.3rem;color:var(--accent);font-weight:700;letter-spacing:-1px;}
+  .logo span{color:var(--accent4);}
+  .home-btn{margin-left:auto;text-decoration:none;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--text-sub);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;transition:color .15s,border-color .15s;}
+  .home-btn:hover{color:var(--accent);border-color:var(--accent);}
+  header h1{font-size:1rem;font-weight:400;color:var(--text-sub);}
+  header h1 strong{color:var(--text);font-weight:600;}
+
+  nav{display:flex;gap:4px;padding:16px 40px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+  .tab-btn{font-family:'Noto Sans KR',sans-serif;padding:8px 20px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--text-sub);cursor:pointer;font-size:0.875rem;font-weight:400;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+  .tab-btn:hover{background:var(--surface2);color:var(--text);}
+  .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
+
+  .section{display:none;padding:40px;max-width:900px;margin:0 auto;}
+  .section.active{display:block;animation:fadeIn .3s ease;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+  .section-title{font-size:1.5rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+  .section-subtitle{color:var(--text-sub);font-size:.9rem;margin-bottom:32px;font-weight:300;}
+
+  /* FLASHCARD */
+  .flashcard-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .fc-progress{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:1rem;font-weight:600;}
+  .fc-progress-bar{width:100%;height:4px;background:var(--border);border-radius:4px;margin-bottom:24px;overflow:hidden;}
+  .fc-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent4));border-radius:4px;transition:width .4s ease;}
+  .flashcard-wrap{perspective:1200px;height:340px;cursor:pointer;margin-bottom:24px;}
+  .flashcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+  .flashcard.flipped{transform:rotateY(180deg);}
+  .fc-front,.fc-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--radius);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+  .fc-front{background:linear-gradient(135deg,var(--surface) 0%,#0d1a2a 100%);}
+  .fc-back{background:linear-gradient(135deg,#0d1a2a 0%,#1a1030 100%);border-color:var(--accent);transform:rotateY(180deg);}
+  .fc-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+  .fc-front .fc-label{color:var(--accent);}
+  .fc-back .fc-label{color:var(--accent4);}
+  .fc-q{font-size:1.1rem;font-weight:600;line-height:1.65;color:var(--text);}
+  .fc-a{font-size:.9rem;font-weight:400;line-height:1.85;color:var(--text);}
+  .fc-hint{margin-top:20px;font-size:.8rem;color:var(--text-sub);}
+  .nav-btns{display:flex;gap:12px;justify-content:center;}
+  .btn{font-family:'Noto Sans KR',sans-serif;padding:10px 24px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-ghost{background:transparent;color:var(--text-sub);}
+  .btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--accent);}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .btn-primary:hover{background:#79b8ff;}
+  .btn-danger{background:var(--accent3);color:#fff;border-color:var(--accent3);}
+
+  /* CODE */
+  .code-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;transition:border-color .2s;}
+  .code-card:hover{border-color:var(--accent);}
+  .code-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+  .code-title{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--accent);font-weight:600;}
+  .code-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;}
+  .tag-map   {background:#0e1c30;color:var(--accent); border:1px solid var(--accent);}
+  .tag-filter{background:#1f2a0f;color:var(--accent2);border:1px solid var(--accent2);}
+  .tag-comp  {background:#2a1c40;color:var(--accent4);border:1px solid var(--accent4);}
+  .tag-gen   {background:#2a1a0a;color:var(--warn);   border:1px solid var(--warn);}
+  .tag-zip   {background:#2a1c1c;color:var(--accent3);border:1px solid var(--accent3);}
+  .code-explain{padding:16px 20px;border-bottom:1px solid var(--border);font-size:.9rem;line-height:1.8;color:var(--text-sub);}
+  .code-explain strong{color:var(--text);}
+  .code-explain code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent4);background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+  pre{background:var(--code-bg);padding:20px;overflow-x:auto;margin:0;}
+  code{font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.7;}
+  .kw{color:#ff7b72;}.fn{color:#d2a8ff;}.st{color:#a5d6ff;}
+  .cm{color:#8b949e;font-style:italic;}.nm{color:#79c0ff;}
+  .op{color:#f0883e;}.num{color:#f0883e;}
+  .output-box{background:#010409;border-top:1px solid var(--border);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--accent2);line-height:1.7;}
+  .output-label{color:var(--text-sub);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+
+  /* 개념 요약 */
+  .concept-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:24px;}
+  .concept-box h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+  .cg4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+  .ci{padding:14px;border-radius:8px;font-size:.83rem;line-height:1.75;}
+  .ci-list-comp {background:#0e1a2e;border:1px solid var(--accent);}
+  .ci-set-comp  {background:#0f1f0f;border:1px solid var(--accent2);}
+  .ci-dict-comp {background:#1a1030;border:1px solid var(--accent4);}
+  .ci-gen-exp   {background:#1f1a0a;border:1px solid var(--warn);}
+  .ci-label{font-size:.72rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+  .ci-list-comp .ci-label{color:var(--accent);}
+  .ci-set-comp  .ci-label{color:var(--accent2);}
+  .ci-dict-comp .ci-label{color:var(--accent4);}
+  .ci-gen-exp   .ci-label{color:var(--warn);}
+
+  /* 비교 테이블 */
+  .tbl{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:8px;}
+  .tbl th{background:var(--surface2);padding:9px 12px;text-align:left;font-weight:600;border:1px solid var(--border);color:var(--text-sub);font-size:.75rem;letter-spacing:.5px;}
+  .tbl td{padding:9px 12px;border:1px solid var(--border);vertical-align:top;line-height:1.6;}
+  .tbl tr:nth-child(even) td{background:var(--surface2);}
+  .tbl code{font-family:'JetBrains Mono',monospace;font-size:.79rem;color:var(--accent4);}
+
+  /* QUIZ */
+  .quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .quiz-score-badge{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:var(--accent);font-weight:600;background:#0e1c30;border:1px solid var(--accent);padding:4px 12px;border-radius:20px;}
+  .quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:20px;}
+  .quiz-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent);letter-spacing:1px;margin-bottom:12px;font-weight:600;}
+  .quiz-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:20px;color:var(--text);}
+  .quiz-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:20px;white-space:pre;overflow-x:auto;line-height:1.6;}
+  .options{display:flex;flex-direction:column;gap:10px;}
+  .opt-btn{font-family:'Noto Sans KR',sans-serif;width:100%;padding:12px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.9rem;text-align:left;transition:all .2s;display:flex;align-items:flex-start;gap:12px;}
+  .opt-btn:hover:not(:disabled){border-color:var(--accent);background:#0e1c30;}
+  .opt-btn:disabled{cursor:default;}
+  .opt-letter{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  .opt-btn.correct{border-color:var(--accent2);background:#0f1f0f;color:var(--accent2);}
+  .opt-btn.correct .opt-letter{background:var(--accent2);color:#fff;}
+  .opt-btn.wrong{border-color:var(--accent3);background:#2a1c1c;color:var(--accent3);}
+  .opt-btn.wrong .opt-letter{background:var(--accent3);color:#fff;}
+  .feedback-box{margin-top:14px;padding:12px 16px;border-radius:8px;font-size:.875rem;line-height:1.65;display:none;}
+  .feedback-box.show{display:block;}
+  .feedback-correct{background:#0f2a0f;border:1px solid var(--accent2);color:var(--accent2);}
+  .feedback-wrong{background:#2a0f0f;border:1px solid var(--accent3);color:#e6edf3;}
+  .feedback-wrong strong{color:var(--accent3);}
+  .quiz-result{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:40px;text-align:center;}
+  .quiz-result.show{display:block;animation:fadeIn .4s ease;}
+  .result-score{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;margin:16px 0;}
+  .result-msg{font-size:1rem;color:var(--text-sub);margin-bottom:24px;}
+  .result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+  /* PRACTICE */
+  .practice-score-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;}
+  .ps-label{font-size:.875rem;color:var(--text-sub);}
+  .ps-score{font-family:'JetBrains Mono',monospace;font-size:.95rem;font-weight:700;color:var(--accent4);background:#2a1c40;border:1px solid var(--accent4);padding:4px 14px;border-radius:20px;}
+  .practice-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:28px;}
+  .practice-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+  .practice-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent4);font-weight:700;letter-spacing:1px;}
+  .practice-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;background:#2a1c40;color:var(--accent4);border:1px solid var(--accent4);}
+  .practice-body{padding:20px;}
+  .practice-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:14px;}
+  .practice-desc{font-size:.875rem;color:var(--text-sub);line-height:1.75;margin-bottom:16px;padding:12px;background:var(--surface2);border-radius:8px;border-left:3px solid var(--accent4);}
+  .practice-given{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:14px;white-space:pre;overflow-x:auto;line-height:1.7;}
+  .editor-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--accent4);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:700;}
+  .code-editor{width:100%;background:#010409;border:1px solid var(--accent4);border-radius:8px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--accent4);resize:vertical;min-height:90px;outline:none;line-height:1.7;transition:border-color .2s,box-shadow .2s;box-sizing:border-box;}
+  .code-editor:focus{border-color:var(--accent);box-shadow:0 0 0 2px rgba(88,166,255,.15);color:var(--text);}
+  .practice-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .btn-check{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--accent4);background:#2a1c40;color:var(--accent4);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-check:hover{background:var(--accent4);color:#000;}
+  .btn-hint{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-sub);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+  .btn-hint:hover{border-color:var(--warn);color:var(--warn);}
+  .btn-reset-p{font-family:'Noto Sans KR',sans-serif;padding:9px 20px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-sub);cursor:pointer;font-size:.875rem;transition:all .2s;}
+  .btn-reset-p:hover{border-color:var(--accent3);color:var(--accent3);}
+  .practice-feedback{margin-top:14px;border-radius:8px;overflow:hidden;display:none;}
+  .practice-feedback.show{display:block;}
+  .pf-result{padding:12px 16px;font-size:.875rem;font-weight:600;display:flex;align-items:center;gap:8px;}
+  .pf-correct{background:#0f2a0f;color:var(--accent2);border:1px solid var(--accent2);border-bottom:none;}
+  .pf-wrong  {background:#2a0f0f;color:var(--accent3);border:1px solid var(--accent3);border-bottom:none;}
+  .pf-partial{background:#2a2a0f;color:var(--warn);   border:1px solid var(--warn);   border-bottom:none;}
+  .pf-explain{padding:14px 16px;font-size:.85rem;line-height:1.75;color:var(--text-sub);background:var(--surface2);border:1px solid var(--border);border-top:none;border-radius:0 0 8px 8px;}
+  .pf-answer-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:.78rem;color:var(--accent2);margin-top:10px;white-space:pre;overflow-x:auto;line-height:1.6;}
+  .hint-box{margin-top:10px;padding:12px 14px;background:#2a200a;border:1px solid var(--warn);border-radius:8px;font-size:.84rem;color:var(--warn);display:none;line-height:1.7;white-space:pre-line;font-family:'JetBrains Mono',monospace;}
+  .hint-box.show{display:block;}
+
+  /* WRONG NOTES */
+  .wrong-note-card{background:var(--surface);border:1px solid #2a1c1c;border-left:4px solid var(--accent3);border-radius:var(--radius);padding:20px;margin-bottom:16px;animation:fadeIn .3s ease;}
+  .wn-qnum{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--accent3);font-weight:600;margin-bottom:8px;}
+  .wn-q{font-size:.95rem;font-weight:600;margin-bottom:12px;line-height:1.6;}
+  .wn-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.85rem;}
+  .wn-my {padding:10px;border-radius:6px;background:#2a1c1c;border:1px solid var(--accent3);}
+  .wn-ans{padding:10px;border-radius:6px;background:#0f1f0f;border:1px solid var(--accent2);}
+  .wn-label{font-size:.7rem;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+  .wn-my  .wn-label{color:var(--accent3);}
+  .wn-ans .wn-label{color:var(--accent2);}
+  .wn-explain{margin-top:12px;font-size:.85rem;color:var(--text-sub);line-height:1.65;padding:10px;background:var(--surface2);border-radius:6px;}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-sub);}
+  .empty-icon{font-size:3rem;margin-bottom:12px;}
+
+  @media(max-width:600px){
+    nav,.section{padding:12px 16px;}
+    header{padding:14px 16px;}
+    .wn-row{grid-template-columns:1fr;}
+    .flashcard-wrap{height:310px;}
+    .cg4{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">py<span>.comprehension</span></div>
+  <h1>Python <strong>Comprehension</strong> 학습</h1>
+  <a href="index.html" class="home-btn">🏠 홈으로</a>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')"><span>🃏</span> 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')"><span>💻</span> 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')"><span>📝</span> 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('practice')"><span>⌨️</span> 실습 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')"><span>📋</span> 오답노트</button>
+</nav>
+
+<!-- ===== FLASHCARDS ===== -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">카드를 클릭하면 답이 보입니다. 개념을 충분히 학습한 후 퀴즈로 넘어가세요.</div>
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 16</span>
+    <span style="font-size:.8rem;color:var(--text-sub)">💡 클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:6.25%"></div></div>
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">👆 클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ===== CODE EXAMPLES ===== -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">map, filter, zip과 comprehension을 코드로 확인하세요.</div>
+
+  <!-- 전체 비교 -->
+  <div class="concept-box">
+    <h3>🗺️ Comprehension 종류 한눈에 비교</h3>
+    <div class="cg4">
+      <div class="ci ci-list-comp">
+        <div class="ci-label">List Comp [ ]</div>
+        <div style="color:var(--text-sub)">[식 for 변수 in 순서열]<br>결과: list 반환<br>메모리에 즉시 저장</div>
+      </div>
+      <div class="ci ci-set-comp">
+        <div class="ci-label">Set Comp { }</div>
+        <div style="color:var(--text-sub)">{식 for 변수 in 순서열}<br>결과: set 반환<br>중복 제거 자동</div>
+      </div>
+      <div class="ci ci-dict-comp">
+        <div class="ci-label">Dict Comp {k:v}</div>
+        <div style="color:var(--text-sub)">{k:v for k,v in ...}<br>결과: dict 반환<br>key-value 동시 생성</div>
+      </div>
+      <div class="ci ci-gen-exp">
+        <div class="ci-label">Generator Exp ( )</div>
+        <div style="color:var(--text-sub)">(식 for 변수 in 순서열)<br>결과: generator 반환<br>지연 평가·메모리 효율</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 예제 1: map() -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: map() — 함수를 각 요소에 적용</span>
+      <span class="code-tag tag-map">map · iterator · next</span>
+    </div>
+    <div class="code-explain">
+      <strong>map(함수, 이터러블)</strong>은 이터러블의 각 요소에 함수를 적용한 결과를 lazy하게 반환하는 <strong>map 객체</strong>를 만듭니다.<br>
+      <code>list()</code>나 <code>next()</code>로 값을 꺼내야 실제 계산이 됩니다.<br>
+      여러 이터러블을 넘기면 <strong>같은 위치의 요소끼리</strong> 함수에 전달됩니다.
+    </div>
+    <pre><code><span class="kw">def</span> <span class="fn">func</span>(<span class="nm">a</span>, <span class="nm">b</span>):
+    <span class="kw">return</span> <span class="nm">a</span> <span class="op">+</span> <span class="nm">b</span>
+
+<span class="nm">x</span> <span class="op">=</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">10</span>, <span class="num">2</span>)  <span class="cm"># 1, 3, 5, 7, 9</span>
+<span class="nm">y</span> <span class="op">=</span> <span class="fn">range</span>(<span class="num">2</span>, <span class="num">11</span>, <span class="num">2</span>)  <span class="cm"># 2, 4, 6, 8, 10</span>
+<span class="nm">z</span> <span class="op">=</span> <span class="fn">map</span>(<span class="nm">func</span>, <span class="nm">x</span>, <span class="nm">y</span>)  <span class="cm"># map 객체 생성 (계산은 아직 X)</span>
+<span class="fn">print</span>(<span class="fn">list</span>(<span class="nm">z</span>))        <span class="cm"># list()로 변환해야 실제 계산됨</span>
+
+<span class="cm"># 문자열 길이 구하기</span>
+<span class="nm">countries</span> <span class="op">=</span> [<span class="st">'Korea'</span>, <span class="st">'USA'</span>, <span class="st">'Philippines'</span>, <span class="st">'China'</span>]
+<span class="nm">lengths</span> <span class="op">=</span> <span class="fn">list</span>(<span class="fn">map</span>(<span class="fn">len</span>, <span class="nm">countries</span>))
+<span class="fn">print</span>(<span class="nm">lengths</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      [3, 7, 11, 15, 19]<br>
+      [5, 3, 11, 5]
+    </div>
+  </div>
+
+  <!-- 예제 2: map with unpack -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: map() + * 언패킹 — 2D 리스트 활용</span>
+      <span class="code-tag tag-map">map · min · unpack · *</span>
+    </div>
+    <div class="code-explain">
+      <strong>*a</strong>는 리스트를 <strong>언패킹</strong>하여 여러 인자로 전달합니다.<br>
+      <code>map(min, *a)</code>는 2D 리스트 <code>a</code>의 각 열(column)에서 최솟값을 구합니다.<br>
+      <code>zip(*a)</code>와 함께 쓰면 행과 열을 전치(transpose)할 수 있습니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> [[<span class="num">3</span>, <span class="num">4</span>, <span class="num">1</span>, <span class="num">2</span>],
+     [<span class="num">7</span>, <span class="num">2</span>, <span class="num">6</span>, <span class="num">3</span>],
+     [<span class="num">5</span>, <span class="num">1</span>, <span class="num">8</span>, <span class="num">2</span>]]
+
+<span class="cm"># 각 열에서 최솟값 구하기 (열 기준)</span>
+<span class="fn">print</span>(<span class="fn">list</span>(<span class="fn">map</span>(<span class="fn">min</span>, <span class="op">*</span><span class="nm">a</span>)))   <span class="cm"># [3,1,1,2]</span>
+
+<span class="cm"># zip(*a)로 행열 전치 (transpose)</span>
+<span class="fn">print</span>(<span class="fn">list</span>(<span class="fn">map</span>(<span class="fn">list</span>, <span class="fn">zip</span>(<span class="op">*</span><span class="nm">a</span>))))</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      [3, 1, 1, 2]<br>
+      [[3, 7, 5], [4, 2, 1], [1, 6, 8], [2, 3, 2]]
+    </div>
+  </div>
+
+  <!-- 예제 3: filter() -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: filter() — 조건에 맞는 요소만 선택</span>
+      <span class="code-tag tag-filter">filter · bool · 조건함수</span>
+    </div>
+    <div class="code-explain">
+      <strong>filter(함수, 이터러블)</strong>은 함수가 <strong>True</strong>를 반환하는 요소만 통과시킵니다.<br>
+      함수 자리에 <code>None</code>을 넣으면 <strong>참으로 평가되는 값</strong>만 남깁니다.<br>
+      map과 마찬가지로 <strong>지연 평가(lazy)</strong> 방식입니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> [<span class="num">10</span>, <span class="num">3</span>, <span class="num">6</span>, <span class="num">7</span>, <span class="num">9</span>, <span class="num">30</span>, <span class="num">11</span>, <span class="num">20</span>]
+
+<span class="kw">def</span> <span class="fn">is_even</span>(<span class="nm">x</span>):
+    <span class="kw">return</span> <span class="nm">x</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>  <span class="cm"># 짝수이면 True</span>
+
+<span class="nm">result</span> <span class="op">=</span> <span class="fn">filter</span>(<span class="nm">is_even</span>, <span class="nm">a</span>)
+<span class="fn">print</span>(<span class="fn">list</span>(<span class="nm">result</span>))   <span class="cm"># 짝수만 남김</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      [10, 6, 30, 20]
+    </div>
+  </div>
+
+  <!-- 예제 4: zip() -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: zip() — 여러 이터러블을 묶기</span>
+      <span class="code-tag tag-zip">zip · tuple · 병렬순회</span>
+    </div>
+    <div class="code-explain">
+      <strong>zip(iter1, iter2, ...)</strong>은 각 이터러블의 같은 위치 요소를 <strong>tuple로 묶어</strong> 반환합니다.<br>
+      가장 짧은 이터러블을 기준으로 멈춥니다.<br>
+      <code>zip(*a)</code>를 사용하면 2D 리스트를 <strong>전치(transpose)</strong>할 수 있습니다.
+    </div>
+    <pre><code><span class="cm"># 기본 zip</span>
+<span class="fn">print</span>(<span class="fn">list</span>(<span class="fn">zip</span>(<span class="st">'abcdefg'</span>, <span class="fn">range</span>(<span class="num">3</span>), <span class="fn">range</span>(<span class="num">4</span>))))
+<span class="cm"># 가장 짧은 range(3) 기준으로 3개만</span>
+
+<span class="cm"># dict comprehension과 조합</span>
+<span class="nm">keys</span>   <span class="op">=</span> [<span class="st">'a'</span>, <span class="st">'b'</span>, <span class="st">'c'</span>, <span class="st">'d'</span>, <span class="st">'e'</span>]
+<span class="nm">values</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>]
+<span class="nm">d</span> <span class="op">=</span> {<span class="nm">k</span>:<span class="nm">v</span> <span class="kw">for</span> <span class="nm">k</span>, <span class="nm">v</span> <span class="kw">in</span> <span class="fn">zip</span>(<span class="nm">keys</span>, <span class="nm">values</span>)}
+<span class="fn">print</span>(<span class="nm">d</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      [('a', 0, 0), ('b', 1, 1), ('c', 2, 2)]<br>
+      {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5}
+    </div>
+  </div>
+
+  <!-- 예제 5: Generator Expression -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 5: Generator Expression — 지연 평가 이터레이터</span>
+      <span class="code-tag tag-gen">generator · next · StopIteration</span>
+    </div>
+    <div class="code-explain">
+      <strong>( )</strong>를 사용한 컴프리헨션은 <strong>generator 객체</strong>를 반환합니다.<br>
+      generator는 <code>next()</code>를 호출할 때마다 값을 <strong>하나씩</strong> 계산합니다.<br>
+      모든 값을 소진하면 <strong>StopIteration</strong> 예외가 발생합니다.<br>
+      메모리를 한꺼번에 사용하지 않아 <strong>대용량 데이터</strong>에 유리합니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">3</span>, <span class="num">5</span>, <span class="num">7</span>]
+<span class="nm">b</span> <span class="op">=</span> (<span class="nm">x</span> <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">a</span>)  <span class="cm"># generator 객체 생성</span>
+<span class="fn">print</span>(<span class="nm">b</span>)             <span class="cm"># &lt;generator object&gt;</span>
+
+<span class="fn">print</span>(<span class="fn">next</span>(<span class="nm">b</span>))  <span class="cm"># 1</span>
+<span class="fn">print</span>(<span class="fn">next</span>(<span class="nm">b</span>))  <span class="cm"># 3</span>
+<span class="fn">print</span>(<span class="fn">next</span>(<span class="nm">b</span>))  <span class="cm"># 5</span>
+<span class="fn">print</span>(<span class="fn">next</span>(<span class="nm">b</span>))  <span class="cm"># 7</span>
+<span class="cm"># print(next(b))  → StopIteration: 더 이상 값 없음</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      &lt;generator object &lt;genexpr&gt; at 0x...&gt;<br>
+      1<br>3<br>5<br>7
+    </div>
+  </div>
+
+  <!-- 예제 6: List & Set Comprehension -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 6: List / Set Comprehension 기본</span>
+      <span class="code-tag tag-comp">list comp · set comp · [ ] · { }</span>
+    </div>
+    <div class="code-explain">
+      <strong>[ ]</strong> → list, <strong>{ }</strong> → set을 반환합니다.<br>
+      문법: <code>[식 for 변수 in 이터러블]</code><br>
+      set은 중복을 자동으로 제거하고 순서가 없습니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> [<span class="num">1</span>, <span class="num">3</span>, <span class="num">5</span>, <span class="num">7</span>]
+
+<span class="nm">b</span> <span class="op">=</span> [<span class="nm">x</span> <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">a</span>]  <span class="cm"># list comprehension</span>
+<span class="nm">c</span> <span class="op">=</span> {<span class="nm">x</span> <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">a</span>}  <span class="cm"># set  comprehension</span>
+
+<span class="fn">print</span>(<span class="nm">b</span>, <span class="fn">type</span>(<span class="nm">b</span>))  <span class="cm"># [1,3,5,7] &lt;class 'list'&gt;</span>
+<span class="fn">print</span>(<span class="nm">c</span>, <span class="fn">type</span>(<span class="nm">c</span>))  <span class="cm"># {1,3,5,7} &lt;class 'set'&gt;</span>
+
+<span class="cm"># 제곱값 리스트</span>
+<span class="nm">squares</span> <span class="op">=</span> [<span class="num">2</span><span class="op">**</span><span class="nm">i</span> <span class="kw">for</span> <span class="nm">i</span> <span class="kw">in</span> <span class="fn">range</span>(<span class="num">1</span>, <span class="num">10</span>)]
+<span class="fn">print</span>(<span class="nm">squares</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      [1, 3, 5, 7] &lt;class 'list'&gt;<br>
+      {1, 3, 5, 7} &lt;class 'set'&gt;<br>
+      [2, 4, 8, 16, 32, 64, 128, 256, 512]
+    </div>
+  </div>
+
+  <!-- 예제 7: 조건이 있는 List Comprehension -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 7: Comprehension + if 조건 — 필터링</span>
+      <span class="code-tag tag-comp">list comp · if · filter</span>
+    </div>
+    <div class="code-explain">
+      <code>[식 for 변수 in 이터러블 <strong>if 조건</strong>]</code><br>
+      조건이 <strong>True</strong>인 요소만 포함됩니다. <code>filter()</code>와 동일한 효과입니다.<br>
+      for 뒤에 if를 붙이면 <strong>필터링</strong>, 식(표현식) 안에 if를 넣으면 <strong>삼항 조건식</strong>입니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> [<span class="num">3</span>, <span class="num">7</span>, <span class="num">8</span>, <span class="num">1</span>, <span class="num">2</span>, <span class="num">4</span>, <span class="num">9</span>, <span class="num">10</span>, <span class="num">5</span>, <span class="num">6</span>]
+
+<span class="cm"># 짝수만 제곱 — for 문 버전</span>
+<span class="nm">b</span> <span class="op">=</span> []
+<span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">a</span>:
+    <span class="kw">if</span> <span class="nm">x</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>:
+        <span class="nm">b</span>.<span class="fn">append</span>(<span class="nm">x</span><span class="op">**</span><span class="num">2</span>)
+
+<span class="cm"># 짝수만 제곱 — comprehension 버전 (한 줄!)</span>
+<span class="nm">b</span> <span class="op">=</span> [<span class="nm">x</span><span class="op">**</span><span class="num">2</span> <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">a</span> <span class="kw">if</span> <span class="nm">x</span> <span class="op">%</span> <span class="num">2</span> <span class="op">==</span> <span class="num">0</span>]
+<span class="fn">print</span>(<span class="nm">b</span>)
+
+<span class="cm"># 길이 3 이상인 단어만 대문자로</span>
+<span class="nm">w</span> <span class="op">=</span> [<span class="st">'cat'</span>, <span class="st">'hi'</span>, <span class="st">'a'</span>, <span class="st">'dog'</span>, <span class="st">'tiger'</span>, <span class="st">'no'</span>]
+<span class="nm">result</span> <span class="op">=</span> [<span class="nm">x</span>.<span class="fn">upper</span>() <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">w</span> <span class="kw">if</span> <span class="fn">len</span>(<span class="nm">x</span>) <span class="op">>=</span> <span class="num">3</span>]
+<span class="fn">print</span>(<span class="nm">result</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      [64, 4, 16, 100, 36]<br>
+      ['CAT', 'DOG', 'TIGER']
+    </div>
+  </div>
+
+  <!-- 예제 8: Dict Comprehension -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 8: Dict Comprehension — 딕셔너리 생성/변환</span>
+      <span class="code-tag tag-comp">dict comp · items · k:v</span>
+    </div>
+    <div class="code-explain">
+      <strong>{ key: value for ... }</strong> 형식으로 딕셔너리를 만듭니다.<br>
+      <code>.items()</code>를 활용하면 기존 딕셔너리의 <strong>키-값을 뒤집거나 변환</strong>할 수 있습니다.<br>
+      문법: <code>{k:v for k, v in 딕셔너리.items()}</code>
+    </div>
+    <pre><code><span class="cm"># zip으로 딕셔너리 생성</span>
+<span class="nm">d</span> <span class="op">=</span> {<span class="nm">k</span>:<span class="nm">v</span> <span class="kw">for</span> <span class="nm">k</span>, <span class="nm">v</span> <span class="kw">in</span> <span class="fn">zip</span>(<span class="st">"abcde"</span>, <span class="fn">range</span>(<span class="num">1</span>, <span class="num">6</span>))}
+<span class="fn">print</span>(<span class="nm">d</span>)
+
+<span class="cm"># 딕셔너리 키-값 뒤집기</span>
+<span class="nm">a</span> <span class="op">=</span> <span class="fn">dict</span>(A<span class="op">=</span><span class="num">1</span>, B<span class="op">=</span><span class="num">2</span>, C<span class="op">=</span><span class="num">3</span>, D<span class="op">=</span><span class="num">4</span>, E<span class="op">=</span><span class="num">5</span>)
+<span class="nm">b</span> <span class="op">=</span> {<span class="nm">v</span>:<span class="nm">k</span> <span class="kw">for</span> <span class="nm">k</span>, <span class="nm">v</span> <span class="kw">in</span> <span class="nm">a</span>.<span class="fn">items</span>()}  <span class="cm"># 키↔값 교환</span>
+<span class="fn">print</span>(<span class="nm">b</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5}<br>
+      {1: 'A', 2: 'B', 3: 'C', 4: 'D', 5: 'E'}
+    </div>
+  </div>
+
+  <!-- 예제 9: join + generator -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 9: str.join() + Generator — 문자열 필터링</span>
+      <span class="code-tag tag-gen">join · generator · 문자열</span>
+    </div>
+    <div class="code-explain">
+      <code>''.join(이터러블)</code>은 이터러블의 문자열 요소를 <strong>하나로 합칩니다</strong>.<br>
+      generator expression을 직접 인자로 넣으면 <strong>중간 리스트 없이</strong> 메모리를 효율적으로 사용합니다.
+    </div>
+    <pre><code><span class="nm">a</span> <span class="op">=</span> <span class="st">'dataanalysis'</span>
+<span class="cm"># 모음(aeiou)만 추출하여 문자열로 합치기</span>
+<span class="nm">b</span> <span class="op">=</span> <span class="st">''</span>.<span class="fn">join</span>(<span class="nm">x</span> <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">a</span> <span class="kw">if</span> <span class="nm">x</span> <span class="kw">in</span> <span class="st">"aeiou"</span>)
+<span class="fn">print</span>(<span class="nm">b</span>)  <span class="cm"># 'aaaai'</span>
+
+<span class="cm"># 월 이름 앞 3글자 리스트</span>
+<span class="nm">months</span> <span class="op">=</span> [<span class="st">'January'</span>, <span class="st">'February'</span>, <span class="st">'March'</span>, <span class="st">'April'</span>,
+         <span class="st">'May'</span>, <span class="st">'June'</span>, <span class="st">'July'</span>, <span class="st">'August'</span>,
+         <span class="st">'September'</span>, <span class="st">'October'</span>, <span class="st">'November'</span>, <span class="st">'December'</span>]
+<span class="nm">month</span> <span class="op">=</span> [<span class="nm">x</span>[:<span class="num">3</span>] <span class="kw">for</span> <span class="nm">x</span> <span class="kw">in</span> <span class="nm">months</span>]
+<span class="fn">print</span>(<span class="nm">month</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">▶ 출력</div>
+      aaaai<br>
+      ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    </div>
+  </div>
+
+  <!-- 비교 테이블 -->
+  <div class="concept-box">
+    <h3>📊 map/filter vs Comprehension 비교</h3>
+    <table class="tbl">
+      <tr><th>방식</th><th>문법 예시</th><th>결과 타입</th><th>특징</th></tr>
+      <tr><td>map()</td><td><code>list(map(fn, a))</code></td><td>map 객체 → list</td><td>lazy, 외부 함수 필요</td></tr>
+      <tr><td>filter()</td><td><code>list(filter(fn, a))</code></td><td>filter 객체 → list</td><td>lazy, True 요소만</td></tr>
+      <tr><td>List Comp</td><td><code>[fn(x) for x in a]</code></td><td>list (즉시)</td><td>가독성 최고, 단순</td></tr>
+      <tr><td>Set Comp</td><td><code>{fn(x) for x in a}</code></td><td>set (즉시)</td><td>중복 제거</td></tr>
+      <tr><td>Dict Comp</td><td><code>{k:v for k,v in ...}</code></td><td>dict (즉시)</td><td>키-값 쌍 생성</td></tr>
+      <tr><td>Generator Exp</td><td><code>(fn(x) for x in a)</code></td><td>generator (lazy)</td><td>메모리 효율</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ===== QUIZ ===== -->
+<div id="quiz" class="section">
+  <div class="section-title">📝 개념 퀴즈</div>
+  <div class="section-subtitle">각 문제를 읽고 정답을 선택하세요. 즉시 피드백을 확인할 수 있습니다.</div>
+
+  <div class="quiz-header">
+    <span style="font-size:.9rem;color:var(--text-sub)">맞힌 문제</span>
+    <span class="quiz-score-badge" id="quiz-score">0 / 15</span>
+  </div>
+
+  <!-- Q1 -->
+  <div class="quiz-card" id="qc-1">
+    <div class="quiz-num">Q 01</div>
+    <div class="quiz-q">다음 코드의 출력 결과는 무엇인가요?</div>
+    <div class="quiz-code">a = [1, 2, 3, 4, 5]
+b = [x * 2 for x in a]
+print(b)</div>
+    <div class="options" id="opts-1">
+      <button class="opt-btn" onclick="answer(1, 0, this)"><span class="opt-letter">A</span>[1, 2, 3, 4, 5]</button>
+      <button class="opt-btn" onclick="answer(1, 1, this)"><span class="opt-letter">B</span>[2, 4, 6, 8, 10]</button>
+      <button class="opt-btn" onclick="answer(1, 2, this)"><span class="opt-letter">C</span>(2, 4, 6, 8, 10)</button>
+      <button class="opt-btn" onclick="answer(1, 3, this)"><span class="opt-letter">D</span>{2, 4, 6, 8, 10}</button>
+    </div>
+    <div class="feedback-box" id="fb-1"></div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-card" id="qc-2">
+    <div class="quiz-num">Q 02</div>
+    <div class="quiz-q">다음 코드의 출력 결과는 무엇인가요?</div>
+    <div class="quiz-code">a = [1, 2, 3, 4, 5, 6]
+b = [x for x in a if x % 2 == 0]
+print(b)</div>
+    <div class="options" id="opts-2">
+      <button class="opt-btn" onclick="answer(2, 0, this)"><span class="opt-letter">A</span>[1, 3, 5]</button>
+      <button class="opt-btn" onclick="answer(2, 1, this)"><span class="opt-letter">B</span>[2, 4, 6]</button>
+      <button class="opt-btn" onclick="answer(2, 2, this)"><span class="opt-letter">C</span>[1, 2, 3, 4, 5, 6]</button>
+      <button class="opt-btn" onclick="answer(2, 3, this)"><span class="opt-letter">D</span>[]</button>
+    </div>
+    <div class="feedback-box" id="fb-2"></div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-card" id="qc-3">
+    <div class="quiz-num">Q 03</div>
+    <div class="quiz-q"><code>map()</code>과 <code>filter()</code>의 공통적인 특징은 무엇인가요?</div>
+    <div class="options" id="opts-3">
+      <button class="opt-btn" onclick="answer(3, 0, this)"><span class="opt-letter">A</span>호출 즉시 모든 값을 계산하여 list를 반환한다</button>
+      <button class="opt-btn" onclick="answer(3, 1, this)"><span class="opt-letter">B</span>lazy(지연) 평가 방식으로, next()를 통해 값을 하나씩 꺼낸다</button>
+      <button class="opt-btn" onclick="answer(3, 2, this)"><span class="opt-letter">C</span>항상 tuple을 반환한다</button>
+      <button class="opt-btn" onclick="answer(3, 3, this)"><span class="opt-letter">D</span>중복을 자동으로 제거한다</button>
+    </div>
+    <div class="feedback-box" id="fb-3"></div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-card" id="qc-4">
+    <div class="quiz-num">Q 04</div>
+    <div class="quiz-q">다음 코드의 출력 결과는 무엇인가요?</div>
+    <div class="quiz-code">print(list(zip('abc', range(5))))</div>
+    <div class="options" id="opts-4">
+      <button class="opt-btn" onclick="answer(4, 0, this)"><span class="opt-letter">A</span>[('a', 0), ('b', 1), ('c', 2), ('d', 3), ('e', 4)]</button>
+      <button class="opt-btn" onclick="answer(4, 1, this)"><span class="opt-letter">B</span>[('a', 0), ('b', 1), ('c', 2)]</button>
+      <button class="opt-btn" onclick="answer(4, 2, this)"><span class="opt-letter">C</span>[('a', 0, 1, 2, 3, 4)]</button>
+      <button class="opt-btn" onclick="answer(4, 3, this)"><span class="opt-letter">D</span>오류 발생</button>
+    </div>
+    <div class="feedback-box" id="fb-4"></div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="quiz-card" id="qc-5">
+    <div class="quiz-num">Q 05</div>
+    <div class="quiz-q">Generator expression과 List comprehension의 가장 큰 차이점은 무엇인가요?</div>
+    <div class="options" id="opts-5">
+      <button class="opt-btn" onclick="answer(5, 0, this)"><span class="opt-letter">A</span>Generator는 for 문 안에서만 쓸 수 있다</button>
+      <button class="opt-btn" onclick="answer(5, 1, this)"><span class="opt-letter">B</span>Generator는 값을 한 번에 계산하지 않고 필요할 때마다 하나씩 생성하여 메모리를 절약한다</button>
+      <button class="opt-btn" onclick="answer(5, 2, this)"><span class="opt-letter">C</span>Generator는 항상 list보다 빠르다</button>
+      <button class="opt-btn" onclick="answer(5, 3, this)"><span class="opt-letter">D</span>Generator는 중복을 허용하지 않는다</button>
+    </div>
+    <div class="feedback-box" id="fb-5"></div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="quiz-card" id="qc-6">
+    <div class="quiz-num">Q 06</div>
+    <div class="quiz-q">다음 코드의 출력 결과는 무엇인가요?</div>
+    <div class="quiz-code">d = {k: v for k, v in zip("abc", [10, 20, 30])}
+print(d)</div>
+    <div class="options" id="opts-6">
+      <button class="opt-btn" onclick="answer(6, 0, this)"><span class="opt-letter">A</span>{'a': 10, 'b': 20, 'c': 30}</button>
+      <button class="opt-btn" onclick="answer(6, 1, this)"><span class="opt-letter">B</span>{10: 'a', 20: 'b', 30: 'c'}</button>
+      <button class="opt-btn" onclick="answer(6, 2, this)"><span class="opt-letter">C</span>[('a',10), ('b',20), ('c',30)]</button>
+      <button class="opt-btn" onclick="answer(6, 3, this)"><span class="opt-letter">D</span>{10, 20, 30}</button>
+    </div>
+    <div class="feedback-box" id="fb-6"></div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="quiz-card" id="qc-7">
+    <div class="quiz-num">Q 07</div>
+    <div class="quiz-q">다음 코드의 출력 결과는 무엇인가요?</div>
+    <div class="quiz-code">a = [3, 7, 8, 1, 2, 4]
+b = [x**2 for x in a if x % 2 == 0]
+print(b)</div>
+    <div class="options" id="opts-7">
+      <button class="opt-btn" onclick="answer(7, 0, this)"><span class="opt-letter">A</span>[9, 49, 64, 1, 4, 16]</button>
+      <button class="opt-btn" onclick="answer(7, 1, this)"><span class="opt-letter">B</span>[8, 2, 4]</button>
+      <button class="opt-btn" onclick="answer(7, 2, this)"><span class="opt-letter">C</span>[64, 4, 16]</button>
+      <button class="opt-btn" onclick="answer(7, 3, this)"><span class="opt-letter">D</span>[64, 4, 1, 16]</button>
+    </div>
+    <div class="feedback-box" id="fb-7"></div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="quiz-card" id="qc-8">
+    <div class="quiz-num">Q 08</div>
+    <div class="quiz-q">Set comprehension <code>{x for x in [1,2,2,3,3,3]}</code>의 결과는 무엇인가요?</div>
+    <div class="options" id="opts-8">
+      <button class="opt-btn" onclick="answer(8, 0, this)"><span class="opt-letter">A</span>[1, 2, 2, 3, 3, 3]</button>
+      <button class="opt-btn" onclick="answer(8, 1, this)"><span class="opt-letter">B</span>{1, 2, 2, 3, 3, 3}</button>
+      <button class="opt-btn" onclick="answer(8, 2, this)"><span class="opt-letter">C</span>{1, 2, 3}</button>
+      <button class="opt-btn" onclick="answer(8, 3, this)"><span class="opt-letter">D</span>(1, 2, 3)</button>
+    </div>
+    <div class="feedback-box" id="fb-8"></div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="quiz-card" id="qc-9">
+    <div class="quiz-num">Q 09</div>
+    <div class="quiz-q">다음 중 <code>map(len, ['cat', 'hi', 'a'])</code>와 동일한 결과를 내는 list comprehension은?</div>
+    <div class="options" id="opts-9">
+      <button class="opt-btn" onclick="answer(9, 0, this)"><span class="opt-letter">A</span><code>[x for x in ['cat', 'hi', 'a'] if len(x)]</code></button>
+      <button class="opt-btn" onclick="answer(9, 1, this)"><span class="opt-letter">B</span><code>[len(x) for x in ['cat', 'hi', 'a']]</code></button>
+      <button class="opt-btn" onclick="answer(9, 2, this)"><span class="opt-letter">C</span><code>{len(x) for x in ['cat', 'hi', 'a']}</code></button>
+      <button class="opt-btn" onclick="answer(9, 3, this)"><span class="opt-letter">D</span><code>(len(x) for x in ['cat', 'hi', 'a'])</code></button>
+    </div>
+    <div class="feedback-box" id="fb-9"></div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="quiz-card" id="qc-10">
+    <div class="quiz-num">Q 10</div>
+    <div class="quiz-q">Generator에서 값을 모두 소진한 뒤 <code>next()</code>를 한 번 더 호출하면 어떻게 되나요?</div>
+    <div class="options" id="opts-10">
+      <button class="opt-btn" onclick="answer(10, 0, this)"><span class="opt-letter">A</span>None을 반환한다</button>
+      <button class="opt-btn" onclick="answer(10, 1, this)"><span class="opt-letter">B</span>처음 값으로 되돌아간다</button>
+      <button class="opt-btn" onclick="answer(10, 2, this)"><span class="opt-letter">C</span>StopIteration 예외가 발생한다</button>
+      <button class="opt-btn" onclick="answer(10, 3, this)"><span class="opt-letter">D</span>0을 반환한다</button>
+    </div>
+    <div class="feedback-box" id="fb-10"></div>
+  </div>
+
+  <!-- Q11 -->
+  <div class="quiz-card" id="qc-11">
+    <div class="quiz-num">Q 11</div>
+    <div class="quiz-q">다음 코드의 출력 결과는 무엇인가요?</div>
+    <div class="quiz-code">print(list(map(len, ['cat', 'hi', 'dog'])))</div>
+    <div class="options" id="opts-11">
+      <button class="opt-btn" onclick="answer(11, 0, this)"><span class="opt-letter">A</span>['cat', 'hi', 'dog']</button>
+      <button class="opt-btn" onclick="answer(11, 1, this)"><span class="opt-letter">B</span>[3, 2, 3]</button>
+      <button class="opt-btn" onclick="answer(11, 2, this)"><span class="opt-letter">C</span>8</button>
+      <button class="opt-btn" onclick="answer(11, 3, this)"><span class="opt-letter">D</span>{2, 3}</button>
+    </div>
+    <div class="feedback-box" id="fb-11"></div>
+  </div>
+
+  <!-- Q12 -->
+  <div class="quiz-card" id="qc-12">
+    <div class="quiz-num">Q 12</div>
+    <div class="quiz-q">다음 중 generator 객체를 반환하는 표현식은 무엇인가요?</div>
+    <div class="options" id="opts-12">
+      <button class="opt-btn" onclick="answer(12, 0, this)"><span class="opt-letter">A</span><code>[x for x in range(5)]</code></button>
+      <button class="opt-btn" onclick="answer(12, 1, this)"><span class="opt-letter">B</span><code>(x for x in range(5))</code></button>
+      <button class="opt-btn" onclick="answer(12, 2, this)"><span class="opt-letter">C</span><code>{x for x in range(5)}</code></button>
+      <button class="opt-btn" onclick="answer(12, 3, this)"><span class="opt-letter">D</span><code>list(x for x in range(5))</code></button>
+    </div>
+    <div class="feedback-box" id="fb-12"></div>
+  </div>
+
+  <!-- Q13 -->
+  <div class="quiz-card" id="qc-13">
+    <div class="quiz-num">Q 13</div>
+    <div class="quiz-q">다음 코드의 출력 결과는 무엇인가요?</div>
+    <div class="quiz-code">a = [[1, 2], [3, 4], [5, 6]]
+print(list(map(list, zip(*a))))</div>
+    <div class="options" id="opts-13">
+      <button class="opt-btn" onclick="answer(13, 0, this)"><span class="opt-letter">A</span>[[1, 2], [3, 4], [5, 6]]</button>
+      <button class="opt-btn" onclick="answer(13, 1, this)"><span class="opt-letter">B</span>[[1, 3, 5], [2, 4, 6]]</button>
+      <button class="opt-btn" onclick="answer(13, 2, this)"><span class="opt-letter">C</span>[1, 2, 3, 4, 5, 6]</button>
+      <button class="opt-btn" onclick="answer(13, 3, this)"><span class="opt-letter">D</span>[(1, 3, 5), (2, 4, 6)]</button>
+    </div>
+    <div class="feedback-box" id="fb-13"></div>
+  </div>
+
+  <!-- Q14 -->
+  <div class="quiz-card" id="qc-14">
+    <div class="quiz-num">Q 14</div>
+    <div class="quiz-q">다음 코드의 출력 결과는 무엇인가요?</div>
+    <div class="quiz-code">result = ''.join(x for x in 'hello world' if x in 'aeiou')
+print(result)</div>
+    <div class="options" id="opts-14">
+      <button class="opt-btn" onclick="answer(14, 0, this)"><span class="opt-letter">A</span>'hello world'</button>
+      <button class="opt-btn" onclick="answer(14, 1, this)"><span class="opt-letter">B</span>['e', 'o', 'o']</button>
+      <button class="opt-btn" onclick="answer(14, 2, this)"><span class="opt-letter">C</span>'eoo'</button>
+      <button class="opt-btn" onclick="answer(14, 3, this)"><span class="opt-letter">D</span>'hll wrld'</button>
+    </div>
+    <div class="feedback-box" id="fb-14"></div>
+  </div>
+
+  <!-- Q15 -->
+  <div class="quiz-card" id="qc-15">
+    <div class="quiz-num">Q 15</div>
+    <div class="quiz-q">다음 for 루프와 동일한 결과를 내는 comprehension은?</div>
+    <div class="quiz-code">result = {}
+for i in range(1, 4):
+    result[i] = i ** 2
+print(result)  # {1: 1, 2: 4, 3: 9}</div>
+    <div class="options" id="opts-15">
+      <button class="opt-btn" onclick="answer(15, 0, this)"><span class="opt-letter">A</span><code>[i: i**2 for i in range(1, 4)]</code></button>
+      <button class="opt-btn" onclick="answer(15, 1, this)"><span class="opt-letter">B</span><code>{i**2 for i in range(1, 4)}</code></button>
+      <button class="opt-btn" onclick="answer(15, 2, this)"><span class="opt-letter">C</span><code>{i: i**2 for i in range(1, 4)}</code></button>
+      <button class="opt-btn" onclick="answer(15, 3, this)"><span class="opt-letter">D</span><code>(i: i**2 for i in range(1, 4))</code></button>
+    </div>
+    <div class="feedback-box" id="fb-15"></div>
+  </div>
+
+  <!-- 결과 -->
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:1rem;color:var(--text-sub)">퀴즈 결과</div>
+    <div class="result-score" id="final-score"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-primary" onclick="resetQuiz()">다시 풀기</button>
+      <button class="btn btn-ghost" onclick="showTab('notes')">오답 확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PRACTICE ===== -->
+<div id="practice" class="section">
+  <div class="section-title">⌨️ 실습 퀴즈</div>
+  <div class="section-subtitle">빈칸을 채우거나 코드를 완성해 보세요. 직접 입력하면 실력이 늘어납니다!</div>
+
+  <div class="practice-score-bar">
+    <span class="ps-label">실습 점수</span>
+    <span class="ps-score" id="practice-score">0 / 6</span>
+  </div>
+
+  <!-- P1 -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <span class="practice-num">PRACTICE 01</span>
+      <span class="practice-tag">list comprehension</span>
+    </div>
+    <div class="practice-body">
+      <div class="practice-q">1부터 10까지의 숫자 중 홀수만 담은 리스트를 list comprehension으로 만드세요.</div>
+      <div class="practice-desc">예상 출력: <code>[1, 3, 5, 7, 9]</code></div>
+      <div class="editor-label">✏️ YOUR CODE</div>
+      <textarea class="code-editor" id="pe-1" placeholder="result = [  ]&#10;print(result)"></textarea>
+      <div class="hint-box" id="hint-1">힌트: [x for x in range(1, 11) if x % 2 != 0]
+홀수 조건: x % 2 != 0  또는  x % 2 == 1</div>
+      <div class="practice-actions">
+        <button class="btn-check" onclick="checkPractice(1)">채점하기</button>
+        <button class="btn-hint" onclick="toggleHint(1)">힌트 보기</button>
+        <button class="btn-reset-p" onclick="resetPractice(1)">초기화</button>
+      </div>
+      <div class="practice-feedback" id="pf-1"></div>
+    </div>
+  </div>
+
+  <!-- P2 -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <span class="practice-num">PRACTICE 02</span>
+      <span class="practice-tag">map()</span>
+    </div>
+    <div class="practice-body">
+      <div class="practice-q">map()을 사용하여 문자열 리스트의 각 요소를 대문자로 변환한 새 리스트를 만드세요.</div>
+      <div class="practice-given">words = ['hello', 'python', 'world']
+# 기대값: ['HELLO', 'PYTHON', 'WORLD']</div>
+      <div class="editor-label">✏️ YOUR CODE</div>
+      <textarea class="code-editor" id="pe-2" placeholder="result = list(map(   ,   ))&#10;print(result)"></textarea>
+      <div class="hint-box" id="hint-2">힌트: str.upper 메서드를 map의 첫 번째 인자로 사용하세요.
+list(map(str.upper, words))</div>
+      <div class="practice-actions">
+        <button class="btn-check" onclick="checkPractice(2)">채점하기</button>
+        <button class="btn-hint" onclick="toggleHint(2)">힌트 보기</button>
+        <button class="btn-reset-p" onclick="resetPractice(2)">초기화</button>
+      </div>
+      <div class="practice-feedback" id="pf-2"></div>
+    </div>
+  </div>
+
+  <!-- P3 -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <span class="practice-num">PRACTICE 03</span>
+      <span class="practice-tag">filter()</span>
+    </div>
+    <div class="practice-body">
+      <div class="practice-q">filter()를 사용하여 숫자 리스트에서 10보다 큰 숫자만 남기세요.</div>
+      <div class="practice-given">nums = [3, 15, 8, 22, 1, 11, 7, 30]
+# 기대값: [15, 22, 11, 30]</div>
+      <div class="editor-label">✏️ YOUR CODE</div>
+      <textarea class="code-editor" id="pe-3" placeholder="result = list(filter(   ,   ))&#10;print(result)"></textarea>
+      <div class="hint-box" id="hint-3">힌트: lambda를 사용하거나 별도 함수를 정의하세요.
+def is_big(x): return x > 10
+result = list(filter(is_big, nums))
+
+또는 lambda:
+result = list(filter(lambda x: x > 10, nums))</div>
+      <div class="practice-actions">
+        <button class="btn-check" onclick="checkPractice(3)">채점하기</button>
+        <button class="btn-hint" onclick="toggleHint(3)">힌트 보기</button>
+        <button class="btn-reset-p" onclick="resetPractice(3)">초기화</button>
+      </div>
+      <div class="practice-feedback" id="pf-3"></div>
+    </div>
+  </div>
+
+  <!-- P4 -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <span class="practice-num">PRACTICE 04</span>
+      <span class="practice-tag">dict comprehension</span>
+    </div>
+    <div class="practice-body">
+      <div class="practice-q">아래 딕셔너리의 키와 값을 서로 뒤집은 새 딕셔너리를 dict comprehension으로 만드세요.</div>
+      <div class="practice-given">a = {'x': 10, 'y': 20, 'z': 30}
+# 기대값: {10: 'x', 20: 'y', 30: 'z'}</div>
+      <div class="editor-label">✏️ YOUR CODE</div>
+      <textarea class="code-editor" id="pe-4" placeholder="b = {   :   for   ,    in a.items()}&#10;print(b)"></textarea>
+      <div class="hint-box" id="hint-4">힌트: a.items()는 (키, 값) 쌍을 반환합니다.
+b = {v: k for k, v in a.items()}
+k와 v의 순서를 바꿔서 {v: k}로 작성하세요.</div>
+      <div class="practice-actions">
+        <button class="btn-check" onclick="checkPractice(4)">채점하기</button>
+        <button class="btn-hint" onclick="toggleHint(4)">힌트 보기</button>
+        <button class="btn-reset-p" onclick="resetPractice(4)">초기화</button>
+      </div>
+      <div class="practice-feedback" id="pf-4"></div>
+    </div>
+  </div>
+
+  <!-- P5 -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <span class="practice-num">PRACTICE 05</span>
+      <span class="practice-tag">zip + comprehension</span>
+    </div>
+    <div class="practice-body">
+      <div class="practice-q">두 리스트를 zip으로 묶어 각 쌍의 합을 담은 리스트를 만드세요.</div>
+      <div class="practice-given">a = [1, 2, 3, 4, 5]
+b = [10, 20, 30, 40, 50]
+# 기대값: [11, 22, 33, 44, 55]</div>
+      <div class="editor-label">✏️ YOUR CODE</div>
+      <textarea class="code-editor" id="pe-5" placeholder="result = [   for   ,   in zip(a, b)]&#10;print(result)"></textarea>
+      <div class="hint-box" id="hint-5">힌트: zip(a, b)는 (1,10), (2,20), ... 형태로 묶어줍니다.
+result = [x + y for x, y in zip(a, b)]</div>
+      <div class="practice-actions">
+        <button class="btn-check" onclick="checkPractice(5)">채점하기</button>
+        <button class="btn-hint" onclick="toggleHint(5)">힌트 보기</button>
+        <button class="btn-reset-p" onclick="resetPractice(5)">초기화</button>
+      </div>
+      <div class="practice-feedback" id="pf-5"></div>
+    </div>
+  </div>
+
+  <!-- P6 -->
+  <div class="practice-card">
+    <div class="practice-header">
+      <span class="practice-num">PRACTICE 06</span>
+      <span class="practice-tag">comprehension + if</span>
+    </div>
+    <div class="practice-body">
+      <div class="practice-q">문자열 리스트에서 길이가 4 이상인 단어만 소문자로 변환하여 리스트로 만드세요.</div>
+      <div class="practice-given">words = ['Python', 'is', 'fun', 'and', 'powerful']
+# 기대값: ['python', 'powerful']</div>
+      <div class="editor-label">✏️ YOUR CODE</div>
+      <textarea class="code-editor" id="pe-6" placeholder="result = [   for   in words if   ]&#10;print(result)"></textarea>
+      <div class="hint-box" id="hint-6">힌트: 조건: len(x) >= 4
+변환: x.lower()
+result = [x.lower() for x in words if len(x) >= 4]</div>
+      <div class="practice-actions">
+        <button class="btn-check" onclick="checkPractice(6)">채점하기</button>
+        <button class="btn-hint" onclick="toggleHint(6)">힌트 보기</button>
+        <button class="btn-reset-p" onclick="resetPractice(6)">초기화</button>
+      </div>
+      <div class="practice-feedback" id="pf-6"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== WRONG NOTES ===== -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">틀린 문제를 모아 복습할 수 있습니다.</div>
+  <div id="wrong-list">
+    <div class="empty-state">
+      <div class="empty-icon">✅</div>
+      <div>아직 틀린 문제가 없습니다.<br>퀴즈를 먼저 풀어보세요!</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== TAB =====
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ===== FLASHCARDS =====
+const cards = [
+  { q: "Comprehension이란 무엇인가요?", a: "map, filter 함수의 동작을 결합하여 list, set, dict, generator를 간결하게 만드는 파이썬 문법입니다." },
+  { q: "List comprehension의 기본 문법은?", a: "[식 for 변수 in 이터러블]\n예: [x*2 for x in range(5)]" },
+  { q: "Set comprehension의 기본 문법은?", a: "{식 for 변수 in 이터러블}\n예: {x*2 for x in range(5)}\n※ 중복이 자동으로 제거됩니다." },
+  { q: "Dict comprehension의 기본 문법은?", a: "{key식: value식 for 변수 in 이터러블}\n예: {k:v for k, v in zip('abc', [1,2,3])}" },
+  { q: "Generator expression의 기본 문법은?", a: "(식 for 변수 in 이터러블)\n예: (x*2 for x in range(5))\n※ 괄호()를 사용하며, 값을 한 번에 계산하지 않습니다." },
+  { q: "map() 함수란?", a: "map(함수, 이터러블)은 이터러블의 각 요소에 함수를 적용합니다.\n결과는 lazy(지연) 평가되는 map 객체를 반환합니다." },
+  { q: "filter() 함수란?", a: "filter(함수, 이터러블)은 함수가 True를 반환하는 요소만 남깁니다.\nmap과 마찬가지로 lazy 평가 방식입니다." },
+  { q: "zip() 함수란?", a: "zip(iter1, iter2, ...)은 각 이터러블의 같은 위치 요소를 tuple로 묶어 반환합니다.\n가장 짧은 이터러블 기준으로 멈춥니다." },
+  { q: "Comprehension에 조건을 추가하는 방법은?", a: "[식 for 변수 in 이터러블 if 조건]\n예: [x for x in a if x > 0]\n→ 조건이 True인 요소만 포함됩니다." },
+  { q: "Generator와 List comprehension의 차이는?", a: "List comp: [ ] → 모든 값을 즉시 메모리에 저장\nGenerator: ( ) → lazy 평가, next()로 하나씩 꺼냄\n→ 대용량 데이터엔 generator가 메모리 효율적" },
+  { q: "StopIteration 예외는 언제 발생하나요?", a: "Generator나 iterator에서 모든 값을 소진한 후\nnext()를 한 번 더 호출할 때 발생합니다." },
+  { q: "map(*a)에서 *는 무엇을 의미하나요?", a: "* (asterisk)는 리스트/이터러블을 언패킹하여\n여러 인자로 펼쳐줍니다.\n예: map(min, *a) → a의 각 하위 리스트가 min의 인자가 됨" },
+  { q: "zip(*a)의 결과는?", a: "2D 리스트 a의 행(row)과 열(column)을 전치(transpose)합니다.\n예: zip(*[[1,2],[3,4],[5,6]]) → [(1,3,5), (2,4,6)]" },
+  { q: "str.join()과 generator를 함께 쓰는 이유는?", a: "'sep'.join(generator)은 중간 리스트 없이\n문자열을 하나로 합칩니다.\n예: ''.join(x for x in s if x in 'aeiou')" },
+  { q: "dict comprehension으로 키-값을 뒤집으려면?", a: "{v: k for k, v in 원본dict.items()}\n.items()는 (키, 값) 튜플을 반환합니다.\n→ k와 v의 위치를 바꿔 새 dict 생성" },
+  { q: "List comp vs for loop — 언제 comprehension을 쓰나요?", a: "간결하고 읽기 쉬운 단순 변환/필터링엔 comprehension\n복잡한 로직이나 여러 줄이 필요한 경우엔 for loop\n→ 한 줄로 표현 가능할 때가 comprehension의 장점" }
+];
+
+let curCard = 0;
+function renderCard() {
+  const c = cards[curCard];
+  document.getElementById('fc-q').textContent = c.q;
+  document.getElementById('fc-a').textContent = c.a;
+  document.getElementById('fc-counter').textContent = (curCard + 1) + ' / ' + cards.length;
+  document.getElementById('fc-bar').style.width = ((curCard + 1) / cards.length * 100) + '%';
+  document.getElementById('fc').classList.remove('flipped');
+}
+function flipCard() { document.getElementById('fc').classList.toggle('flipped'); }
+function nextCard() { curCard = (curCard + 1) % cards.length; renderCard(); }
+function prevCard() { curCard = (curCard - 1 + cards.length) % cards.length; renderCard(); }
+renderCard();
+
+// ===== QUIZ =====
+const answers = { 1:1, 2:1, 3:1, 4:1, 5:1, 6:0, 7:2, 8:2, 9:1, 10:2, 11:1, 12:1, 13:1, 14:2, 15:2 };
+const explanations = {
+  1: "✅ [x * 2 for x in a]는 a의 각 요소에 *2를 적용한 list를 반환합니다. → [2, 4, 6, 8, 10]",
+  2: "✅ if x % 2 == 0 조건으로 짝수(나머지가 0인 수)만 선택됩니다. → [2, 4, 6]",
+  3: "✅ map과 filter는 모두 lazy(지연) 평가 방식으로, 실제 계산은 next() 또는 list() 호출 시 이루어집니다.",
+  4: "✅ zip은 가장 짧은 이터러블 기준으로 멈춥니다. 'abc'가 3개이므로 3개의 tuple만 생성됩니다.",
+  5: "✅ Generator는 ()를 사용하며, 값을 하나씩 lazy하게 생성해 메모리를 효율적으로 사용합니다.",
+  6: "✅ {k: v for k, v in zip('abc', [10,20,30])}은 zip으로 묶인 쌍에서 key=문자, value=숫자인 dict를 만듭니다.",
+  7: "✅ 짝수: 8, 2, 4 → 각각 제곱하면: 64, 4, 16. if 조건이 먼저 필터링되고, 식(x**2)이 계산됩니다.",
+  8: "✅ Set comprehension {}은 중복을 자동 제거합니다. {1,2,2,3,3,3} → {1,2,3}",
+  9: "✅ map(len, lst)는 각 요소의 길이를 계산합니다. 동일한 list comprehension: [len(x) for x in lst]",
+  10: "✅ Generator의 값이 모두 소진된 후 next()를 호출하면 StopIteration 예외가 발생합니다.",
+  11: "✅ map(len, 리스트)는 각 문자열의 길이를 계산합니다. 'cat'→3, 'hi'→2, 'dog'→3 이므로 [3, 2, 3].",
+  12: "✅ ()를 사용한 표현식이 generator expression입니다. []는 list, {}는 set, list()로 감싸면 list가 됩니다.",
+  13: "✅ zip(*a)는 행과 열을 전치(transpose)합니다. [[1,2],[3,4],[5,6]]의 열을 행으로 바꾸면 [[1,3,5],[2,4,6]].",
+  14: "✅ 'hello world'에서 모음(aeiou)만 추출하면 'e', 'o', 'o' → join으로 합치면 'eoo'.",
+  15: "✅ {key: value for ...}가 dict comprehension 문법입니다. {i: i**2 for i in range(1,4)} → {1:1, 2:4, 3:9}."
+};
+
+let quizScore = 0;
+let answered = {};
+let wrongNotes = [];
+
+function answer(qNum, chosen, btn) {
+  if (answered[qNum]) return;
+  answered[qNum] = true;
+  const correct = answers[qNum];
+  const opts = document.getElementById('opts-' + qNum).querySelectorAll('.opt-btn');
+  opts.forEach(b => b.disabled = true);
+  opts[correct].classList.add('correct');
+  const fb = document.getElementById('fb-' + qNum);
+  if (chosen === correct) {
+    quizScore++;
+    fb.className = 'feedback-box feedback-correct show';
+    fb.innerHTML = explanations[qNum];
+  } else {
+    btn.classList.add('wrong');
+    fb.className = 'feedback-box feedback-wrong show';
+    fb.innerHTML = '<strong>오답!</strong> ' + explanations[qNum];
+    wrongNotes.push({ qNum, q: document.querySelector('#qc-'+qNum+' .quiz-q').innerHTML, chosen: opts[chosen].textContent.trim(), correct: opts[correct].textContent.trim(), explain: explanations[qNum] });
+    renderWrongNotes();
+  }
+  document.getElementById('quiz-score').textContent = quizScore + ' / ' + Object.keys(answered).length;
+  if (Object.keys(answered).length === 15) showResult();
+}
+
+function showResult() {
+  document.getElementById('quiz-result').classList.add('show');
+  document.getElementById('final-score').textContent = quizScore + ' / 15';
+  const msgs = ['다시 한번 차근차근 복습해보세요! 💪', '조금 더 연습하면 완벽해질 거예요! 📚', '잘 하고 있어요! 틀린 문제를 복습해보세요 🔍', '훌륭해요! 거의 다 맞혔네요! 🌟', '완벽합니다! Comprehension 마스터! 🏆'];
+  document.getElementById('result-msg').textContent = msgs[Math.min(Math.floor(quizScore / 3), 4)];
+}
+
+function resetQuiz() {
+  quizScore = 0; answered = {}; wrongNotes = [];
+  document.getElementById('quiz-score').textContent = '0 / 10';
+  document.getElementById('quiz-result').classList.remove('show');
+  for (let i = 1; i <= 15; i++) {
+    document.getElementById('opts-' + i).querySelectorAll('.opt-btn').forEach(b => { b.disabled = false; b.className = 'opt-btn'; });
+    const fb = document.getElementById('fb-' + i);
+    fb.className = 'feedback-box'; fb.innerHTML = '';
+  }
+  renderWrongNotes();
+}
+
+function renderWrongNotes() {
+  const el = document.getElementById('wrong-list');
+  if (!wrongNotes.length) { el.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div>아직 틀린 문제가 없습니다.<br>퀴즈를 먼저 풀어보세요!</div></div>'; return; }
+  el.innerHTML = wrongNotes.map(w => `
+    <div class="wrong-note-card">
+      <div class="wn-qnum">Q ${String(w.qNum).padStart(2,'0')} — 오답</div>
+      <div class="wn-q">${w.q}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답</div>${w.chosen}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${w.correct}</div>
+      </div>
+      <div class="wn-explain">${w.explain}</div>
+    </div>`).join('');
+}
+
+// ===== PRACTICE =====
+const practiceAnswers = {
+  1: { keywords: ['1', '3', '5', '7', '9'], answer: "result = [x for x in range(1, 11) if x % 2 != 0]\nprint(result)", explain: "range(1, 11)으로 1~10을 생성하고, if x % 2 != 0으로 홀수만 필터링합니다." },
+  2: { keywords: ['HELLO', 'PYTHON', 'WORLD'], answer: "result = list(map(str.upper, words))\nprint(result)", explain: "str.upper는 문자열을 대문자로 변환하는 메서드입니다. map()에 함수와 이터러블을 전달하면 각 요소에 함수가 적용됩니다." },
+  3: { keywords: ['15', '22', '11', '30'], answer: "result = list(filter(lambda x: x > 10, nums))\nprint(result)", explain: "filter()는 함수가 True를 반환하는 요소만 남깁니다. lambda x: x > 10은 10보다 큰 수에만 True를 반환합니다." },
+  4: { keywords: ['10', "'x'", "'y'", "'z'", '20', '30'], answer: "b = {v: k for k, v in a.items()}\nprint(b)", explain: ".items()는 (키, 값) 쌍을 반환합니다. {v: k}로 키와 값의 위치를 뒤집어 새 딕셔너리를 만듭니다." },
+  5: { keywords: ['11', '22', '33', '44', '55'], answer: "result = [x + y for x, y in zip(a, b)]\nprint(result)", explain: "zip(a, b)는 같은 위치의 요소를 (1,10), (2,20), ... 형태로 묶습니다. x+y로 각 쌍의 합을 계산합니다." },
+  6: { keywords: ['python', 'powerful'], answer: "result = [x.lower() for x in words if len(x) >= 4]\nprint(result)", explain: "if len(x) >= 4로 4글자 이상인 단어만 선택하고, x.lower()로 소문자로 변환합니다." }
+};
+
+let practiceScore = 0;
+let practiceAnswered = {};
+
+function checkPractice(n) {
+  const code = document.getElementById('pe-' + n).value.trim();
+  const pa = practiceAnswers[n];
+  const fb = document.getElementById('pf-' + n);
+  const matched = pa.keywords.filter(k => code.includes(k));
+  const ratio = matched.length / pa.keywords.length;
+  fb.classList.add('show');
+  if (ratio >= 0.8) {
+    if (!practiceAnswered[n]) { practiceScore++; practiceAnswered[n] = true; document.getElementById('practice-score').textContent = practiceScore + ' / 6'; }
+    fb.innerHTML = `<div class="pf-result pf-correct">✅ 정답입니다!</div><div class="pf-explain">${pa.explain}<div class="pf-answer-code">모범답안:\n${pa.answer}</div></div>`;
+  } else if (ratio >= 0.4) {
+    fb.innerHTML = `<div class="pf-result pf-partial">🔶 거의 다 왔어요! (${matched.length}/${pa.keywords.length} 핵심요소 포함)</div><div class="pf-explain">${pa.explain}<div class="pf-answer-code">모범답안:\n${pa.answer}</div></div>`;
+  } else {
+    fb.innerHTML = `<div class="pf-result pf-wrong">❌ 다시 시도해보세요</div><div class="pf-explain">${pa.explain}<div class="pf-answer-code">모범답안:\n${pa.answer}</div></div>`;
+  }
+}
+
+function toggleHint(n) { document.getElementById('hint-' + n).classList.toggle('show'); }
+function resetPractice(n) { document.getElementById('pe-' + n).value = ''; document.getElementById('pf-' + n).innerHTML = ''; document.getElementById('pf-' + n).classList.remove('show'); document.getElementById('hint-' + n).classList.remove('show'); }
+</script>
+</body>
+</html>
