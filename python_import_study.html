@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python import 학습</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --border:#30363d;
+  --blue:#58a6ff; --green:#3fb950; --orange:#f0883e; --purple:#d2a8ff;
+  --red:#f78166; --warn:#e3b341; --text:#e6edf3; --sub:#8b949e;
+  --code-bg:#010409; --r:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+header{background:linear-gradient(135deg,#0d1117 0%,#0a1a10 100%);border-bottom:1px solid var(--border);padding:20px 40px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.logo{font-family:'JetBrains Mono',monospace;font-size:1.3rem;color:var(--green);font-weight:700;letter-spacing:-1px;}
+.logo span{color:var(--warn);}
+header h1{font-size:1rem;font-weight:400;color:var(--sub);}
+header h1 strong{color:var(--text);font-weight:600;}
+.home-btn{margin-left:auto;text-decoration:none;font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--sub);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 14px;transition:all .15s;}
+.home-btn:hover{color:var(--green);border-color:var(--green);}
+
+nav{display:flex;gap:4px;padding:16px 40px;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab-btn{font-family:'Noto Sans KR',sans-serif;padding:8px 20px;border-radius:8px;border:1px solid transparent;background:transparent;color:var(--sub);cursor:pointer;font-size:.875rem;font-weight:400;transition:all .2s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.tab-btn:hover{background:var(--surface2);color:var(--text);}
+.tab-btn.active{background:var(--green);color:#0d1117;border-color:var(--green);font-weight:600;}
+
+.section{display:none;padding:40px;max-width:900px;margin:0 auto;}
+.section.active{display:block;animation:fadeIn .3s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.section-title{font-size:1.5rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+.section-subtitle{color:var(--sub);font-size:.9rem;margin-bottom:32px;font-weight:300;}
+
+/* FLASHCARD */
+.flashcard-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.fc-progress{font-family:'JetBrains Mono',monospace;color:var(--green);font-size:1rem;font-weight:600;}
+.fc-progress-bar{width:100%;height:4px;background:var(--border);border-radius:4px;margin-bottom:24px;overflow:hidden;}
+.fc-progress-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--warn));border-radius:4px;transition:width .4s ease;}
+.flashcard-wrap{perspective:1200px;height:320px;cursor:pointer;margin-bottom:24px;}
+.flashcard{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+.flashcard.flipped{transform:rotateY(180deg);}
+.fc-front,.fc-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:var(--r);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;}
+.fc-front{background:linear-gradient(135deg,var(--surface) 0%,#0a1a10 100%);}
+.fc-back{background:linear-gradient(135deg,#0a1a10 0%,#1a1a0a 100%);border-color:var(--green);transform:rotateY(180deg);}
+.fc-label{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+.fc-front .fc-label{color:var(--green);}
+.fc-back .fc-label{color:var(--warn);}
+.fc-q{font-size:1.05rem;font-weight:600;line-height:1.7;color:var(--text);}
+.fc-a{font-size:.88rem;font-weight:400;line-height:1.9;color:var(--text);}
+.fc-hint{margin-top:20px;font-size:.8rem;color:var(--sub);}
+.nav-btns{display:flex;gap:12px;justify-content:center;}
+.btn{font-family:'Noto Sans KR',sans-serif;padding:10px 24px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:.875rem;font-weight:600;transition:all .2s;}
+.btn-ghost{background:transparent;color:var(--sub);}
+.btn-ghost:hover{background:var(--surface2);color:var(--text);border-color:var(--green);}
+.btn-primary{background:var(--green);color:#0d1117;border-color:var(--green);}
+.btn-primary:hover{filter:brightness(1.15);}
+
+/* CODE */
+.code-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:28px;transition:border-color .2s;}
+.code-card:hover{border-color:var(--green);}
+.code-header{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px;}
+.code-title{font-family:'JetBrains Mono',monospace;font-size:.85rem;color:var(--green);font-weight:600;}
+.code-tag{font-size:.7rem;padding:3px 10px;border-radius:20px;font-weight:600;}
+.tag-imp  {background:#0a1a10;color:var(--green); border:1px solid var(--green);}
+.tag-from {background:#0d1a2a;color:var(--blue);  border:1px solid var(--blue);}
+.tag-as   {background:#2a2a0a;color:var(--warn);  border:1px solid var(--warn);}
+.tag-tip  {background:#2a1c1c;color:var(--red);   border:1px solid var(--red);}
+.code-explain{padding:16px 20px;border-bottom:1px solid var(--border);font-size:.9rem;line-height:1.85;color:var(--sub);}
+.code-explain strong{color:var(--text);}
+.code-explain code{font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--green);background:var(--code-bg);padding:1px 5px;border-radius:4px;}
+pre{background:var(--code-bg);padding:20px;overflow-x:auto;margin:0;line-height:1.7;}
+pre code{font-family:'JetBrains Mono',monospace;font-size:.82rem;}
+.output-box{background:#010409;border-top:1px solid var(--border);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);line-height:1.7;}
+.output-label{color:var(--sub);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.err-box{background:#010409;border-top:1px solid var(--border);padding:12px 20px;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--red);line-height:1.7;}
+.err-label{color:var(--sub);font-size:.7rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+
+.kw{color:#ff7b72;} .fn{color:#d2a8ff;} .st{color:#a5d6ff;}
+.cm{color:#8b949e;font-style:italic;} .nm{color:#79c0ff;}
+.op{color:#f0883e;} .num{color:#f0883e;}
+
+.concept-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:28px;}
+.concept-box h3{font-size:1rem;font-weight:700;margin-bottom:16px;color:var(--text);}
+.tbl{width:100%;border-collapse:collapse;font-size:.84rem;}
+.tbl th{background:var(--surface2);padding:9px 12px;text-align:left;font-weight:600;border:1px solid var(--border);color:var(--sub);font-size:.75rem;letter-spacing:.5px;}
+.tbl td{padding:9px 12px;border:1px solid var(--border);vertical-align:top;line-height:1.65;}
+.tbl tr:nth-child(even) td{background:var(--surface2);}
+.tbl code{font-family:'JetBrains Mono',monospace;font-size:.79rem;color:var(--green);}
+
+/* QUIZ */
+.quiz-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.quiz-score-badge{font-family:'JetBrains Mono',monospace;font-size:.875rem;color:var(--green);font-weight:600;background:#0a1a10;border:1px solid var(--green);padding:4px 12px;border-radius:20px;}
+.quiz-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;margin-bottom:20px;}
+.quiz-num{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--green);letter-spacing:1px;margin-bottom:12px;font-weight:600;}
+.quiz-q{font-size:1rem;font-weight:600;line-height:1.7;margin-bottom:18px;color:var(--text);}
+.quiz-code{font-family:'JetBrains Mono',monospace;background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:14px 16px;font-size:.8rem;color:#e6edf3;margin-bottom:18px;white-space:pre;overflow-x:auto;line-height:1.65;}
+.options{display:flex;flex-direction:column;gap:10px;}
+.opt-btn{font-family:'Noto Sans KR',sans-serif;width:100%;padding:12px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:.9rem;text-align:left;transition:all .2s;display:flex;align-items:flex-start;gap:12px;}
+.opt-btn:hover:not(:disabled){border-color:var(--green);background:#0a1a10;}
+.opt-btn:disabled{cursor:default;}
+.opt-letter{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:700;width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.opt-btn.correct{border-color:var(--green);background:#0f1f0f;color:var(--green);}
+.opt-btn.correct .opt-letter{background:var(--green);color:#0d1117;}
+.opt-btn.wrong{border-color:var(--red);background:#2a1c1c;color:var(--red);}
+.opt-btn.wrong .opt-letter{background:var(--red);color:#fff;}
+.feedback-box{margin-top:14px;padding:12px 16px;border-radius:8px;font-size:.875rem;line-height:1.65;display:none;}
+.feedback-box.show{display:block;}
+.feedback-correct{background:#0f2a0f;border:1px solid var(--green);color:var(--green);}
+.feedback-wrong{background:#2a0f0f;border:1px solid var(--red);color:#e6edf3;}
+.feedback-wrong strong{color:var(--red);}
+.quiz-result{display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:40px;text-align:center;}
+.quiz-result.show{display:block;animation:fadeIn .4s ease;}
+.result-score{font-family:'JetBrains Mono',monospace;font-size:3rem;font-weight:700;margin:16px 0;color:var(--green);}
+.result-msg{font-size:1rem;color:var(--sub);margin-bottom:24px;}
+.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+
+/* WRONG NOTES */
+.wrong-note-card{background:var(--surface);border:1px solid #2a1c1c;border-left:4px solid var(--red);border-radius:var(--r);padding:20px;margin-bottom:16px;animation:fadeIn .3s ease;}
+.wn-qnum{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--red);font-weight:600;margin-bottom:8px;}
+.wn-q{font-size:.95rem;font-weight:600;margin-bottom:12px;line-height:1.6;}
+.wn-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:.85rem;}
+.wn-my {padding:10px;border-radius:6px;background:#2a1c1c;border:1px solid var(--red);}
+.wn-ans{padding:10px;border-radius:6px;background:#0f1f0f;border:1px solid var(--green);}
+.wn-label{font-size:.7rem;font-weight:700;letter-spacing:1px;margin-bottom:4px;}
+.wn-my  .wn-label{color:var(--red);}
+.wn-ans .wn-label{color:var(--green);}
+.wn-explain{margin-top:12px;font-size:.85rem;color:var(--sub);line-height:1.65;padding:10px;background:var(--surface2);border-radius:6px;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--sub);}
+.empty-icon{font-size:3rem;margin-bottom:12px;}
+.download-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;flex-wrap:wrap;gap:12px;}
+.download-info strong{color:var(--red);}
+
+@media(max-width:600px){
+  nav,.section{padding:12px 16px;}
+  header{padding:14px 16px;}
+  .wn-row{grid-template-columns:1fr;}
+  .flashcard-wrap{height:350px;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">py<span>.import</span></div>
+  <h1>Python <strong>import &amp; 모듈</strong> 학습</h1>
+  <a href="index.html" class="home-btn">🏠 홈으로</a>
+</header>
+
+<nav>
+  <button class="tab-btn active" onclick="showTab('flashcard')">🃏 플래시카드</button>
+  <button class="tab-btn" onclick="showTab('code')">💻 코드 예제</button>
+  <button class="tab-btn" onclick="showTab('quiz')">📝 퀴즈</button>
+  <button class="tab-btn" onclick="showTab('notes')">📋 오답노트</button>
+</nav>
+
+<!-- ══════════════════ FLASHCARDS ══════════════════ -->
+<div id="flashcard" class="section active">
+  <div class="section-title">🃏 플래시카드</div>
+  <div class="section-subtitle">import의 핵심 원리인 namespace 등록을 중심으로 각 방식의 차이를 학습하세요.</div>
+
+  <div class="flashcard-nav">
+    <span class="fc-progress" id="fc-counter">1 / 12</span>
+    <span style="font-size:.8rem;color:var(--sub)">클릭하여 뒤집기</span>
+  </div>
+  <div class="fc-progress-bar"><div class="fc-progress-fill" id="fc-bar" style="width:8.33%"></div></div>
+
+  <div class="flashcard-wrap" onclick="flipCard()">
+    <div class="flashcard" id="fc">
+      <div class="fc-front">
+        <div class="fc-label">QUESTION</div>
+        <div class="fc-q" id="fc-q"></div>
+        <div class="fc-hint">클릭하여 답 확인</div>
+      </div>
+      <div class="fc-back">
+        <div class="fc-label">ANSWER</div>
+        <div class="fc-a" id="fc-a"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-btns">
+    <button class="btn btn-ghost" onclick="prevCard()">← 이전</button>
+    <button class="btn btn-primary" onclick="nextCard()">다음 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════ CODE EXAMPLES ══════════════════ -->
+<div id="code" class="section">
+  <div class="section-title">💻 코드로 이해하기</div>
+  <div class="section-subtitle">import의 세 가지 방식과 namespace 등록 원리를 예제로 확인하세요.</div>
+
+  <!-- 비교 테이블 -->
+  <div class="concept-box">
+    <h3>📊 import 방식 3가지 비교</h3>
+    <table class="tbl">
+      <tr><th>방식</th><th>문법</th><th>namespace에 등록되는 이름</th><th>사용법</th></tr>
+      <tr><td>모듈 import</td><td><code>import math</code></td><td><code>math</code></td><td><code>math.sqrt(4)</code></td></tr>
+      <tr><td>별칭 import</td><td><code>import pandas as pd</code></td><td><code>pd</code></td><td><code>pd.DataFrame()</code></td></tr>
+      <tr><td>이름 직접 import</td><td><code>from math import sqrt</code></td><td><code>sqrt</code></td><td><code>sqrt(4)</code></td></tr>
+    </table>
+    <div style="margin-top:12px;font-size:.85rem;color:var(--sub)">
+      ※ 핵심 원칙: <strong style="color:var(--warn)">import 뒤에 오는 이름만</strong> namespace에 등록됩니다.
+    </div>
+  </div>
+
+  <!-- 예제 1: import math -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 1: import math — 모듈 전체 가져오기</span>
+      <span class="code-tag tag-imp">import · namespace · globals</span>
+    </div>
+    <div class="code-explain">
+      <code>import math</code>는 <code>math</code>라는 이름을 namespace에 등록합니다.<br>
+      이후 <strong>모듈명.함수명</strong> 형태로 기능을 사용합니다.<br>
+      <code>globals()</code>로 현재 namespace에 등록된 이름 목록을 확인할 수 있습니다.
+    </div>
+    <pre><code><span class="kw">import</span> <span class="nm">math</span>
+<span class="cm"># 'math'가 namespace에 등록됨</span>
+<span class="cm"># globals()에서 'math': &lt;module 'math'&gt; 확인 가능</span>
+
+<span class="fn">print</span>(<span class="nm">math</span>.<span class="fn">sqrt</span>(<span class="num">4</span>))    <span class="cm"># 2.0</span>
+<span class="fn">print</span>(<span class="nm">math</span>.<span class="fn">pi</span>)          <span class="cm"># 3.141592653589793</span>
+<span class="fn">print</span>(<span class="nm">math</span>.<span class="fn">floor</span>(<span class="num">3.7</span>))  <span class="cm"># 3</span></code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      2.0<br>3.141592653589793<br>3
+    </div>
+  </div>
+
+  <!-- 예제 2: from math import -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 2: from math import sqrt — 이름 직접 가져오기</span>
+      <span class="code-tag tag-from">from · import · NameError</span>
+    </div>
+    <div class="code-explain">
+      <code>from math import sqrt</code>는 <code>sqrt</code>만 namespace에 등록됩니다. <code>math</code>는 등록되지 않습니다.<br>
+      이후 <code>sqrt(4)</code>처럼 <strong>모듈명 없이</strong> 바로 사용합니다.<br>
+      <strong>import 뒤에 오는 이름</strong>만 사용 가능하다는 원칙을 꼭 기억하세요.
+    </div>
+    <pre><code><span class="kw">from</span> <span class="nm">math</span> <span class="kw">import</span> <span class="fn">sqrt</span>
+<span class="cm"># 'sqrt'만 namespace에 등록됨. 'math'는 등록 안 됨!</span>
+
+<span class="fn">print</span>(<span class="fn">sqrt</span>(<span class="num">9</span>))     <span class="cm"># OK → 3.0</span>
+<span class="cm"># print(math.sqrt(9))  → NameError: name 'math' is not defined</span>
+
+<span class="cm"># 여러 이름을 한 번에 가져올 수도 있음</span>
+<span class="kw">from</span> <span class="nm">math</span> <span class="kw">import</span> <span class="fn">sqrt</span>, <span class="fn">pi</span>, <span class="fn">floor</span>
+<span class="fn">print</span>(<span class="fn">sqrt</span>(<span class="num">16</span>), <span class="fn">pi</span>, <span class="fn">floor</span>(<span class="num">2.9</span>))</code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      3.0<br>4.0 3.141592653589793 2
+    </div>
+  </div>
+
+  <!-- 예제 3: import as 별칭 -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 3: import ... as — 별칭(alias) 사용</span>
+      <span class="code-tag tag-as">as · alias · pandas</span>
+    </div>
+    <div class="code-explain">
+      <code>import pandas as pd</code>는 <code>pd</code>라는 별칭으로 namespace에 등록됩니다.<br>
+      이후 <code>pandas</code>라는 원래 이름은 사용할 수 없고, <strong>오직 pd만</strong> 사용 가능합니다.<br>
+      긴 모듈 이름을 짧게 줄이거나 이름 충돌을 피할 때 유용합니다.
+    </div>
+    <pre><code><span class="kw">import</span> <span class="nm">pandas</span> <span class="kw">as</span> <span class="nm">pd</span>
+<span class="cm"># 'pd'가 namespace에 등록됨. 'pandas'는 사용 불가!</span>
+
+<span class="nm">s</span> <span class="op">=</span> <span class="nm">pd</span>.<span class="fn">Series</span>([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>])
+<span class="fn">print</span>(<span class="nm">s</span>)
+<span class="cm"># pandas.Series([1,2,3])  → NameError: 'pandas' is not defined</span>
+
+<span class="cm"># from ... import와 as 조합도 가능</span>
+<span class="kw">from</span> <span class="nm">pandas</span> <span class="kw">import</span> <span class="nm">Series</span>
+<span class="nm">s2</span> <span class="op">=</span> <span class="fn">Series</span>([<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>])
+<span class="fn">print</span>(<span class="nm">s2</span>)</code></pre>
+    <div class="output-box">
+      <div class="output-label">output</div>
+      0&nbsp;&nbsp;&nbsp;1<br>1&nbsp;&nbsp;&nbsp;2<br>2&nbsp;&nbsp;&nbsp;3<br>dtype: int64<br><br>0&nbsp;&nbsp;&nbsp;10<br>1&nbsp;&nbsp;&nbsp;20<br>2&nbsp;&nbsp;&nbsp;30<br>dtype: int64
+    </div>
+  </div>
+
+  <!-- 예제 4: NameError -->
+  <div class="code-card">
+    <div class="code-header">
+      <span class="code-title">예제 4: NameError — namespace에 없는 이름 사용</span>
+      <span class="code-tag tag-tip">NameError · namespace · 주의</span>
+    </div>
+    <div class="code-explain">
+      namespace에 등록되지 않은 이름을 사용하면 <strong>NameError</strong>가 발생합니다.<br>
+      가장 흔한 실수는 <code>from X import Y</code> 후에 <code>X.Y()</code>를 호출하는 것입니다.<br>
+      등록된 이름은 <code>globals()</code>로 확인할 수 있습니다.
+    </div>
+    <pre><code><span class="kw">from</span> <span class="nm">math</span> <span class="kw">import</span> <span class="fn">sqrt</span>
+
+<span class="fn">sqrt</span>(<span class="num">4</span>)         <span class="cm"># OK: sqrt는 등록됨</span>
+<span class="cm"># math.sqrt(4)  → NameError: name 'math' is not defined</span>
+
+<span class="kw">import</span> <span class="nm">pandas</span> <span class="kw">as</span> <span class="nm">pd</span>
+
+<span class="nm">pd</span>.<span class="fn">Series</span>([])   <span class="cm"># OK: pd는 등록됨</span>
+<span class="cm"># pandas.Series([])  → NameError: name 'pandas' is not defined</span>
+
+<span class="cm"># namespace 확인</span>
+<span class="fn">print</span>(<span class="st">'sqrt'</span> <span class="kw">in</span> <span class="fn">globals</span>())   <span class="cm"># True</span>
+<span class="fn">print</span>(<span class="st">'math'</span> <span class="kw">in</span> <span class="fn">globals</span>())   <span class="cm"># False</span></code></pre>
+    <div class="err-box">
+      <div class="err-label">⚠ NameError 예시</div>
+      NameError: name 'math' is not defined<br>
+      NameError: name 'pandas' is not defined
+    </div>
+  </div>
+
+  <!-- 핵심 정리 -->
+  <div class="concept-box">
+    <h3>🔑 핵심 원칙 정리</h3>
+    <table class="tbl">
+      <tr><th>import 문</th><th>등록되는 이름</th><th>사용 가능</th><th>사용 불가</th></tr>
+      <tr><td><code>import math</code></td><td><code>math</code></td><td><code>math.sqrt()</code></td><td><code>sqrt()</code></td></tr>
+      <tr><td><code>import math as m</code></td><td><code>m</code></td><td><code>m.sqrt()</code></td><td><code>math.sqrt()</code></td></tr>
+      <tr><td><code>from math import sqrt</code></td><td><code>sqrt</code></td><td><code>sqrt()</code></td><td><code>math.sqrt()</code></td></tr>
+      <tr><td><code>from math import sqrt, pi</code></td><td><code>sqrt</code>, <code>pi</code></td><td><code>sqrt()</code>, <code>pi</code></td><td><code>math.sqrt()</code></td></tr>
+      <tr><td><code>from pandas import Series</code></td><td><code>Series</code></td><td><code>Series([])</code></td><td><code>pd.Series([])</code></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ══════════════════ QUIZ ══════════════════ -->
+<div id="quiz" class="section">
+  <div class="quiz-header">
+    <div>
+      <div class="section-title" style="margin-bottom:4px">📝 퀴즈</div>
+      <div class="section-subtitle" style="margin-bottom:0">총 12문항 · 선택지를 클릭하면 바로 채점됩니다.</div>
+    </div>
+    <div class="quiz-score-badge" id="score-badge">0 / 12</div>
+  </div>
+  <div id="quiz-list"></div>
+  <div class="quiz-result" id="quiz-result">
+    <div style="font-size:2rem">🎉</div>
+    <div class="result-score" id="result-score"></div>
+    <div class="result-msg" id="result-msg"></div>
+    <div class="result-actions">
+      <button class="btn btn-primary" onclick="resetQuiz()">다시 풀기</button>
+      <button class="btn btn-ghost" onclick="showTab('notes')">오답노트 보기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ WRONG NOTES ══════════════════ -->
+<div id="notes" class="section">
+  <div class="section-title">📋 오답노트</div>
+  <div class="section-subtitle">틀린 문제를 모아 복습하세요.</div>
+  <div id="notes-content"></div>
+</div>
+
+<script>
+const CARDS = [
+  {
+    q: 'import 문의 역할은 무엇인가요?',
+    a: '라이브러리(모듈)를 사용할 수 있도록\nimport 뒤의 이름을 namespace에 등록합니다.\n\n등록된 이름을 통해서만 해당 기능을 사용할 수 있습니다.'
+  },
+  {
+    q: 'namespace에 등록되는 이름은 무엇인가요?',
+    a: 'import 뒤에 오는 이름이 namespace에 등록됩니다.\n\nimport math → math 등록\nfrom math import sqrt → sqrt만 등록\nimport pandas as pd → pd 등록'
+  },
+  {
+    q: 'import math 이후 사용 가능한 방법은?',
+    a: 'math.함수명() 형태로 사용합니다.\n\n예: math.sqrt(4), math.pi, math.floor(3.7)\n\nsqrt(4) 처럼 모듈명 없이 쓰면 NameError 발생!'
+  },
+  {
+    q: 'from math import sqrt 와 import math의 차이는?',
+    a: 'from math import sqrt\n→ sqrt만 namespace에 등록\n→ sqrt(4) 로 바로 사용 가능\n→ math.sqrt(4)는 NameError!\n\nimport math\n→ math 전체가 namespace에 등록\n→ math.sqrt(4) 로만 사용 가능'
+  },
+  {
+    q: 'import pandas as pd 의 역할은?',
+    a: 'pandas를 pd라는 별칭(alias)으로 namespace에 등록합니다.\n\n사용 가능: pd.DataFrame(), pd.Series()\n사용 불가: pandas.DataFrame() → NameError!\n\npd만 등록되고 pandas는 등록되지 않습니다.'
+  },
+  {
+    q: 'NameError는 언제 발생하나요?',
+    a: 'namespace에 등록되지 않은 이름을 사용할 때 발생합니다.\n\n예: from math import sqrt 후\nmath.sqrt(4) → NameError: \'math\' is not defined\n\nimport pandas as pd 후\npandas.Series([]) → NameError: \'pandas\' is not defined'
+  },
+  {
+    q: 'globals() 함수의 역할은?',
+    a: '현재 전역 namespace에 등록된 이름들을 dict 형태로 반환합니다.\n\n어떤 이름이 사용 가능한지 확인할 때 사용합니다.\n\n예: import math 후\nglobals()에 \'math\': <module \'math\'> 가 포함됨'
+  },
+  {
+    q: '별칭(as)을 사용하는 이유는?',
+    a: '두 가지 이유가 있습니다.\n\n1. 긴 모듈 이름을 짧게 줄이기\n   import numpy as np\n   import matplotlib.pyplot as plt\n\n2. 이름 충돌 방지\n   import mymath as mm'
+  },
+  {
+    q: 'from math import sqrt, pi, floor 의 결과는?',
+    a: 'sqrt, pi, floor 세 이름이\n각각 namespace에 등록됩니다.\n\n사용 가능: sqrt(4), pi, floor(3.7)\n사용 불가: math.sqrt() → NameError!'
+  },
+  {
+    q: 'import math as m 이후 올바른 사용법은?',
+    a: 'm.sqrt(4), m.pi 등\nm.함수명() 형태로 사용합니다.\n\n사용 불가:\nmath.sqrt() → NameError: \'math\' is not defined\nsqrt()     → NameError: \'sqrt\' is not defined'
+  },
+  {
+    q: '표준 라이브러리와 외부 라이브러리의 차이는?',
+    a: '표준 라이브러리: Python 설치 시 기본 포함\n예: math, os, sys, random, datetime\n→ 바로 import 가능\n\n외부 라이브러리: 별도 설치 필요 (pip install)\n예: pandas, numpy, matplotlib\n→ 설치 후 import 가능'
+  },
+  {
+    q: 'from pandas import Series 이후 사용 가능한 것은?',
+    a: 'Series만 사용 가능합니다.\n\nSeries([1,2,3])  → OK\npd.Series([])    → NameError: \'pd\' is not defined\npandas.Series()  → NameError: \'pandas\' is not defined\n\nimport 뒤의 Series만 등록됩니다.'
+  }
+];
+
+let fcIdx = 0;
+function renderCard() {
+  const c = CARDS[fcIdx];
+  document.getElementById('fc-q').textContent = c.q;
+  document.getElementById('fc-a').innerHTML = c.a.replace(/\n/g, '<br>');
+  document.getElementById('fc').classList.remove('flipped');
+  document.getElementById('fc-counter').textContent = `${fcIdx+1} / ${CARDS.length}`;
+  document.getElementById('fc-bar').style.width = `${(fcIdx+1)/CARDS.length*100}%`;
+}
+function flipCard()  { document.getElementById('fc').classList.toggle('flipped'); }
+function nextCard()  { fcIdx = (fcIdx+1) % CARDS.length; renderCard(); }
+function prevCard()  { fcIdx = (fcIdx-1+CARDS.length) % CARDS.length; renderCard(); }
+renderCard();
+
+const QUIZ = [
+  {
+    q: 'import math 실행 후 사용 가능한 코드는?',
+    opts: ['sqrt(4)', 'math.sqrt(4)', 'from math sqrt(4)', 'Math.sqrt(4)'],
+    ans: 1,
+    exp: 'import math는 math라는 이름을 namespace에 등록합니다. 따라서 math.함수명() 형태로 사용해야 합니다. sqrt(4)는 NameError를 발생시킵니다.'
+  },
+  {
+    q: 'from math import sqrt 실행 후, math.sqrt(4) 를 호출하면?',
+    opts: ['2.0 반환', '4.0 반환', 'NameError 발생', 'ImportError 발생'],
+    ans: 2,
+    exp: 'from math import sqrt는 sqrt만 namespace에 등록합니다. math는 등록되지 않으므로 math.sqrt(4)는 NameError: name \'math\' is not defined가 발생합니다.'
+  },
+  {
+    q: 'import pandas as pd 실행 후, 다음 중 NameError가 발생하는 코드는?',
+    opts: ['pd.Series([1,2,3])', 'pd.DataFrame()', 'pandas.Series([1,2,3])', 'pd.read_csv(\'a.csv\')'],
+    ans: 2,
+    exp: 'import pandas as pd는 pd를 namespace에 등록합니다. pandas라는 원래 이름은 등록되지 않으므로 pandas.Series()는 NameError가 발생합니다.'
+  },
+  {
+    q: 'import 문에서 namespace에 등록되는 이름의 규칙은?',
+    opts: [
+      'from 뒤에 오는 이름이 등록된다',
+      'import 뒤에 오는 이름이 등록된다',
+      'as 뒤에 오는 이름을 제외하고 모두 등록된다',
+      '모듈의 모든 함수가 등록된다'
+    ],
+    ans: 1,
+    exp: '핵심 원칙: import 뒤에 오는 이름이 namespace에 등록됩니다. import math → math, import pandas as pd → pd, from math import sqrt → sqrt가 등록됩니다.'
+  },
+  {
+    q: 'import math as m 실행 후 올바른 사용법은?',
+    opts: ['math.sqrt(4)', 'm.sqrt(4)', 'sqrt(4)', 'Math.sqrt(4)'],
+    ans: 1,
+    exp: 'import math as m은 m이라는 별칭을 namespace에 등록합니다. math는 사용 불가, sqrt도 사용 불가, m.sqrt(4)만 사용 가능합니다.'
+  },
+  {
+    q: '다음 코드의 실행 결과는?\n\nfrom math import sqrt, pi\nprint(round(pi, 2))',
+    opts: ['3.14', '3.141592653589793', 'NameError 발생', '2.0'],
+    ans: 0,
+    exp: 'from math import sqrt, pi는 sqrt와 pi를 모두 namespace에 등록합니다. round(pi, 2)는 3.14를 반환합니다.'
+  },
+  {
+    q: 'globals() 함수의 역할로 옳은 것은?',
+    opts: [
+      '현재 함수 내부의 지역 변수를 반환한다',
+      '현재 전역 namespace에 등록된 이름들을 dict로 반환한다',
+      '모든 설치된 라이브러리 목록을 반환한다',
+      'import한 모듈을 제거한다'
+    ],
+    ans: 1,
+    exp: 'globals()는 현재 전역 namespace에 등록된 이름과 값을 dict 형태로 반환합니다. import 후 이름이 제대로 등록됐는지 확인할 때 활용합니다.'
+  },
+  {
+    q: '별칭(as)을 사용하는 주된 이유가 아닌 것은?',
+    opts: [
+      '긴 모듈 이름을 짧게 줄이기 위해',
+      '이름 충돌을 방지하기 위해',
+      '모듈의 기능을 제한하기 위해',
+      '관례적으로 사용하는 이름을 따르기 위해 (numpy→np)'
+    ],
+    ans: 2,
+    exp: 'as는 이름을 바꿀 뿐이며, 모듈의 기능을 제한하지 않습니다. 주된 사용 이유는 이름 단축(import numpy as np), 이름 충돌 방지, 관례 준수(import pandas as pd)입니다.'
+  },
+  {
+    q: '다음 중 표준 라이브러리(별도 설치 불필요)에 해당하는 것은?',
+    opts: ['pandas', 'numpy', 'math', 'matplotlib'],
+    ans: 2,
+    exp: 'math는 Python 설치 시 기본으로 포함된 표준 라이브러리입니다. pandas, numpy, matplotlib는 pip install로 별도 설치가 필요한 외부 라이브러리입니다.'
+  },
+  {
+    q: 'from pandas import Series 실행 후 가능한 코드는?',
+    opts: ['pd.Series([1,2,3])', 'pandas.Series([1,2,3])', 'Series([1,2,3])', 'import.Series([1,2,3])'],
+    ans: 2,
+    exp: 'from pandas import Series는 Series만 namespace에 등록합니다. pd, pandas는 등록되지 않으므로 Series([1,2,3])만 올바른 사용법입니다.'
+  },
+  {
+    q: 'import math 후 dir(math)를 사용하는 이유는?',
+    opts: [
+      'math 모듈을 삭제하기 위해',
+      'math 모듈에서 사용 가능한 함수와 속성 목록을 확인하기 위해',
+      'math 모듈을 namespace에서 제거하기 위해',
+      'math 모듈의 버전을 확인하기 위해'
+    ],
+    ans: 1,
+    exp: 'dir(모듈)은 해당 모듈에서 사용 가능한 함수, 상수, 속성의 이름 목록을 반환합니다. 어떤 기능이 있는지 탐색할 때 유용합니다.'
+  },
+  {
+    q: '다음 코드 중 실행 결과가 다른 하나는?\n\n(A) import math; math.sqrt(4)\n(B) from math import sqrt; sqrt(4)\n(C) import math as m; m.sqrt(4)\n(D) from math import sqrt as s; math.sqrt(4)',
+    opts: ['A', 'B', 'C', 'D'],
+    ans: 3,
+    exp: 'A, B, C는 모두 2.0을 반환합니다. D는 from math import sqrt as s를 하면 s만 등록되므로 math.sqrt(4)는 NameError가 발생합니다.'
+  }
+];
+
+let answered = new Array(QUIZ.length).fill(false);
+let userAns  = new Array(QUIZ.length).fill(-1);
+let score = 0, wrongQ = [];
+
+function buildQuiz() {
+  const list = document.getElementById('quiz-list');
+  list.innerHTML = '';
+  QUIZ.forEach((q, qi) => {
+    const hasCode = q.q.includes('\n');
+    const qtext   = q.q.replace(/\n([\s\S]*)/, '');
+    const codetext = hasCode ? (q.q.match(/\n([\s\S]*)/) || ['',''])[1] : '';
+    const card = document.createElement('div');
+    card.className = 'quiz-card'; card.id = `qcard-${qi}`;
+    card.innerHTML = `
+      <div class="quiz-num">Q${String(qi+1).padStart(2,'0')}</div>
+      <div class="quiz-q">${qtext}</div>
+      ${codetext ? `<div class="quiz-code">${escHtml(codetext)}</div>` : ''}
+      <div class="options" id="opts-${qi}">
+        ${q.opts.map((o,oi)=>`<button class="opt-btn" id="opt-${qi}-${oi}" onclick="pick(${qi},${oi})"><span class="opt-letter">${String.fromCharCode(65+oi)}</span><span>${o}</span></button>`).join('')}
+      </div>
+      <div class="feedback-box" id="fb-${qi}"></div>`;
+    list.appendChild(card);
+  });
+}
+
+function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function pick(qi, oi) {
+  if (answered[qi]) return;
+  answered[qi] = true; userAns[qi] = oi;
+  const q = QUIZ[qi], correct = oi === q.ans;
+  if (correct) score++; else wrongQ.push(qi);
+  document.getElementById(`opt-${qi}-${oi}`).classList.add(correct?'correct':'wrong');
+  if (!correct) document.getElementById(`opt-${qi}-${q.ans}`).classList.add('correct');
+  document.querySelectorAll(`#opts-${qi} .opt-btn`).forEach(b=>b.disabled=true);
+  const fb = document.getElementById(`fb-${qi}`);
+  fb.classList.add('show', correct?'feedback-correct':'feedback-wrong');
+  fb.innerHTML = correct ? `정답입니다! ${q.exp}` : `<strong>오답.</strong> 정답은 <strong>${String.fromCharCode(65+q.ans)}</strong>입니다. ${q.exp}`;
+  document.getElementById('score-badge').textContent = `${score} / ${QUIZ.length}`;
+  if (answered.every(Boolean)) setTimeout(showResult, 600);
+}
+
+function showResult() {
+  document.getElementById('quiz-result').classList.add('show');
+  document.getElementById('result-score').textContent = `${score} / ${QUIZ.length}`;
+  const pct = Math.round(score/QUIZ.length*100);
+  document.getElementById('result-msg').textContent =
+    pct===100 ? '완벽합니다! import를 완전히 이해했어요. 🏆' :
+    pct>=80   ? '잘했어요! 틀린 문제를 오답노트로 복습해 보세요. 🌟' :
+    pct>=60   ? '괜찮아요. 코드 예제를 다시 확인해 보세요. 📚' :
+                '조금 더 공부해봐요. 플래시카드부터 다시 시작해 보세요. 💪';
+  renderNotes();
+}
+
+function resetQuiz() {
+  answered.fill(false); userAns.fill(-1); score=0; wrongQ=[];
+  document.getElementById('score-badge').textContent='0 / 12';
+  document.getElementById('quiz-result').classList.remove('show');
+  buildQuiz(); window.scrollTo(0,0);
+}
+
+function renderNotes() {
+  const el = document.getElementById('notes-content');
+  if (!wrongQ.length) { el.innerHTML='<div class="empty-state"><div class="empty-icon">🎉</div>오답이 없습니다! 모두 정답이에요.</div>'; return; }
+  let html = `<div class="download-bar"><div class="download-info">오답 <strong>${wrongQ.length}문항</strong></div><button class="btn btn-ghost" onclick="downloadNotes()">TXT 다운로드</button></div>`;
+  wrongQ.forEach(qi => {
+    const q = QUIZ[qi];
+    html += `<div class="wrong-note-card">
+      <div class="wn-qnum">Q${String(qi+1).padStart(2,'0')}</div>
+      <div class="wn-q">${q.q.replace(/\n/g,'<br>')}</div>
+      <div class="wn-row">
+        <div class="wn-my"><div class="wn-label">내 답</div>${userAns[qi]>=0?String.fromCharCode(65+userAns[qi])+'. '+q.opts[userAns[qi]]:'미답'}</div>
+        <div class="wn-ans"><div class="wn-label">정답</div>${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}</div>
+      </div>
+      <div class="wn-explain">${q.exp}</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+function downloadNotes() {
+  let txt = '=== 오답노트 – Python import ===\n\n';
+  wrongQ.forEach(qi => {
+    const q = QUIZ[qi];
+    txt += `[Q${qi+1}] ${q.q}\n`;
+    q.opts.forEach((o,i) => txt += `  ${i===q.ans?'✔':' '} ${String.fromCharCode(65+i)}. ${o}\n`);
+    txt += `내 답: ${userAns[qi]>=0?String.fromCharCode(65+userAns[qi])+'. '+q.opts[userAns[qi]]:'미답'}\n정답: ${String.fromCharCode(65+q.ans)}. ${q.opts[q.ans]}\n해설: ${q.exp}\n\n`;
+  });
+  const blob = new Blob(['\uFEFF'+txt],{type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download='오답노트_import.txt'; a.click();
+}
+
+function showTab(t) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(t).classList.add('active');
+  document.querySelectorAll('.tab-btn')[['flashcard','code','quiz','notes'].indexOf(t)].classList.add('active');
+  if (t==='notes') renderNotes();
+}
+
+buildQuiz();
+</script>
+</body>
+</html>

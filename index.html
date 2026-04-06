@@ -3,364 +3,209 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Python 학습 로드맵</title>
+<title>Python 학습 센터</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #1c2128;
-    --border: #30363d;
-    --accent: #f0883e;
-    --accent2: #3fb950;
-    --accent3: #f78166;
-    --accent4: #d2a8ff;
-    --warn: #e3b341;
-    --text: #e6edf3;
-    --text-sub: #8b949e;
-    --code-bg: #010409;
-    --radius: 12px;
-  }
+:root {
+  --bg:#0d1117; --surface:#161b22; --surface2:#1c2128; --border:#30363d;
+  --green:#3fb950; --blue:#58a6ff; --orange:#f0883e; --purple:#d2a8ff;
+  --teal:#39d353; --red:#f78166; --warn:#e3b341;
+  --text:#e6edf3; --sub:#8b949e; --r:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+/* ── HEADER ── */
+header{
+  background:linear-gradient(135deg,#0d1117 0%,#111520 100%);
+  border-bottom:1px solid var(--border);
+  padding:48px 40px 40px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+header::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 55% 70% at 15% 50%,rgba(63,185,80,.06) 0%,transparent 70%),
+    radial-gradient(ellipse 55% 70% at 85% 50%,rgba(88,166,255,.05) 0%,transparent 70%),
+    radial-gradient(ellipse 40% 60% at 50% 100%,rgba(210,168,255,.04) 0%,transparent 70%);
+  pointer-events:none;
+}
+.badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:50px;padding:5px 16px;
+  font-size:12px;color:var(--sub);margin-bottom:22px;
+  font-family:'JetBrains Mono',monospace;
+}
+.badge span{color:var(--green);font-weight:600;}
+header h1{
+  font-size:clamp(28px,5vw,46px);font-weight:700;letter-spacing:-.5px;margin-bottom:12px;
+}
+header h1 em{
+  font-style:normal;
+  background:linear-gradient(90deg,var(--green) 0%,var(--blue) 60%,var(--purple) 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+header p{color:var(--sub);font-size:15px;line-height:1.75;max-width:480px;margin:0 auto;}
 
-  body {
-    font-family: 'Noto Sans KR', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* ── PROGRESS ── */
+.progress-wrap{max-width:680px;margin:32px auto 0;padding:0 16px;}
+.progress-info{display:flex;justify-content:space-between;font-size:13px;color:var(--sub);margin-bottom:8px;}
+.progress-info strong{color:var(--green);}
+.progress-bar-bg{background:var(--surface2);border-radius:99px;height:8px;overflow:hidden;border:1px solid var(--border);}
+.progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--blue),var(--purple));border-radius:99px;transition:width .8s ease;}
 
-  /* ── HEADER ── */
-  header {
-    background: linear-gradient(135deg, #0d1117 0%, #101520 100%);
-    border-bottom: 1px solid var(--border);
-    padding: 40px 40px 36px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
+/* ── MAIN ── */
+main{max-width:920px;margin:0 auto;padding:44px 20px 80px;}
 
-  header::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 60% 80% at 20% 50%, rgba(240,136,62,.07) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 80% at 80% 50%, rgba(63,185,80,.06) 0%, transparent 70%);
-    pointer-events: none;
-  }
+/* ── SECTION LABEL ── */
+.section-label{
+  display:flex;align-items:center;gap:10px;
+  font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--sub);margin-bottom:20px;margin-top:44px;
+}
+.section-label:first-child{margin-top:0;}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-green {background:var(--green); box-shadow:0 0 8px rgba(63,185,80,.6);}
+.dot-orange{background:var(--orange);box-shadow:0 0 8px rgba(240,136,62,.4);}
+.dot-gray  {background:var(--sub);}
+.section-label hr{flex:1;border:none;border-top:1px solid var(--border);}
 
-  .python-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 50px;
-    padding: 6px 18px;
-    font-size: 13px;
-    color: var(--text-sub);
-    margin-bottom: 20px;
-    font-family: 'JetBrains Mono', monospace;
-  }
+/* ── CARD GRID ── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:16px;}
 
-  .python-badge span { color: var(--accent2); font-weight: 600; }
+/* ── CARD ── */
+.card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:22px 20px;
+  text-decoration:none;color:inherit;
+  display:flex;flex-direction:column;gap:10px;
+  position:relative;overflow:hidden;
+  transition:transform .18s,border-color .18s,box-shadow .18s;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:var(--r) var(--r) 0 0;opacity:0;transition:opacity .18s;
+}
+.card:hover{transform:translateY(-3px);border-color:#444c56;box-shadow:0 8px 32px rgba(0,0,0,.45);}
+.card:hover::before{opacity:1;}
 
-  header h1 {
-    font-size: clamp(28px, 5vw, 44px);
-    font-weight: 700;
-    letter-spacing: -0.5px;
-    margin-bottom: 12px;
-  }
+.card.c-green  ::before{background:linear-gradient(90deg,var(--green),var(--teal));}
+.card.c-blue   ::before{background:linear-gradient(90deg,var(--blue),var(--purple));}
+.card.c-orange ::before{background:linear-gradient(90deg,var(--orange),var(--warn));}
+.card.c-purple ::before{background:linear-gradient(90deg,var(--purple),var(--blue));}
+.card.c-teal   ::before{background:linear-gradient(90deg,var(--teal),var(--blue));}
+.card.c-red    ::before{background:linear-gradient(90deg,var(--red),var(--orange));}
+.card.c-warn   ::before{background:linear-gradient(90deg,var(--warn),var(--green));}
 
-  header h1 em {
-    font-style: normal;
-    background: linear-gradient(90deg, var(--accent) 0%, var(--warn) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+.card-unit{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--sub);letter-spacing:.5px;}
+.card-icon{font-size:28px;line-height:1;margin:2px 0;}
+.card-title{font-size:15px;font-weight:700;line-height:1.4;}
+.card-desc{font-size:13px;color:var(--sub);line-height:1.65;flex:1;}
+.card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;}
+.tag{
+  font-family:'JetBrains Mono',monospace;font-size:11px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:4px;padding:2px 7px;color:var(--sub);
+}
+.tag.g {border-color:rgba(63,185,80,.35); color:var(--green);}
+.tag.b {border-color:rgba(88,166,255,.35);color:var(--blue);}
+.tag.o {border-color:rgba(240,136,62,.35);color:var(--orange);}
+.tag.p {border-color:rgba(210,168,255,.35);color:var(--purple);}
+.tag.t {border-color:rgba(57,211,83,.35); color:var(--teal);}
+.tag.r {border-color:rgba(247,129,102,.35);color:var(--red);}
+.tag.w {border-color:rgba(227,179,65,.35);color:var(--warn);}
+.card-arrow{position:absolute;bottom:18px;right:18px;font-size:15px;color:var(--sub);transition:transform .18s,color .18s;}
+.card:hover .card-arrow{transform:translate(2px,-2px);color:var(--text);}
 
-  header p {
-    color: var(--text-sub);
-    font-size: 15px;
-    line-height: 1.7;
-  }
+/* new badge */
+.new-badge{
+  position:absolute;top:12px;right:12px;
+  font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  background:rgba(63,185,80,.12);border:1px solid rgba(63,185,80,.4);
+  border-radius:4px;padding:2px 8px;color:var(--green);
+}
 
-  /* ── PROGRESS BAR ── */
-  .progress-wrap {
-    max-width: 860px;
-    margin: 28px auto 0;
-    padding: 0 16px;
-  }
+/* ── COMING SOON ── */
+.card-soon{
+  background:var(--surface);border:1px dashed var(--border);
+  border-radius:var(--r);padding:22px 20px;
+  display:flex;flex-direction:column;gap:8px;
+  opacity:.55;
+}
+.soon-badge{
+  position:absolute;top:12px;right:12px;
+  font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:4px;padding:2px 7px;color:var(--sub);
+}
+.card-soon{position:relative;}
 
-  .progress-info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: var(--text-sub);
-    margin-bottom: 8px;
-  }
+/* ── TIP BOX ── */
+.tip-box{
+  margin-top:48px;background:var(--surface);
+  border:1px solid var(--border);border-left:3px solid var(--warn);
+  border-radius:var(--r);padding:18px 22px;
+  display:flex;gap:14px;align-items:flex-start;
+}
+.tip-box .tip-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+.tip-box p{font-size:14px;color:var(--sub);line-height:1.75;}
+.tip-box p strong{color:var(--warn);}
 
-  .progress-info strong { color: var(--accent2); }
+/* ── STATS ROW ── */
+.stats-row{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;margin-bottom:44px;
+}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px 16px;text-align:center;
+}
+.stat-num{font-family:'JetBrains Mono',monospace;font-size:2rem;font-weight:700;line-height:1;}
+.stat-label{font-size:12px;color:var(--sub);margin-top:6px;}
+.stat-green{color:var(--green);}
+.stat-blue {color:var(--blue);}
+.stat-purple{color:var(--purple);}
+.stat-warn {color:var(--warn);}
 
-  .progress-bar-bg {
-    background: var(--surface2);
-    border-radius: 99px;
-    height: 8px;
-    overflow: hidden;
-    border: 1px solid var(--border);
-  }
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--border);padding:24px 40px;
+  text-align:center;font-size:13px;color:var(--sub);
+  font-family:'JetBrains Mono',monospace;
+}
+footer span{color:var(--green);}
 
-  .progress-bar-fill {
-    height: 100%;
-    width: 25%;   /* 3 / 12 topics */
-    background: linear-gradient(90deg, var(--accent2), var(--accent));
-    border-radius: 99px;
-    transition: width .6s ease;
-  }
-
-  /* ── MAIN ── */
-  main {
-    max-width: 860px;
-    margin: 0 auto;
-    padding: 40px 20px 80px;
-  }
-
-  /* ── SECTION LABEL ── */
-  .section-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1.2px;
-    text-transform: uppercase;
-    color: var(--text-sub);
-    margin-bottom: 18px;
-    margin-top: 40px;
-  }
-
-  .section-label:first-child { margin-top: 0; }
-
-  .section-label .dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .dot-green  { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
-  .dot-orange { background: var(--accent);  box-shadow: 0 0 8px var(--accent); }
-  .dot-purple { background: var(--accent4); }
-  .dot-gray   { background: var(--text-sub); }
-
-  .section-label hr {
-    flex: 1;
-    border: none;
-    border-top: 1px solid var(--border);
-  }
-
-  /* ── CARD GRID ── */
-  .card-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
-  }
-
-  /* ── STUDY CARD (available) ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px 20px;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    position: relative;
-    overflow: hidden;
-    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-    cursor: pointer;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    border-radius: var(--radius) var(--radius) 0 0;
-    opacity: 0;
-    transition: opacity .18s ease;
-  }
-
-  .card:hover {
-    transform: translateY(-3px);
-    border-color: #444c56;
-    box-shadow: 0 8px 32px rgba(0,0,0,.4);
-  }
-
-  .card:hover::before { opacity: 1; }
-
-  .card.orange::before { background: linear-gradient(90deg, var(--accent), var(--warn)); }
-  .card.green::before  { background: linear-gradient(90deg, var(--accent2), #58d68d); }
-  .card.purple::before { background: linear-gradient(90deg, var(--accent4), #79c0ff); }
-  .card.blue::before   { background: linear-gradient(90deg, #58a6ff, var(--accent4)); }
-  .card.teal::before   { background: linear-gradient(90deg, #3fb950, #58a6ff); }
-  .tag.blue   { border-color: rgba(88,166,255,.4); color: #58a6ff; }
-  .tag.teal   { border-color: rgba(63,185,80,.4);  color: #39d353; }
-
-  .card-icon {
-    font-size: 26px;
-    line-height: 1;
-  }
-
-  .card-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--text-sub);
-    letter-spacing: .5px;
-  }
-
-  .card-title {
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1.4;
-  }
-
-  .card-desc {
-    font-size: 13px;
-    color: var(--text-sub);
-    line-height: 1.6;
-    flex: 1;
-  }
-
-  .card-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 4px;
-  }
-
-  .tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2px 7px;
-    color: var(--text-sub);
-  }
-
-  .tag.orange { border-color: rgba(240,136,62,.4); color: var(--accent); }
-  .tag.green  { border-color: rgba(63,185,80,.4);  color: var(--accent2); }
-  .tag.purple { border-color: rgba(210,168,255,.4); color: var(--accent4); }
-
-  .card-arrow {
-    position: absolute;
-    bottom: 18px;
-    right: 18px;
-    font-size: 16px;
-    color: var(--text-sub);
-    transition: transform .18s ease, color .18s ease;
-  }
-
-  .card:hover .card-arrow { transform: translate(2px,-2px); color: var(--text); }
-
-  /* ── COMING SOON CARD ── */
-  .card-soon {
-    background: var(--surface);
-    border: 1px dashed var(--border);
-    border-radius: var(--radius);
-    padding: 22px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    opacity: .65;
-    position: relative;
-  }
-
-  .card-soon .card-icon { filter: grayscale(1); }
-
-  .soon-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: .8px;
-    text-transform: uppercase;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2px 7px;
-    color: var(--text-sub);
-  }
-
-  /* ── TIP BOX ── */
-  .tip-box {
-    margin-top: 48px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--warn);
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-  }
-
-  .tip-box .tip-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-
-  .tip-box p {
-    font-size: 14px;
-    color: var(--text-sub);
-    line-height: 1.7;
-  }
-
-  .tip-box p strong { color: var(--warn); }
-
-  /* ── FOOTER ── */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 24px 40px;
-    text-align: center;
-    font-size: 13px;
-    color: var(--text-sub);
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  footer span { color: var(--accent); }
+@media(max-width:600px){
+  header{padding:32px 16px 28px;}
+  main{padding:28px 12px 60px;}
+  .section-label{margin-top:32px;}
+}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════ HEADER ═══════════════════════════════ -->
+<!-- ═══ HEADER ═══ -->
 <header>
-  <div class="python-badge">
-    🐍 <span>Python</span> &nbsp;·&nbsp; 초급 학습 로드맵
-  </div>
+  <div class="badge">🐍 <span>Python</span> &nbsp;·&nbsp; 초급 학습 로드맵</div>
   <h1><em>Python</em> 학습 센터</h1>
-  <p>개념을 하나씩 클릭해서 학습하세요.<br>코드 예제와 함께 파이썬 기초를 탄탄하게 쌓아봅시다.</p>
-
-  <div class="progress-wrap">
-    <div class="progress-info">
-      <span>전체 학습 진도</span>
-      <strong>5 / 12 주제 완성</strong>
-    </div>
-    <div class="progress-bar-bg">
-      <div class="progress-bar-fill" style="width:41.6%"></div>
-    </div>
-  </div>
+  <p>개념을 하나씩 클릭해서 학습하세요.<br>플래시카드 · 코드 예제 · 퀴즈로 기초를 탄탄하게 쌓아봅시다.</p>
 </header>
 
-<!-- ═══════════════════════════════ MAIN ════════════════════════════════ -->
+<!-- ═══ MAIN ═══ -->
 <main>
 
-  <!-- ── 학습 가능한 콘텐츠 ── -->
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num stat-green">10</div><div class="stat-label">학습 유닛</div></div>
+    <div class="stat-card"><div class="stat-num stat-blue">200+</div><div class="stat-label">플래시카드</div></div>
+    <div class="stat-card"><div class="stat-num stat-purple">160+</div><div class="stat-label">퀴즈 문항</div></div>
+  </div>
+
+  <!-- ── 학습 가능 ── -->
   <div class="section-label">
     <div class="dot dot-green"></div>
     학습 가능
@@ -370,168 +215,168 @@
   <div class="card-grid">
 
     <!-- UNIT 01 -->
-    <a class="card green" href="python_namespace_study.html">
-      <div class="card-num">UNIT 01</div>
+    <a class="card c-green" href="python_namespace_study.html">
+      <div class="card-unit">UNIT 01</div>
       <div class="card-icon">🔖</div>
       <div class="card-title">이름과 네임스페이스</div>
       <div class="card-desc">변수 이름이 어떻게 저장되고 참조되는지, 스코프와 네임스페이스의 개념을 학습합니다.</div>
       <div class="card-tags">
-        <span class="tag green">name</span>
-        <span class="tag green">namespace</span>
-        <span class="tag green">scope</span>
+        <span class="tag g">name</span>
+        <span class="tag g">namespace</span>
+        <span class="tag g">scope</span>
       </div>
       <div class="card-arrow">↗</div>
     </a>
 
     <!-- UNIT 02 -->
-    <a class="card purple" href="python_object_study.html">
-      <div class="card-num">UNIT 02</div>
+    <a class="card c-purple" href="python_object_study.html">
+      <div class="card-unit">UNIT 02</div>
       <div class="card-icon">🧱</div>
       <div class="card-title">객체와 OOP 기초</div>
       <div class="card-desc">파이썬의 모든 것은 객체입니다. 클래스와 인스턴스의 개념, 속성과 메서드를 탐구합니다.</div>
       <div class="card-tags">
-        <span class="tag purple">object</span>
-        <span class="tag purple">class</span>
-        <span class="tag purple">OOP</span>
+        <span class="tag p">object</span>
+        <span class="tag p">class</span>
+        <span class="tag p">OOP</span>
       </div>
       <div class="card-arrow">↗</div>
     </a>
 
     <!-- UNIT 03 -->
-    <a class="card orange" href="python_datatype1_study.html">
-      <div class="card-num">UNIT 03</div>
+    <a class="card c-orange" href="python_datatype1_study.html">
+      <div class="card-unit">UNIT 03</div>
       <div class="card-icon">📦</div>
       <div class="card-title">자료형 (Type)</div>
       <div class="card-desc">파이썬의 기본 자료형인 숫자, 문자열, 불리언을 이해하고 각 타입의 특성을 익힙니다.</div>
       <div class="card-tags">
-        <span class="tag orange">int</span>
-        <span class="tag orange">float</span>
-        <span class="tag orange">str</span>
-        <span class="tag orange">bool</span>
+        <span class="tag o">int</span>
+        <span class="tag o">float</span>
+        <span class="tag o">str</span>
+        <span class="tag o">bool</span>
       </div>
       <div class="card-arrow">↗</div>
     </a>
 
-  </div>
-
-  <!-- ── 준비 중인 콘텐츠 ── -->
-  <div class="section-label">
-    <div class="dot dot-orange"></div>
-    준비 중
-    <hr>
-  </div>
-
-  <div class="card-grid">
-
     <!-- UNIT 04 -->
-    <a class="card blue" href="python_object_statement_study.html">
-      <div class="card-num">UNIT 04</div>
+    <a class="card c-blue" href="python_object_statement_study.html">
+      <div class="card-unit">UNIT 04</div>
       <div class="card-icon">⚡</div>
       <div class="card-title">객체 생성 &amp; 명령 실행</div>
       <div class="card-desc">객체를 만드는 세 가지 방법과 연산자·함수·메서드, 중첩·연쇄 명령의 차이를 학습합니다.</div>
       <div class="card-tags">
-        <span class="tag blue">statement</span>
-        <span class="tag blue">nested</span>
-        <span class="tag blue">chained</span>
+        <span class="tag b">statement</span>
+        <span class="tag b">nested</span>
+        <span class="tag b">chained</span>
       </div>
       <div class="card-arrow">↗</div>
     </a>
 
     <!-- UNIT 05 -->
-    <a class="card teal" href="python_container_study.html">
-      <div class="card-num">UNIT 05</div>
+    <a class="card c-teal" href="python_container_study.html">
+      <div class="card-unit">UNIT 05</div>
       <div class="card-icon">🗂️</div>
       <div class="card-title">컨테이너 객체</div>
       <div class="card-desc">list, tuple, str, set, dict 다섯 가지 컨테이너의 특성, 인덱싱, 슬라이싱, 주요 메서드를 학습합니다.</div>
       <div class="card-tags">
-        <span class="tag teal">list</span>
-        <span class="tag teal">dict</span>
-        <span class="tag teal">set</span>
-        <span class="tag teal">str</span>
+        <span class="tag t">list</span>
+        <span class="tag t">tuple</span>
+        <span class="tag t">dict</span>
+        <span class="tag t">set</span>
       </div>
       <div class="card-arrow">↗</div>
     </a>
 
     <!-- UNIT 06 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
-      <div class="card-icon">🔁</div>
-      <div class="card-num">UNIT 06</div>
-      <div class="card-title">Comprehension</div>
-      <div class="card-desc">list / dict / set comprehension과 조건식을 활용한 간결한 데이터 생성 방법을 학습합니다.</div>
-    </div>
+    <a class="card c-blue" href="python_statement_expression_study.html">
+      <div class="card-unit">UNIT 06</div>
+      <div class="card-icon">📝</div>
+      <div class="card-title">Statement &amp; Expression</div>
+      <div class="card-desc">문장(Statement)과 표현식(Expression)의 차이, 파이썬 코드 실행 흐름의 기초를 학습합니다.</div>
+      <div class="card-tags">
+        <span class="tag b">statement</span>
+        <span class="tag b">expression</span>
+      </div>
+      <div class="card-arrow">↗</div>
+    </a>
 
     <!-- UNIT 07 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
-      <div class="card-icon">🖨️</div>
-      <div class="card-num">UNIT 07</div>
-      <div class="card-title">출력</div>
-      <div class="card-desc">print 함수, f-string, format, sep/end 옵션을 다양하게 활용합니다.</div>
-    </div>
+    <a class="card c-blue" href="python_control_study.html">
+      <div class="card-unit">UNIT 07</div>
+      <div class="card-icon">🔀</div>
+      <div class="card-title">제어문</div>
+      <div class="card-desc">if / elif / else 조건문, for · while 반복문, break · continue · else, walrus 연산자를 학습합니다.</div>
+      <div class="card-tags">
+        <span class="tag b">if</span>
+        <span class="tag b">for</span>
+        <span class="tag b">while</span>
+        <span class="tag b">break</span>
+      </div>
+      <div class="card-arrow">↗</div>
+    </a>
 
     <!-- UNIT 08 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
-      <div class="card-icon">➕</div>
-      <div class="card-num">UNIT 08</div>
-      <div class="card-title">연산자</div>
-      <div class="card-desc">산술·비교·논리·할당·비트 연산자와 우선순위를 학습합니다.</div>
-    </div>
+    <a class="card c-teal" href="python_comprehension_study.html">
+      <div class="card-unit">UNIT 08</div>
+      <div class="card-icon">⚙️</div>
+      <div class="card-title">Comprehension</div>
+      <div class="card-desc">map · filter · zip과 list / set / dict comprehension, generator expression을 학습합니다.</div>
+      <div class="card-tags">
+        <span class="tag t">map</span>
+        <span class="tag t">filter</span>
+        <span class="tag t">list comp</span>
+        <span class="tag t">generator</span>
+      </div>
+      <div class="card-arrow">↗</div>
+    </a>
 
     <!-- UNIT 09 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
-      <div class="card-icon">🔀</div>
-      <div class="card-num">UNIT 09</div>
-      <div class="card-title">notation & 제어문</div>
-      <div class="card-desc">파이썬 표기법과 if / elif / else, for, while 흐름 제어, break / continue를 학습합니다.</div>
-    </div>
+    <a class="card c-purple" href="python_function_study.html">
+      <div class="card-unit">UNIT 09</div>
+      <div class="card-icon">🔧</div>
+      <div class="card-title">함수 &amp; lambda</div>
+      <div class="card-desc">def 정의, argument/parameter 5가지 종류, return 값, lambda 익명 함수를 종류별로 학습합니다.</div>
+      <div class="card-tags">
+        <span class="tag p">def</span>
+        <span class="tag p">*args</span>
+        <span class="tag p">**kwargs</span>
+        <span class="tag p">lambda</span>
+      </div>
+      <div class="card-arrow">↗</div>
+    </a>
 
     <!-- UNIT 10 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
-      <div class="card-icon">⚙️</div>
-      <div class="card-num">UNIT 10</div>
-      <div class="card-title">함수 & lambda</div>
-      <div class="card-desc">def, 매개변수, 반환값, *args/**kwargs와 lambda 익명 함수를 함께 학습합니다.</div>
-    </div>
-
-    <!-- UNIT 11 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
-      <div class="card-icon">🔧</div>
-      <div class="card-num">UNIT 11</div>
-      <div class="card-title">주요 내장함수</div>
-      <div class="card-desc">print, len, range, type, int, str, list, map, filter, zip 등 자주 쓰는 내장함수를 학습합니다.</div>
-    </div>
-
-    <!-- UNIT 12 -->
-    <div class="card-soon">
-      <span class="soon-badge">Coming Soon</span>
+    <a class="card c-green" href="python_import_study.html">
+      <div class="card-unit">UNIT 10</div>
       <div class="card-icon">📂</div>
-      <div class="card-num">UNIT 12</div>
-      <div class="card-title">import & package</div>
-      <div class="card-desc">import 방법, 표준 라이브러리, as 별칭, from ... import 패턴, 패키지 구조를 익힙니다.</div>
-    </div>
+      <div class="card-title">import &amp; 모듈</div>
+      <div class="card-desc">import · from...import · as 별칭의 차이와 namespace 등록 원리를 학습합니다.</div>
+      <div class="card-tags">
+        <span class="tag g">import</span>
+        <span class="tag g">from</span>
+        <span class="tag g">as</span>
+        <span class="tag g">namespace</span>
+      </div>
+      <div class="card-arrow">↗</div>
+    </a>
 
   </div>
 
-  <!-- ── TIP ── -->
+  <!-- TIP -->
   <div class="tip-box">
     <div class="tip-icon">💡</div>
     <p>
       <strong>학습 팁</strong> &nbsp;—&nbsp;
-      각 유닛은 순서대로 학습하는 것을 권장합니다. 예제 코드를 직접 손으로 따라 치면서 익히면
-      훨씬 빠르게 이해할 수 있어요. 막히는 개념이 생기면 이전 유닛으로 돌아가 복습해 보세요.
+      각 유닛은 순서대로 학습하는 것을 권장합니다.
+      플래시카드로 개념을 익힌 뒤 코드 예제를 직접 따라 치고,
+      퀴즈로 이해도를 확인하세요. 틀린 문제는 오답노트에서 집중 복습하면 더욱 효과적입니다.
     </p>
   </div>
 
 </main>
 
-<!-- ═══════════════════════════════ FOOTER ═══════════════════════════════ -->
+<!-- ═══ FOOTER ═══ -->
 <footer>
-  <span>eduatoz</span> &nbsp;·&nbsp; Python 초급 학습 로드맵 &nbsp;·&nbsp; 2025
+  <span>eduatoz</span> &nbsp;·&nbsp; Python 초급 학습 센터 &nbsp;·&nbsp; 2026
 </footer>
 
 </body>
